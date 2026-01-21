@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Quora';
+  src: url('/fonts/quora.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 26 26 26;
+    --salaam-red: 194 19 22;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+  }
+
+  /* RTL Support */
+  [dir="rtl"] {
+    text-align: right;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Base Styles */
+  .glass {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-glass;
+  }
+
+  .glass-dark {
+    @apply bg-black/10 backdrop-blur-lg border border-white/10 shadow-glass-strong;
+  }
+
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-glass;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:bg-white/20 hover:shadow-glass-strong hover:scale-[1.02];
+  }
+
+  .glass-button {
+    @apply relative overflow-hidden rounded-full font-semibold transition-all duration-300;
+  }
+
+  .glass-button-primary {
+    @apply glass-button bg-salaam-red-500 text-white hover:bg-salaam-red-600 shadow-glow-red;
+  }
+
+  .glass-button-secondary {
+    @apply glass-button bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30;
+  }
+
+  .glass-input {
+    @apply w-full px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full
+           text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2
+           focus:ring-salaam-red-500/50 focus:border-salaam-red-500/50 transition-all duration-300;
+  }
+
+  /* Section Styles */
+  .section-padding {
+    @apply py-16 md:py-24 lg:py-32;
+  }
+
+  .container-padding {
+    @apply px-4 md:px-6 lg:px-8;
+  }
+
+  /* Text Gradient */
+  .text-gradient-red {
+    @apply bg-gradient-to-r from-salaam-red-500 to-salaam-red-600 bg-clip-text text-transparent;
+  }
+
+  /* Glow Effects */
+  .glow-red {
+    @apply shadow-glow-red;
+  }
+
+  .glow-red-hover {
+    @apply hover:shadow-glow-red-strong transition-shadow duration-300;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Glass morphism utilities */
+  .backdrop-saturate-150 {
+    backdrop-filter: saturate(150%);
+  }
+
+  /* Smooth transitions for RTL/LTR */
+  .transition-dir {
+    transition: margin 0.3s ease, padding 0.3s ease;
+  }
+
+  /* Subtle hover lift effect */
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-1;
+  }
+
+  /* Smooth image scale on hover */
+  .img-hover-zoom {
+    @apply overflow-hidden;
+  }
+
+  .img-hover-zoom img {
+    @apply transition-transform duration-500 ease-out;
+  }
+
+  .img-hover-zoom:hover img {
+    @apply scale-105;
+  }
+}
+
+/* Custom scrollbar for glass elements */
+.glass-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.glass-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.glass-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.glass-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "metadata": {
+    "title": "Salaam Cola - Taste the Freedom",
+    "description": "Premium halal cola made with passion and purpose. Experience the authentic taste of freedom with Salaam Cola Malaysia."
+  },
+  "navigation": {
+    "home": "Home",
+    "shop": "Shop",
+    "products": "Products",
+    "about": "About Us",
+    "contact": "Contact",
+    "language": "Language",
+    "cart": "Cart"
+  },
+  "hero": {
+    "title": "TASTE THE",
+    "highlight": "FREEDOM",
+    "description": "Proudly Malaysian with roots stretching far. The new age approach to refreshing Taste Independence.",
+    "cta": "Shop Now",
+    "scrollDown": "Scroll to explore"
+  },
+  "reviews": {
+    "title": "Customer Reviews",
+    "basedOn": "Based on 500+ reviews"
+  },
+  "lineup": {
+    "title": "Refreshing Can Lineup",
+    "subtitle": "Discover our range of premium halal beverages crafted for the conscious consumer",
+    "viewAll": "View All Products"
+  },
+  "taste": {
+    "tagline": "Our Philosophy",
+    "title": "TASTE IS EVERYTHING",
+    "description": "We're fundamentally a F&B company with a commitment to ethical refreshment. Our products are crafted for the conscious consumer who values quality and purpose.",
+    "feature1": "Natural Ingredients",
+    "feature2": "Halal Certified",
+    "feature3": "Made with Love",
+    "cta": "Learn Our Story"
+  },
+  "change": {
+    "tagline": "Make a Difference",
+    "title": "CHANGE STARTS SMALL",
+    "description": "Be part of something bigger. Every purchase contributes to meaningful change in communities across Malaysia. Your choice matters.",
+    "cta": "Join the Movement"
+  },
+  "trade": {
+    "tagline": "Business Partnership",
+    "title": "Trade Enquiries",
+    "description": "Become a stockist and join our growing network of retailers across Malaysia. Partner with us to bring refreshing change to your customers.",
+    "contactTitle": "Get in Touch",
+    "cta": "Contact Us"
+  },
+  "newsletter": {
+    "badge": "Special Offer",
+    "title": "Subscribe to Our Newsletter",
+    "subtitle": "Get 10% off your first purchase and stay updated with exclusive offers",
+    "placeholder": "Enter your email",
+    "cta": "Subscribe",
+    "privacy": "By subscribing, you agree to our Privacy Policy",
+    "success": "Thank you!",
+    "error": "Something went wrong. Please try again."
+  },
+  "products": {
+    "title": "Mister Cola",
+    "subtitle": "Experience the authentic taste",
+    "bestSellers": "Our Best Sellers",
+    "viewAll": "View All Products",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock",
+    "price": "Price",
+    "quantity": "Quantity"
+  },
+  "retailers": {
+    "title": "Where to Buy",
+    "subtitle": "Available at these retailers"
+  },
+  "mission": {
+    "title": "TASTE IS EVERYTHING",
+    "description": "We're fundamentally a F&B company with a commitment to ethical refreshment. Our products are crafted for the conscious consumer who values quality and purpose. The beverage itself? It's awesome, of course.",
+    "cta": "Learn Our Story"
+  },
+  "impact": {
+    "title": "GIVING POWER TO PEOPLE",
+    "subtitle": "Choose where profits flow",
+    "description": "Every sip supports communities. We believe in making a difference, one bottle at a time. Your choice matters.",
+    "cta": "See Impact"
+  },
+  "instagram": {
+    "title": "Follow us on",
+    "highlight": "Instagram",
+    "cta": "View More"
+  },
+  "footer": {
+    "company": "Salaam Cola",
+    "tagline": "Taste the Freedom",
+    "mission": "Our Mission",
+    "missionText": "To provide premium halal beverages while supporting communities and promoting ethical business practices across Malaysia.",
+    "learnMore": "Learn More",
+    "hours": "Operating Hours",
+    "connect": "Get in Touch",
+    "letsLink": "Let's Link",
+    "quickLinks": "Quick Links",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "All rights reserved"
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty",
+    "continueShopping": "Continue Shopping",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping calculated at checkout",
+    "checkout": "Proceed to Checkout",
+    "remove": "Remove",
+    "itemAdded": "Item added to cart"
+  },
+  "shop": {
+    "title": "Shop",
+    "allProducts": "All Products",
+    "categories": "Categories",
+    "sortBy": "Sort by",
+    "newest": "Newest",
+    "priceLowHigh": "Price: Low to High",
+    "priceHighLow": "Price: High to Low",
+    "noProducts": "No products found"
+  },
+  "product": {
+    "description": "Description",
+    "details": "Details",
+    "relatedProducts": "You May Also Like"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  }
+}

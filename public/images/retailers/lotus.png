@@ -1,0 +1,258 @@
+<!--
+* Copyright 2020 Adobe. All rights reserved.
+* This file is licensed to you under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License. You may obtain a copy
+* of the License at http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software distributed under
+* the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+* OF ANY KIND, either express or implied. See the License for the specific language
+* governing permissions and limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+
+	
+    	<title>404</title>
+        
+	
+
+    
+    <meta name="template" content="spa-page-template"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    
+    
+    
+    <meta name="theme-color" content="#F3F3F3"/>
+    <script defer="defer" type="text/javascript" src="/.rum/@adobe/helix-rum-js@%5E2/dist/rum-standalone.js"></script>
+<link rel="icon" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico"/>
+    <link rel="apple-touch-icon" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/logo192.png"/>
+    <link rel="manifest" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/manifest.json"/>
+
+    <!-- AEM page model -->
+    <!-- <meta
+        property="cq:pagemodel_root_url"
+        data-sly-use.page="com.adobe.aem.spa.project.core.models.Page"
+        content="/content/aem-cplotusonlinecommerce-project/my/en.model.json"
+    /> -->
+    
+    
+    
+    <meta property="cq:wcmmode" content="disabled" class="runmode"/>
+    
+
+    
+    
+    
+    <meta property="cq:wcmmode" content="disabled" class="runmode"/>
+
+    
+    
+
+
+
+    
+    
+    
+
+    <link rel="canonical" href="https://www.lotuss.com.my/en/errors/404"/>
+
+
+
+
+
+
+
+
+    
+
+
+    
+
+    
+
+    
+    
+<link rel="stylesheet" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-base.lc-c7b8f7bf2e46e30b30cc094095990aac-lc.min.css" type="text/css">
+
+
+
+    
+    
+<link rel="stylesheet" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-cif.lc-891657056087404b46968f7a24db6c2b-lc.min.css" type="text/css">
+
+
+
+
+
+
+
+
+
+<link rel="icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico"/>
+<link rel="icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="32x32"/>
+<link rel="icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="128x128"/>
+<link rel="icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="152x152"/>
+<link rel="icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="167x167"/>
+<link rel="icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="180x180"/>
+<link rel="icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="192x192"/>
+<link rel="icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="512x512"/>
+
+
+
+
+<link rel="shortcut icon" type="image/png" sizes="192x192" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico"/>
+
+
+
+
+<link rel="apple-touch-icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="128x128"/>
+<link rel="apple-touch-icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="152x152"/>
+<link rel="apple-touch-icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="167x167"/>
+<link rel="apple-touch-icon" type="image/png" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" sizes="180x180"/>
+
+
+
+
+<meta name="msapplication-TileColor" content="#FFFFFF"/>
+<meta name="msapplication-TileImage" content="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico"/>
+
+<div id="react-loading">.</div>
+
+
+<!-- <meta name="theme-color" content="#F3F3F3" />
+<link rel="icon" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/favicon.ico" />
+<link rel="apple-touch-icon" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/logo192.png" />
+<link rel="manifest" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react/resources/manifest.json" /> -->
+
+<!-- Social Share metadata -->
+ <!-- this starts the meta tags !-->
+
+    
+
+
+
+	<!-- OG Tags Placeholder -->
+	
+	
+	
+	
+	
+	
+	<!-- Schema.org for Google -->
+	<meta name="name" content="404"/>
+	<meta name="description"/>
+	<!-- <meta itemprop="image_link" content=""> -->
+	
+	<!-- Open Graph general (Facebook, Pinterest & Google+) -->
+	<meta property="og:title" content="404"/>
+	<meta property="og:description"/>
+	<meta property="og:image"/>
+	<meta property="og:url" content="https://www.lotuss.com.my/en/errors/404.html"/>
+	<!-- OG Tags Placeholder END -->
+
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Lotus’s Shop Online"/>
+
+
+
+
+
+<meta name="google-site-verification" content="jV64vbQaoFHOKjX8aJ8p4tFfy98y30SsiR6seSDx7Ro"/>
+<meta name="facebook-domain-verification" content="4gu4ch7xgj3rqbpqth36tyfat8b3wg"/>
+
+
+
+
+
+<!-- AEM page model -->
+<!-- <meta
+    property="cq:pagemodel_root_url"
+    data-sly-use.page="com.adobe.aem.spa.project.core.models.Page"
+    content=""
+/> -->
+<!-- <meta property="cq:datatype" data-sly-test="false" content="JSON" />
+<meta property="cq:wcmmode" data-sly-test="false" content="edit" />
+<meta property="cq:wcmmode" data-sly-test="false" content="preview" />
+<meta property="cq:wcmmode" data-sly-test="true" content="disabled" class="runmode"/> -->
+
+
+    
+    
+    
+
+    
+
+    
+    
+    
+<link rel="stylesheet" href="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react.lc-665195416b444b5008ac425a34a1092e-lc.min.css" type="text/css">
+
+
+
+    
+
+    
+    
+</head>
+
+  <body class="page basicpage">
+    
+    
+      
+
+
+
+      <noscript>You need to enable JavaScript to run this app.</noscript>
+<div id="spa-root"></div>
+
+      
+    
+    
+<script src="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-react.lc-e26cbb533a86c1ae6b2e512c4a9c780c-lc.min.js"></script>
+
+
+
+    
+
+    
+    
+<script src="/etc.clientlibs/clientlibs/granite/jquery/granite/csrf.lc-652a558c3774088b61b0530c184710d1-lc.min.js"></script>
+<script src="/etc.clientlibs/core/wcm/components/commons/site/clientlibs/container.lc-0a6aff292f5cc42142779cde92054524-lc.min.js"></script>
+<script src="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-base.lc-f54bcc9456cf289fb257b9499b24226e-lc.min.js"></script>
+
+
+
+    
+    
+<script src="/etc.clientlibs/core/cif/clientlibs/common.lc-77edd2074fcda5abe55d416143636d5c-lc.min.js"></script>
+<script src="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-cif.lc-fdba07efea745023ca1d251b2d7ac834-lc.min.js"></script>
+
+
+
+    
+    
+<script src="/etc.clientlibs/aem-cplotusonlinecommerce-project/clientlibs/clientlib-cplotus.lc-806274239f7f3a427c6c9c45ef87f537-lc.min.js"></script>
+
+
+
+
+
+
+
+
+    
+
+    
+
+    
+    
+    
+
+      
+
+    
+  </body>
+</html>

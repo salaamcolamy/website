@@ -1,0 +1,142 @@
+{
+  "metadata": {
+    "title": "Salaam Cola - Rasa Kebebasan",
+    "description": "Kola halal premium yang dibuat dengan semangat dan tujuan. Rasai keaslian kebebasan bersama Salaam Cola Malaysia."
+  },
+  "navigation": {
+    "home": "Laman Utama",
+    "shop": "Kedai",
+    "products": "Produk",
+    "about": "Tentang Kami",
+    "contact": "Hubungi",
+    "language": "Bahasa",
+    "cart": "Troli"
+  },
+  "hero": {
+    "title": "RASA",
+    "highlight": "KEBEBASAN",
+    "description": "Berbangga Malaysia dengan akar yang jauh. Pendekatan baharu untuk menyegarkan Kemerdekaan Rasa.",
+    "cta": "Beli Sekarang",
+    "scrollDown": "Tatal untuk meneroka"
+  },
+  "reviews": {
+    "title": "Ulasan Pelanggan",
+    "basedOn": "Berdasarkan 500+ ulasan"
+  },
+  "lineup": {
+    "title": "Barisan Tin Menyegarkan",
+    "subtitle": "Temui rangkaian minuman halal premium kami yang direka untuk pengguna yang sedar",
+    "viewAll": "Lihat Semua Produk"
+  },
+  "taste": {
+    "tagline": "Falsafah Kami",
+    "title": "RASA ITU SEGALANYA",
+    "description": "Kami pada asasnya adalah syarikat F&B dengan komitmen terhadap minuman beretika. Produk kami direka untuk pengguna yang sedar yang menghargai kualiti dan tujuan.",
+    "feature1": "Bahan Semulajadi",
+    "feature2": "Sijil Halal",
+    "feature3": "Dibuat dengan Kasih",
+    "cta": "Ketahui Kisah Kami"
+  },
+  "change": {
+    "tagline": "Buat Perbezaan",
+    "title": "PERUBAHAN BERMULA KECIL",
+    "description": "Jadilah sebahagian daripada sesuatu yang lebih besar. Setiap pembelian menyumbang kepada perubahan bermakna dalam komuniti di seluruh Malaysia.",
+    "cta": "Sertai Gerakan"
+  },
+  "trade": {
+    "tagline": "Perkongsian Perniagaan",
+    "title": "Pertanyaan Perdagangan",
+    "description": "Jadilah pengedar dan sertai rangkaian peruncit kami yang semakin berkembang di seluruh Malaysia. Bekerjasama dengan kami untuk membawa perubahan menyegarkan kepada pelanggan anda.",
+    "contactTitle": "Hubungi Kami",
+    "cta": "Hubungi Kami"
+  },
+  "newsletter": {
+    "badge": "Tawaran Istimewa",
+    "title": "Langgan Surat Berita Kami",
+    "subtitle": "Dapatkan diskaun 10% untuk pembelian pertama dan kekal dikemas kini dengan tawaran eksklusif",
+    "placeholder": "Masukkan e-mel anda",
+    "cta": "Langgan",
+    "privacy": "Dengan melanggan, anda bersetuju dengan Dasar Privasi kami",
+    "success": "Terima kasih!",
+    "error": "Sesuatu tidak kena. Sila cuba lagi."
+  },
+  "products": {
+    "title": "Mister Cola",
+    "subtitle": "Rasai keaslian rasa",
+    "bestSellers": "Pilihan Terlaris",
+    "viewAll": "Lihat Semua Produk",
+    "addToCart": "Tambah ke Troli",
+    "outOfStock": "Stok Habis",
+    "price": "Harga",
+    "quantity": "Kuantiti"
+  },
+  "retailers": {
+    "title": "Di Mana Untuk Membeli",
+    "subtitle": "Tersedia di peruncit-peruncit ini"
+  },
+  "mission": {
+    "title": "RASA ITU SEGALANYA",
+    "description": "Kami pada asasnya adalah syarikat F&B dengan komitmen terhadap minuman beretika. Produk kami direka untuk pengguna yang sedar yang menghargai kualiti dan tujuan. Minuman itu sendiri? Sudah tentu hebat.",
+    "cta": "Ketahui Kisah Kami"
+  },
+  "impact": {
+    "title": "MEMBERI KUASA KEPADA RAKYAT",
+    "subtitle": "Pilih ke mana keuntungan mengalir",
+    "description": "Setiap tegukan menyokong komuniti. Kami percaya untuk membuat perbezaan, satu botol pada satu masa. Pilihan anda penting.",
+    "cta": "Lihat Impak"
+  },
+  "instagram": {
+    "title": "Ikuti kami di",
+    "highlight": "Instagram",
+    "cta": "Lihat Lagi"
+  },
+  "footer": {
+    "company": "Salaam Cola",
+    "tagline": "Rasa Kebebasan",
+    "mission": "Misi Kami",
+    "missionText": "Menyediakan minuman halal premium sambil menyokong komuniti dan mempromosikan amalan perniagaan beretika di seluruh Malaysia.",
+    "learnMore": "Ketahui Lebih Lanjut",
+    "hours": "Waktu Operasi",
+    "connect": "Hubungi Kami",
+    "letsLink": "Ikuti Kami",
+    "quickLinks": "Pautan Pantas",
+    "legal": "Undang-undang",
+    "privacy": "Dasar Privasi",
+    "terms": "Terma Perkhidmatan",
+    "copyright": "Hak cipta terpelihara"
+  },
+  "cart": {
+    "title": "Troli Anda",
+    "empty": "Troli anda kosong",
+    "continueShopping": "Terus Membeli-belah",
+    "subtotal": "Jumlah Kecil",
+    "shipping": "Penghantaran dikira semasa pembayaran",
+    "checkout": "Teruskan ke Pembayaran",
+    "remove": "Buang",
+    "itemAdded": "Item ditambah ke troli"
+  },
+  "shop": {
+    "title": "Kedai",
+    "allProducts": "Semua Produk",
+    "categories": "Kategori",
+    "sortBy": "Susun mengikut",
+    "newest": "Terbaru",
+    "priceLowHigh": "Harga: Rendah ke Tinggi",
+    "priceHighLow": "Harga: Tinggi ke Rendah",
+    "noProducts": "Tiada produk dijumpai"
+  },
+  "product": {
+    "description": "Penerangan",
+    "details": "Butiran",
+    "relatedProducts": "Anda Mungkin Suka"
+  },
+  "common": {
+    "loading": "Memuatkan...",
+    "error": "Sesuatu tidak kena",
+    "retry": "Cuba lagi",
+    "close": "Tutup",
+    "back": "Kembali",
+    "next": "Seterusnya",
+    "previous": "Sebelumnya"
+  }
+}
