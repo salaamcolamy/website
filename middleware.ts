@@ -6,5 +6,5 @@ export default createMiddleware(routing, {
 })
 
 export const config = {
-  matcher: ['/', '/(en|ms|ar)/:path*']
+  matcher: ['/', '/(en)/:path*']
 }

@@ -3,85 +3,58 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Instagram } from 'lucide-react'
+import { TikTokIcon } from '@/components/icons/SocialIcons'
 import Image from 'next/image'
-
-const instagramPosts = [
-  { id: 1, image: '/images/change/WhatsApp Image 2025-12-11 at 23.51.22.jpeg' },
-  { id: 2, image: '/images/change/WhatsApp Image 2025-12-11 at 23.51.25.jpeg' },
-  { id: 3, image: '/images/change/WhatsApp Image 2025-12-11 at 23.51.26.jpeg' },
-  { id: 4, image: '/images/change/WhatsApp Image 2025-12-11 at 23.51.26 (1).jpeg' },
-  { id: 5, image: '/images/change/WhatsApp Image 2025-12-11 at 23.51.27.jpeg' },
-  { id: 6, image: '/images/change/WhatsApp Image 2025-12-11 at 23.51.27 (1).jpeg' },
-]
 
 export function InstagramFeed() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="relative bg-gray-900 overflow-hidden">
-      {/* Header with background image */}
-      <div className="relative py-16">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/change/WhatsApp Image 2025-12-11 at 23.51.27.jpeg"
-            alt="Instagram background"
-            fill
-            className="object-cover opacity-40"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 to-gray-900" />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
-              Follow us on
-              <br />
-              Instagram
-            </h2>
-            <a
-              href="https://instagram.com/salaamcola"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors"
-            >
-              @salaamcola
-            </a>
-          </motion.div>
-        </div>
+    <section ref={ref} className="relative bg-gray-900 overflow-hidden py-20">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/change/WhatsApp Image 2025-12-11 at 23.51.27.jpeg"
+          alt="Join Us background"
+          fill
+          className="object-cover opacity-30"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/60 via-gray-900/80 to-gray-900" />
       </div>
 
-      {/* Instagram Grid */}
-      <div className="grid grid-cols-3 md:grid-cols-6">
-        {instagramPosts.map((post, index) => (
+      <div className="container mx-auto px-4 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center space-y-6"
+        >
+          <h2 className="text-4xl md:text-5xl font-quora font-black text-white uppercase tracking-wide">
+            Follow Us
+          </h2>
+          <p className="text-white/70 max-w-xl mx-auto">
+            Be part of the Salaam Cola movement. Connect with us on TikTok for the latest updates and behind-the-scenes content!
+          </p>
+
+          {/* TikTok Link Button */}
           <motion.a
-            key={post.id}
-            href="https://instagram.com/salaamcola"
+            href="https://www.tiktok.com/@salaamcolamy"
             target="_blank"
             rel="noopener noreferrer"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-            className="group relative aspect-square overflow-hidden"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 rounded-full font-semibold hover:bg-gray-100 transition-colors shadow-lg"
           >
-            <Image
-              src={post.image}
-              alt={`Instagram post ${post.id}`}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-salaam-red-500/0 group-hover:bg-salaam-red-500/70 transition-colors duration-300 flex items-center justify-center">
-              <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </div>
+            <TikTokIcon className="w-6 h-6" />
+            <span>Follow us on TikTok</span>
           </motion.a>
-        ))}
+
+          <p className="text-white/50 text-sm">@salaamcolamy</p>
+        </motion.div>
       </div>
     </section>
   )

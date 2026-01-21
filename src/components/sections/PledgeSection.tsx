@@ -8,13 +8,13 @@ import { TreePine, Truck, CreditCard, RotateCcw } from 'lucide-react'
 const pledges = [
   {
     icon: TreePine,
-    title: 'Our Pledge',
-    description: 'Regenerating our forests for a healthier planet.',
+    title: 'Sip with Purpose',
+    description: 'Join the mission for global humanitarian aids',
   },
   {
     icon: Truck,
-    title: 'Free Express Shipping',
-    description: 'For all orders over $150',
+    title: 'Business',
+    description: 'Distribute Salaam Cola at your premise',
   },
   {
     icon: CreditCard,
@@ -35,6 +35,14 @@ export function PledgeSection() {
   return (
     <section ref={ref} className="py-16 bg-white border-t border-gray-100">
       <div className="container mx-auto px-4">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-10"
+        >
+          Join Us
+        </motion.h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {pledges.map((pledge, index) => (
             <motion.div

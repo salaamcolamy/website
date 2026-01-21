@@ -60,9 +60,9 @@ export function TasteIsEverything() {
 
           {/* Description */}
           <p className="text-white/90 text-lg md:text-xl leading-relaxed mb-8 max-w-3xl mx-auto">
-            We've tackled a bunch of challenges to create an awesome cola alternative that stands out
-            from the big names with the same great taste. Get ready for a unique taste adventure
-            that'll wow you with every sip. Excited? We sure are, and we can't wait for you to try it!
+            In blind taste tests, 98% of participants agreed that Salaam Cola rivals the flavor of the world's leading brands.
+            Crafted to fit perfectly into Malaysia's vibrant food culture and social lifestyle, we are more than just a drink,
+            we are an ethical movement. Join the hype, choose the ethical alternative, and make a difference sip by sip.
           </p>
 
           {/* CTA Button */}
@@ -72,10 +72,10 @@ export function TasteIsEverything() {
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <Link
-              href="/shop"
+              href="/contact"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-salaam-red-500 rounded-full font-semibold hover:bg-white/90 transition-colors shadow-lg"
             >
-              Get your free sample
+              Taste the Impact
               <ArrowRight className="w-5 h-5" />
             </Link>
           </motion.div>

@@ -9,49 +9,52 @@ import { GlassInput } from '@/components/ui/GlassInput'
 import { fadeInUp, fadeInLeft, fadeInRight, staggerContainer } from '@/lib/animations'
 import {
   Mail,
-  Phone,
   MapPin,
   Send,
   MessageSquare,
   Clock,
   CheckCircle,
   Instagram,
-  Facebook,
-  Twitter,
+  Building,
 } from 'lucide-react'
+import { ThreadsIcon, TikTokIcon, XIcon, YouTubeIcon } from '@/components/icons/SocialIcons'
+import { StoreLocatorMap } from '@/components/shared/StoreLocatorMap'
 
 const contactInfo = [
   {
     icon: Mail,
     title: 'Email',
-    value: 'hello@salaamcola.com',
-    href: 'mailto:hello@salaamcola.com',
-  },
-  {
-    icon: Phone,
-    title: 'Phone',
-    value: '+60 12-345 6789',
-    href: 'tel:+60123456789',
-  },
-  {
-    icon: MapPin,
-    title: 'Address',
-    value: 'Kuala Lumpur, Malaysia',
-    href: '#',
+    value: 'hello@salaamcolamy.com',
+    href: 'mailto:hello@salaamcolamy.com',
   },
   {
     icon: Clock,
     title: 'Business Hours',
-    value: 'Mon - Fri: 9AM - 6PM',
+    value: '9.00am - 5.00pm',
+    href: '#',
+  },
+  {
+    icon: Building,
+    title: 'Company',
+    value: 'DUNYA DAMAI SDN BHD (1645635-W)',
+    href: '#',
+  },
+  {
+    icon: MapPin,
+    title: 'Address',
+    value: 'Block B-03-01, No 21, Galeria Hartamas, Jalan 26A/70A Desa Sri Hartamas, 50480 Kuala Lumpur',
     href: '#',
   },
 ]
 
 const socialLinks = [
-  { icon: Instagram, href: 'https://instagram.com/salaamcola', label: 'Instagram' },
-  { icon: Facebook, href: 'https://facebook.com/salaamcola', label: 'Facebook' },
-  { icon: Twitter, href: 'https://twitter.com/salaamcola', label: 'Twitter' },
+  { icon: Instagram, href: 'https://instagram.com/salaamcolamy', label: 'Instagram' },
+  { icon: ThreadsIcon, href: 'https://threads.net/@salaamcolamy', label: 'Threads' },
+  { icon: TikTokIcon, href: 'https://tiktok.com/@salaamcolamy', label: 'TikTok' },
+  { icon: XIcon, href: 'https://x.com/salaamcolamy', label: 'X' },
+  { icon: YouTubeIcon, href: 'https://youtube.com/@salaamcolamy', label: 'YouTube' },
 ]
+
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -262,21 +265,40 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Map placeholder */}
-              <GlassCard className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                <div className="text-center text-gray-500 space-y-2">
-                  <MapPin className="w-12 h-12 mx-auto text-salaam-red-500/50" />
-                  <p className="font-medium">Kuala Lumpur, Malaysia</p>
-                  <p className="text-sm">Map integration coming soon</p>
-                </div>
-              </GlassCard>
             </motion.div>
           </motion.div>
         </div>
       </section>
 
+      {/* Store Locator Map Section */}
+      <section id="store-locator" className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-10"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold text-salaam-red-500 mb-2">
+              Find Salaam Cola
+            </h2>
+            <p className="text-gray-600">Locate our stores across Malaysia</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <StoreLocatorMap maxWidth="max-w-4xl" showStoreList={true} />
+          </motion.div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             variants={staggerContainer}
@@ -298,11 +320,11 @@ export default function ContactPage() {
               {[
                 {
                   q: 'Is Salaam Cola halal certified?',
-                  a: 'Yes, all our products are 100% halal certified and comply with Islamic dietary standards.',
+                  a: 'Yes, all of our products are 100% Halal JAKIM certified and KKM-approved.',
                 },
                 {
                   q: 'Where can I buy Salaam Cola?',
-                  a: 'You can find our products at major retailers including AEON, myNEWS, 7-Eleven, and through our online shop.',
+                  a: 'You can find our products at our exclusive retail and F&B partners listed above.',
                 },
                 {
                   q: 'Do you ship nationwide?',

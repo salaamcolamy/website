@@ -21,9 +21,6 @@ export default async function HomePage({ params }: HomePageProps) {
       {/* Hero - Red background with floating can */}
       <HeroSection />
 
-      {/* Customer Review + Newsletter Subscribe */}
-      <ReviewNewsletter />
-
       {/* Taste Is Everything - Red section */}
       <TasteIsEverything />
 
@@ -36,11 +33,14 @@ export default async function HomePage({ params }: HomePageProps) {
       {/* Supporters Logos */}
       <Supporters />
 
+      {/* Join Us - TikTok Link */}
+      <InstagramFeed />
+
       {/* Pledge Section - Icons row */}
       <PledgeSection />
 
-      {/* Instagram Feed */}
-      <InstagramFeed />
+      {/* Customer Review + Newsletter Subscribe - Before footer */}
+      <ReviewNewsletter />
     </>
   )
 }

@@ -38,7 +38,7 @@ export const demoProducts = [
     price: 34.00,
     originalPrice: 38.00,
     discount: 11,
-    image: '/images/products/3333.webp',
+    image: '/images/products/2222.webp',
     href: '/shop/zero-sugar',
   },
   {
@@ -48,7 +48,7 @@ export const demoProducts = [
     price: 28.00,
     originalPrice: null,
     discount: null,
-    image: '/images/products/2222.webp',
+    image: '/images/products/3333.webp',
     href: '/shop/keffiyeh',
   },
 ]

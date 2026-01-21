@@ -13,8 +13,8 @@ const products = [
     title: 'Original',
     category: 'CLASSIC',
     price: 20.00,
-    originalPrice: 26.00,
-    discount: 23,
+    originalPrice: null,
+    discount: null,
     rating: 5,
     reviews: 3,
     image: '/images/products/1111.webp',
@@ -25,23 +25,23 @@ const products = [
     title: 'Zero Sugar',
     category: 'NO SUGAR',
     price: 34.00,
-    originalPrice: 38.00,
-    discount: 11,
+    originalPrice: null,
+    discount: null,
     rating: 5,
     reviews: 3,
-    image: '/images/products/3333.webp',
+    image: '/images/products/2222.webp',
     href: '/shop/zero-sugar',
   },
   {
     id: 3,
     title: 'Keffiyah Edition',
     category: 'LIMITED EDITION',
-    price: 28.00,
-    originalPrice: null,
-    discount: null,
+    price: 25.20,
+    originalPrice: 28.00,
+    discount: 10,
     rating: 5,
     reviews: 3,
-    image: '/images/products/2222.webp',
+    image: '/images/products/3333.webp',
     href: '/shop/keffiyeh',
   },
 ]
@@ -63,7 +63,7 @@ export function BestSellers() {
           <span className="inline-block px-4 py-1.5 mb-3 text-sm font-medium text-salaam-red-500 bg-salaam-red-50 backdrop-blur-sm border border-salaam-red-100 rounded-full">
             Must-haves
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Our Best Sellers</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Shop Now</h2>
         </motion.div>
 
         {/* Products Grid */}
@@ -76,7 +76,7 @@ export function BestSellers() {
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Link href={product.href}>
+                <Link href={product.href} scroll={true} onClick={() => window.scrollTo(0, 0)}>
                   <div className="group text-center">
                     {/* Product Image */}
                     <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto">

@@ -1,10 +1,6 @@
-'use client'
-
-import { useState } from 'react'
 import { Link } from '@/i18n/routing'
-import { motion } from 'framer-motion'
-import { Instagram, Facebook, Twitter, ArrowRight } from 'lucide-react'
-import Image from 'next/image'
+import { Instagram } from 'lucide-react'
+import { ThreadsIcon, TikTokIcon, XIcon, YouTubeIcon } from '@/components/icons/SocialIcons'
 
 const shopLinks = [
   { label: 'New arrivals', href: '/shop?sort=newest' },
@@ -26,47 +22,19 @@ const aboutLinks = [
 ]
 
 const socialLinks = [
-  { icon: Instagram, href: 'https://instagram.com/salaamcola' },
-  { icon: Facebook, href: 'https://facebook.com/salaamcola' },
-  { icon: Twitter, href: 'https://twitter.com/salaamcola' },
+  { icon: Instagram, href: 'https://instagram.com/salaamcolamy' },
+  { icon: ThreadsIcon, href: 'https://threads.net/@salaamcolamy' },
+  { icon: TikTokIcon, href: 'https://tiktok.com/@salaamcolamy' },
+  { icon: XIcon, href: 'https://x.com/salaamcolamy' },
+  { icon: YouTubeIcon, href: 'https://youtube.com/@salaamcolamy' },
 ]
 
 export function Footer() {
-  const [email, setEmail] = useState('')
-
   return (
     <footer className="bg-white border-t border-gray-100">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10">
-          {/* Newsletter Section */}
-          <div className="lg:col-span-2 space-y-4 text-center md:text-left">
-            <span className="inline-block px-4 py-1.5 text-sm font-medium text-salaam-red-500 bg-salaam-red-50 backdrop-blur-sm border border-salaam-red-100 rounded-full">
-              Newsletter
-            </span>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900">
-              Get 10% off your first purchase
-            </h3>
-            <p className="text-gray-500 text-sm">
-              Be the first to know about new arrivals, special offers, in-store events and news
-            </p>
-            <form className="flex gap-2 max-w-md mx-auto md:mx-0" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-full border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-salaam-red-500 text-white rounded-full font-semibold hover:bg-salaam-red-600 transition-colors flex items-center gap-2"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
           {/* Shop Links */}
           <div className="space-y-4 text-center md:text-left">
             <h4 className="font-semibold text-gray-900">Shop</h4>

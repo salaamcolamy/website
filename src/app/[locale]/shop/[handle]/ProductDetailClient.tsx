@@ -24,6 +24,7 @@ interface DemoProduct {
   title: string
   category: string
   description: string
+  longDescription?: string
   price: number
   originalPrice: number | null
   discount: number | null
@@ -46,6 +47,7 @@ export function ProductDetailClient({
 
   const [quantity, setQuantity] = useState(1)
   const [isAdded, setIsAdded] = useState(false)
+  const [activeTab, setActiveTab] = useState<'description' | 'additional' | 'review'>('description')
 
   const handleAddToCart = () => {
     addDemoItem(product.id, quantity)
@@ -223,6 +225,198 @@ export function ProductDetailClient({
               </div>
             </div>
           </motion.div>
+        </motion.div>
+
+        {/* Product Tabs */}
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mt-16"
+        >
+          {/* Tab Headers */}
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('description')}
+              className={`px-6 py-4 font-medium transition-colors ${
+                activeTab === 'description'
+                  ? 'text-salaam-red-500 border-b-2 border-salaam-red-500'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Description
+            </button>
+            <button
+              onClick={() => setActiveTab('additional')}
+              className={`px-6 py-4 font-medium transition-colors ${
+                activeTab === 'additional'
+                  ? 'text-salaam-red-500 border-b-2 border-salaam-red-500'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Additional Information
+            </button>
+            <button
+              onClick={() => setActiveTab('review')}
+              className={`px-6 py-4 font-medium transition-colors ${
+                activeTab === 'review'
+                  ? 'text-salaam-red-500 border-b-2 border-salaam-red-500'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Reviews
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div className="py-8">
+            {activeTab === 'description' && (
+              <div className="prose prose-gray max-w-none space-y-4">
+                {(product.longDescription || product.description).split('\n\n').map((paragraph, index) => (
+                  <p key={index} className="text-gray-600 leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'additional' && (
+              <div className="space-y-8">
+                {/* Basic Info */}
+                <div className="grid grid-cols-2 gap-4 max-w-md">
+                  <div className="text-gray-500">Weight</div>
+                  <div className="text-gray-900 font-medium">8 kg</div>
+                  <div className="text-gray-500">Cans</div>
+                  <div className="text-gray-900 font-medium">Box of 24, Single</div>
+                  <div className="text-gray-500">Volume</div>
+                  <div className="text-gray-900 font-medium">330ml</div>
+                  <div className="text-gray-500">Category</div>
+                  <div className="text-gray-900 font-medium">{product.category}</div>
+                  <div className="text-gray-500">Certification</div>
+                  <div className="text-gray-900 font-medium">Halal JAKIM, KKM-Approved</div>
+                  <div className="text-gray-500">Origin</div>
+                  <div className="text-gray-900 font-medium">Malaysia</div>
+                </div>
+
+                {/* Nutrition Information */}
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-4">Nutrition Information</h4>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Per 100ml */}
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h5 className="font-medium text-gray-700 mb-3">Per 100ml</h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Energy</span>
+                          <span className="text-gray-900">195kJ / 46kcal</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Total Fat</span>
+                          <span className="text-gray-900">0g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Total Carbohydrate</span>
+                          <span className="text-gray-900">11g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Total Sugars</span>
+                          <span className="text-gray-900">11g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Fiber</span>
+                          <span className="text-gray-900">0g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Protein</span>
+                          <span className="text-gray-900">0g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Salt</span>
+                          <span className="text-gray-900">0g</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Per 330ml */}
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <h5 className="font-medium text-gray-700 mb-3">Per 330ml (1 can)</h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Energy</span>
+                          <span className="text-gray-900">643.5kJ / 151.8kcal</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Total Fat</span>
+                          <span className="text-gray-900">0g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Total Carbohydrate</span>
+                          <span className="text-gray-900">36.6g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Total Sugars</span>
+                          <span className="text-gray-900">36.3g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Fiber</span>
+                          <span className="text-gray-900">0g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Protein</span>
+                          <span className="text-gray-900">0g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Salt</span>
+                          <span className="text-gray-900">0g</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'review' && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl font-bold text-gray-900">{product.rating}.0</div>
+                  <div>
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${
+                            i < product.rating
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'fill-gray-200 text-gray-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-gray-500 text-sm mt-1">Based on {product.reviews} reviews</p>
+                  </div>
+                </div>
+                <div className="border-t pt-6 space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">Ahmad R.</span>
+                        <span className="text-gray-400 text-sm">Negeri Sembilan</span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-gray-600 mt-2">Rasa yang sangat sedap! Saya sangat suka dengan kola ini.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </motion.div>
 
         {/* Related products */}

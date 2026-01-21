@@ -48,7 +48,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
                 transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
               >
                 <path
-                  fill="rgba(0,0,0,0.1)"
+                  fill="rgba(185,28,28,0.3)"
                   d="M0,160L60,170.7C120,181,240,203,360,208C480,213,600,203,720,176C840,149,960,107,1080,101.3C1200,96,1320,128,1440,154.7C1560,181,1680,203,1800,197.3C1920,192,2040,160,2160,154.7C2280,149,2400,171,2520,176C2640,181,2760,171,2820,165.3L2880,160L2880,320L0,320Z"
                 />
               </motion.svg>
@@ -60,14 +60,14 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
                 transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
               >
                 <path
-                  fill="rgba(255,255,255,0.05)"
+                  fill="rgba(254,202,202,0.15)"
                   d="M0,224L60,218.7C120,213,240,203,360,192C480,181,600,171,720,181.3C840,192,960,224,1080,229.3C1200,235,1320,213,1440,197.3C1560,181,1680,171,1800,176C1920,181,2040,203,2160,208C2280,213,2400,203,2520,186.7C2640,171,2760,149,2820,138.7L2880,128L2880,320L0,320Z"
                 />
               </motion.svg>
             </div>
 
             {/* Content container */}
-            <div className="relative z-10 flex flex-col items-center justify-center">
+            <div className="relative z-10 flex flex-col items-center justify-center overflow-visible">
               {/* Can image with animation */}
               <motion.div
                 initial={{ y: 100, opacity: 0, scale: 0.8 }}
@@ -77,7 +77,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
                   ease: [0.25, 0.46, 0.45, 0.94],
                   delay: 0.2,
                 }}
-                className="relative"
+                className="relative overflow-visible"
               >
                 <motion.div
                   animate={{
@@ -88,13 +88,14 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
                     repeat: Infinity,
                     ease: 'easeInOut',
                   }}
+                  className="overflow-visible"
                 >
                   <Image
-                    src="/images/hero/Can-Mockup-V2.webp"
+                    src="/images/Untitled design.png"
                     alt="Salaam Cola"
                     width={300}
                     height={600}
-                    className="h-[350px] md:h-[450px] lg:h-[500px] w-auto drop-shadow-2xl"
+                    className="h-[350px] md:h-[450px] lg:h-[500px] w-auto min-w-[280px] md:min-w-0 drop-shadow-2xl"
                     priority
                   />
                 </motion.div>

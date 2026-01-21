@@ -1,19 +1,18 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
-import { useRef, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { MapPin, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
-// Store locations with coordinates based on the SVG viewBox (0 0 1000 332)
+// Store locations with coordinates based on the SVG viewBox
 const storeLocations = [
   {
     id: 1,
     name: 'Eraman (KLIA)',
     address: 'KLIA Terminal, Sepang',
     contact: '+603-8787-1234',
-    state: 'MY10', // Selangor
+    state: 'MY10',
     x: 135,
     y: 220,
   },
@@ -22,7 +21,7 @@ const storeLocations = [
     name: 'Hadramawt Bukit Bintang',
     address: 'Jalan Bukit Bintang, KL',
     contact: '+603-2142-5678',
-    state: 'MY14', // KL
+    state: 'MY14',
     x: 128,
     y: 195,
   },
@@ -31,7 +30,7 @@ const storeLocations = [
     name: 'Kunafa Crisp',
     address: 'Bukit Bintang, KL',
     contact: '+603-2143-9012',
-    state: 'MY14', // KL
+    state: 'MY14',
     x: 138,
     y: 190,
   },
@@ -40,7 +39,7 @@ const storeLocations = [
     name: 'BETAWI TTDI',
     address: 'TTDI, Kuala Lumpur',
     contact: '+603-7728-3456',
-    state: 'MY14', // KL
+    state: 'MY14',
     x: 118,
     y: 188,
   },
@@ -49,7 +48,7 @@ const storeLocations = [
     name: 'Woodfire',
     address: 'Multiple Locations, KL',
     contact: '+603-6201-7890',
-    state: 'MY10', // Selangor
+    state: 'MY10',
     x: 145,
     y: 205,
   },
@@ -58,7 +57,7 @@ const storeLocations = [
     name: 'Ignition Burgers',
     address: 'Kuala Lumpur',
     contact: '+603-2110-2345',
-    state: 'MY14', // KL
+    state: 'MY14',
     x: 125,
     y: 200,
   },
@@ -67,7 +66,7 @@ const storeLocations = [
     name: 'VPS Vending',
     address: 'Various Locations',
     contact: '+603-9000-6789',
-    state: 'MY10', // Selangor
+    state: 'MY10',
     x: 150,
     y: 215,
   },
@@ -76,7 +75,7 @@ const storeLocations = [
     name: 'Outlets N. Sembilan',
     address: 'Pedas, Nilai, Seremban, USIM',
     contact: '+606-601-0123',
-    state: 'MY05', // Negeri Sembilan
+    state: 'MY05',
     x: 135,
     y: 245,
   },
@@ -85,35 +84,35 @@ const storeLocations = [
 // States to highlight (where we have stores)
 const highlightedStates = ['MY10', 'MY14', 'MY05']
 
-export function Supporters() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-100px' })
+// States to hide (East Malaysia)
+const hiddenStates = ['MY12', 'MY13']
+
+interface StoreLocatorMapProps {
+  maxWidth?: string
+  showStoreList?: boolean
+}
+
+export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }: StoreLocatorMapProps) {
   const [hoveredLocation, setHoveredLocation] = useState<typeof storeLocations[0] | null>(null)
   const [svgContent, setSvgContent] = useState<string>('')
   const [zoomScale, setZoomScale] = useState(1)
 
-  // States to hide (East Malaysia - Sabah & Sarawak)
-  const hiddenStates = ['MY12', 'MY13']
-
   useEffect(() => {
-    // Fetch and modify the SVG
     fetch('/images/malaysia-map.svg')
       .then(res => res.text())
       .then(svg => {
-        // Modify SVG to highlight states
         let modifiedSvg = svg
 
         // Change default fill color
         modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#e5e7eb"')
 
-        // Hide East Malaysia states (Sabah & Sarawak)
+        // Hide East Malaysia states
         hiddenStates.forEach(stateId => {
           const regex = new RegExp(`id="${stateId}"`, 'g')
           modifiedSvg = modifiedSvg.replace(regex, `id="${stateId}" style="display:none"`)
         })
 
-        // Adjust viewBox to focus on Peninsular Malaysia only (crop out East Malaysia)
-        // Remove fixed width/height to let CSS control sizing, and update viewBox
+        // Adjust viewBox to focus on Peninsular Malaysia
         modifiedSvg = modifiedSvg.replace(/width="1000"/, '')
         modifiedSvg = modifiedSvg.replace(/height="332"/, '')
         modifiedSvg = modifiedSvg.replace(/viewbox="0 0 1000 332"/i, 'viewBox="50 40 200 280"')
@@ -133,31 +132,13 @@ export function Supporters() {
   }
 
   return (
-    <section id="supporters" ref={ref} className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-10"
-        >
-          <h2 className="text-2xl md:text-3xl font-bold text-salaam-red-500 mb-2">
-            Get Your Salaam Cola At
-          </h2>
-          <p className="text-gray-600">Find us across Malaysia</p>
-        </motion.div>
-
-        {/* Map and Store List Side by Side */}
-        <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {/* Left: Interactive Map */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
-          >
-            {/* SVG Map Container */}
-            <div className="relative bg-white rounded-2xl shadow-lg p-4 md:p-6 overflow-hidden">
+    <div className={`${maxWidth} mx-auto`}>
+      {/* Map and Store List Side by Side */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Left: Interactive Map */}
+        <div className="relative">
+          {/* SVG Map Container */}
+          <div className="relative bg-white rounded-2xl shadow-lg p-4 md:p-6 overflow-hidden">
             <TransformWrapper
               initialScale={1}
               minScale={0.5}
@@ -219,7 +200,6 @@ export function Supporters() {
                           style={{ zIndex: 10 }}
                         >
                           {storeLocations.map((location) => {
-                            // Scale markers inversely with zoom (smaller base size)
                             const baseRadius = 4
                             const markerRadius = baseRadius / zoomScale
                             const innerRadius = 1.5 / zoomScale
@@ -227,7 +207,6 @@ export function Supporters() {
 
                             return (
                               <g key={location.id} className="pointer-events-auto">
-                                {/* Main marker */}
                                 <circle
                                   cx={location.x}
                                   cy={location.y}
@@ -242,7 +221,6 @@ export function Supporters() {
                                   onMouseEnter={() => handleMouseEnter(location)}
                                   onMouseLeave={() => setHoveredLocation(null)}
                                 />
-                                {/* Inner dot */}
                                 <circle
                                   cx={location.x}
                                   cy={location.y}
@@ -273,7 +251,6 @@ export function Supporters() {
                   transform: 'translateX(-50%)',
                 }}
               >
-                {/* Arrow pointing down */}
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-gray-200 transform rotate-45"></div>
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-salaam-red-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -289,36 +266,30 @@ export function Supporters() {
             )}
           </div>
 
-            {/* Legend & Instructions */}
-            <div className="flex flex-col items-center gap-2 mt-4">
-              <p className="text-xs text-gray-400">Scroll to zoom • Drag to pan</p>
-              <div className="flex items-center justify-center gap-4">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-salaam-red-500 rounded-full border-2 border-white shadow"></div>
-                  <span className="text-xs text-gray-600">Store</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-red-200 border border-red-400 rounded"></div>
-                  <span className="text-xs text-gray-600">Region</span>
-                </div>
+          {/* Legend & Instructions */}
+          <div className="flex flex-col items-center gap-2 mt-4">
+            <p className="text-xs text-gray-400">Scroll to zoom • Drag to pan</p>
+            <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-salaam-red-500 rounded-full border-2 border-white shadow"></div>
+                <span className="text-xs text-gray-600">Store</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-red-200 border border-red-400 rounded"></div>
+                <span className="text-xs text-gray-600">Region</span>
               </div>
             </div>
-          </motion.div>
+          </div>
+        </div>
 
-          {/* Right: Store List */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
+        {/* Right: Store List */}
+        {showStoreList && (
+          <div>
             <h3 className="text-lg font-bold text-gray-900 mb-4">Our Locations</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 auto-rows-min">
-              {storeLocations.map((location, index) => (
+              {storeLocations.map((location) => (
                 <motion.div
                   key={location.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
                   className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300 cursor-pointer"
                   onMouseEnter={() => handleMouseEnter(location)}
                   onMouseLeave={() => setHoveredLocation(null)}
@@ -331,9 +302,9 @@ export function Supporters() {
                 </motion.div>
               ))}
             </div>
-          </motion.div>
-        </div>
+          </div>
+        )}
       </div>
-    </section>
+    </div>
   )
 }

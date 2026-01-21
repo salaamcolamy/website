@@ -6,16 +6,30 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { useCart } from '@/context/CartContext'
-import { LanguageSwitcher } from './LanguageSwitcher'
+// import { LanguageSwitcher } from './LanguageSwitcher' // Disabled - English only
 import { cn } from '@/lib/utils'
-import { Menu, X, ShoppingBag } from 'lucide-react'
+import { Menu, X, ShoppingBag, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
 
-const navItems = [
+type NavItem = {
+  href?: string
+  key: string
+  dropdown?: { href: string; key: string }[]
+}
+
+const navItems: NavItem[] = [
   { href: '/', key: 'home' },
   { href: '/shop', key: 'shop' },
+  {
+    key: 'programs',
+    dropdown: [
+      { href: '/programs', key: 'whereYourSipGoes' },
+      { href: '/join-us', key: 'joinUs' },
+    ]
+  },
   { href: '/about', key: 'about' },
-  { href: '/contact', key: 'contact' },
+  { href: '/join-us#career', key: 'career' },
+  { href: '/contact', key: 'support' },
 ]
 
 export function Header() {
@@ -24,6 +38,7 @@ export function Header() {
   const pathname = usePathname()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 
   // Check if on landing page (home page) - matches /, /en, /ms, /ar, etc.
   const isLandingPage = pathname === '/' || /^\/[a-z]{2}$/.test(pathname)
@@ -79,28 +94,73 @@ export function Header() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
               {navItems.map((item) => (
-                <Link
-                  key={item.key}
-                  href={item.href}
-                  className={cn(
-                    "relative font-medium transition-colors duration-200 group",
-                    useDarkStyle
-                      ? "text-gray-700 hover:text-salaam-red-500"
-                      : "text-white hover:text-white/80"
-                  )}
-                >
-                  {t(item.key)}
-                  <span className={cn(
-                    "absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full",
-                    useDarkStyle ? "bg-salaam-red-500" : "bg-white"
-                  )} />
-                </Link>
+                item.dropdown ? (
+                  <div
+                    key={item.key}
+                    className="relative"
+                    onMouseEnter={() => setOpenDropdown(item.key)}
+                    onMouseLeave={() => setOpenDropdown(null)}
+                  >
+                    <button
+                      className={cn(
+                        "relative font-medium transition-colors duration-200 group flex items-center gap-1",
+                        useDarkStyle
+                          ? "text-gray-700 hover:text-salaam-red-500"
+                          : "text-white hover:text-white/80"
+                      )}
+                    >
+                      {t(item.key)}
+                      <ChevronDown className={cn(
+                        "w-4 h-4 transition-transform duration-200",
+                        openDropdown === item.key && "rotate-180"
+                      )} />
+                    </button>
+                    <AnimatePresence>
+                      {openDropdown === item.key && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-full left-0 mt-2 py-2 bg-white rounded-xl shadow-lg border border-gray-100 min-w-[180px]"
+                        >
+                          {item.dropdown.map((subItem) => (
+                            <Link
+                              key={subItem.key}
+                              href={subItem.href}
+                              className="block px-4 py-2 text-gray-700 hover:text-salaam-red-500 hover:bg-gray-50 transition-colors"
+                            >
+                              {t(subItem.key)}
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <Link
+                    key={item.key}
+                    href={item.href!}
+                    className={cn(
+                      "relative font-medium transition-colors duration-200 group",
+                      useDarkStyle
+                        ? "text-gray-700 hover:text-salaam-red-500"
+                        : "text-white hover:text-white/80"
+                    )}
+                  >
+                    {t(item.key)}
+                    <span className={cn(
+                      "absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full",
+                      useDarkStyle ? "bg-salaam-red-500" : "bg-white"
+                    )} />
+                  </Link>
+                )
               ))}
             </div>
 
             {/* Right side actions */}
             <div className="flex items-center gap-4">
-              <LanguageSwitcher isScrolled={useDarkStyle} />
+              {/* Language switcher hidden - English only */}
 
               {/* Cart button */}
               <motion.button
@@ -176,13 +236,50 @@ export function Header() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <Link
-                        href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="block py-3 text-lg font-medium text-gray-700 hover:text-salaam-red-500 transition-colors border-b border-gray-100"
-                      >
-                        {t(item.key)}
-                      </Link>
+                      {item.dropdown ? (
+                        <div className="border-b border-gray-100">
+                          <button
+                            onClick={() => setOpenDropdown(openDropdown === item.key ? null : item.key)}
+                            className="w-full flex items-center justify-between py-3 text-lg font-medium text-gray-700 hover:text-salaam-red-500 transition-colors"
+                          >
+                            {t(item.key)}
+                            <ChevronDown className={cn(
+                              "w-5 h-5 transition-transform duration-200",
+                              openDropdown === item.key && "rotate-180"
+                            )} />
+                          </button>
+                          <AnimatePresence>
+                            {openDropdown === item.key && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                              >
+                                {item.dropdown.map((subItem) => (
+                                  <Link
+                                    key={subItem.key}
+                                    href={subItem.href}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="block py-2 pl-4 text-gray-600 hover:text-salaam-red-500 transition-colors"
+                                  >
+                                    {t(subItem.key)}
+                                  </Link>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      ) : (
+                        <Link
+                          href={item.href!}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="block py-3 text-lg font-medium text-gray-700 hover:text-salaam-red-500 transition-colors border-b border-gray-100"
+                        >
+                          {t(item.key)}
+                        </Link>
+                      )}
                     </motion.div>
                   ))}
                 </div>

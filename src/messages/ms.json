@@ -7,6 +7,10 @@
     "home": "Laman Utama",
     "shop": "Kedai",
     "products": "Produk",
+    "programs": "Program",
+    "whereYourSipGoes": "Ke Mana Tegukan Anda",
+    "joinUs": "Sertai Kami",
+    "career": "Kerjaya",
     "about": "Tentang Kami",
     "contact": "Hubungi",
     "language": "Bahasa",
@@ -138,5 +142,78 @@
     "back": "Kembali",
     "next": "Seterusnya",
     "previous": "Sebelumnya"
+  },
+  "programs": {
+    "hero": {
+      "tagline": "Berpandukan Tujuan",
+      "title": "Ke Mana",
+      "highlight": "Tegukan Anda",
+      "description": "Setiap botol Salaam Cola menyumbang kepada perubahan bermakna. 10% keuntungan kami menyokong usaha kemanusiaan global."
+    },
+    "globalMission": {
+      "title": "Misi Global",
+      "description1": "Salaam Cola diasaskan atas prinsip 'Penggunaan Bertujuan.' Kami berhubung dengan orang yang berfikir dan mengambil berat tentang apa yang mereka minum.",
+      "description2": "Nilai teras kami dibina atas kitaran kebaikan. Dengan setiap pembelian, anda bukan sahaja menikmati minuman menyegarkan – anda menyumbang kepada usaha kemanusiaan di seluruh dunia.",
+      "profits": "10% Keuntungan",
+      "countries": "33 Negara"
+    },
+    "malaysia": {
+      "tagline": "Impak Tempatan",
+      "title": "MALAYSIA: BERKHIDMAT UNTUK PASUKAN SENDIRI",
+      "description": "Walaupun kami berfikir secara global, kami bertindak secara tempatan. Inilah cara Salaam Cola membuat perbezaan di Malaysia.",
+      "youthHangouts": "Program Belia",
+      "youthHangoutsDesc": "Menyokong program belia dan pusat komuniti di seluruh Malaysia.",
+      "mosques": "Masjid & Rumah Anak Yatim",
+      "mosquesDesc": "Menyumbang kepada masjid dan rumah anak yatim dalam komuniti tempatan.",
+      "grassroots": "Pemberian Akar Umbi",
+      "grassrootsDesc": "Sokongan langsung kepada keluarga dan individu yang memerlukan."
+    },
+    "cta": {
+      "learnMore": "Ketahui Lebih Lanjut",
+      "joinUs": "Sertai Kami",
+      "partner": "Mahu Bekerjasama Dengan Kami?"
+    }
+  },
+  "joinUsPage": {
+    "hero": {
+      "tagline": "Bekerjasama Dengan Kami",
+      "title": "Sertai",
+      "highlight": "Gerakan",
+      "description": "Sama ada anda ingin mengedarkan Salaam Cola atau membina kerjaya bersama kami, kami teruja untuk mendengar daripada anda."
+    },
+    "distribute": {
+      "tagline": "Pengedaran",
+      "title": "Edarkan Salaam Cola",
+      "description": "Bawa kesegaran bertujuan kepada pelanggan anda. Bekerjasama dengan kami untuk menyimpan stok jenama kola beretika kegemaran Malaysia.",
+      "retail": {
+        "title": "Rakan Runcit",
+        "description": "Simpan stok Salaam Cola di kedai, pasar raya, atau outlet serbaneka anda. Sertai rangkaian rakan runcit kami yang semakin berkembang."
+      },
+      "business": {
+        "title": "Rakan Perniagaan",
+        "description": "Hidangkan Salaam Cola di restoran, kafe, atau perniagaan perkhidmatan makanan anda. Sesuai untuk pertubuhan F&B."
+      },
+      "corporate": {
+        "title": "Rakan Korporat",
+        "description": "Pesanan pukal untuk acara, pejabat, atau hadiah korporat. Buat kenyataan dengan minuman bertujuan."
+      },
+      "whyPartner": "Mengapa Bekerjasama Dengan Salaam Cola?",
+      "talkToUs": "Hubungi Kami"
+    },
+    "career": {
+      "title": "Bina Kerjaya Anda Bersama Kami",
+      "description1": "Sertai pasukan yang membuat perbezaan. Di Salaam Cola, kami bukan sekadar menjual minuman – kami membina gerakan untuk penggunaan beretika.",
+      "description2": "Kami sentiasa mencari individu bersemangat yang berkongsi nilai kami dan ingin menyumbang kepada sesuatu yang bermakna.",
+      "whatWeLookFor": "Apa Yang Kami Cari",
+      "sendCv": "Hantar CV Anda",
+      "submitApplication": "Hantar Permohonan",
+      "applicationSent": "Permohonan Dihantar!",
+      "applicationSuccess": "Terima kasih atas minat anda. Kami akan menyemak permohonan anda dan menghubungi anda tidak lama lagi."
+    },
+    "contact": {
+      "title": "Ada Soalan?",
+      "description": "Pasukan kami sedia membantu dengan sebarang pertanyaan tentang pengedaran, perkongsian, atau peluang kerjaya.",
+      "cta": "Hubungi Kami"
+    }
   }
 }

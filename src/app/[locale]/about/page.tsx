@@ -11,7 +11,6 @@ import {
   Users,
   Globe,
   Award,
-  Target,
   Sparkles,
   ArrowRight,
   CheckCircle,
@@ -43,10 +42,8 @@ const values = [
 
 const milestones = [
   { year: '2020', title: 'Founded', description: 'Salaam Cola was born with a vision for ethical refreshment' },
-  { year: '2021', title: 'First Production', description: 'Launched our first batch of Mister Cola' },
-  { year: '2022', title: 'Retail Expansion', description: 'Available in AEON, myNEWS, and 7-Eleven nationwide' },
-  { year: '2023', title: 'Community Impact', description: 'Reached 50+ communities through our giving program' },
-  { year: '2024', title: 'Growing Strong', description: 'Expanding product line and deepening our impact' },
+  { year: '2025', title: 'Global Presence', description: 'Available in 33 countries worldwide' },
+  { year: '2026', title: 'Malaysia Launch', description: 'Finally arrives in Malaysia' },
 ]
 
 export default function AboutPage() {
@@ -105,28 +102,26 @@ export default function AboutPage() {
           >
             <motion.div variants={fadeInLeft} className="space-y-6">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                {t('title')}
+                Our Story
               </h2>
               <p className="text-gray-600 leading-relaxed text-lg">
-                {t('description')}
+                Salaam Cola is leading a new wave in Malaysia. We've combined a premium, craft-style taste with a mission to give back. Founded in the UK, Salaam Cola was born from a simple belief; that what you drink should be as ethical as it is delicious.
               </p>
               <p className="text-gray-600 leading-relaxed">
-                Founded in Malaysia, Salaam Cola represents a new wave of conscious
-                consumerism. We believe that what you drink should not only taste
-                great but also contribute to something greater than yourself.
+                For the conscious drinker who refuses to settle, we offer a drink that's high in quality and heavy on heart. It's the familiar taste you love, crafted for a world that deserves more.
               </p>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2 text-gray-700">
                   <CheckCircle className="w-5 h-5 text-salaam-red-500" />
-                  <span>Halal Certified</span>
+                  <span>Global Halal Certified</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <CheckCircle className="w-5 h-5 text-salaam-red-500" />
-                  <span>Malaysian Made</span>
+                  <span>KKM-Approved</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <CheckCircle className="w-5 h-5 text-salaam-red-500" />
-                  <span>Community Focused</span>
+                  <span>Certified</span>
                 </div>
               </div>
             </motion.div>
@@ -134,27 +129,11 @@ export default function AboutPage() {
             <motion.div variants={fadeInRight}>
               <div className="relative aspect-square rounded-3xl overflow-hidden">
                 <Image
-                  src="/images/change/WhatsApp Image 2025-12-11 at 23.51.22.jpeg"
-                  alt="Our Mission"
+                  src="/images/image-gen (13).jpg"
+                  alt="Our Story"
                   fill
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white space-y-4 p-6">
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="w-32 h-32 mx-auto bg-white/20 backdrop-blur-lg rounded-full flex items-center justify-center"
-                    >
-                      <Target className="w-16 h-16 text-white" />
-                    </motion.div>
-                    <p className="text-2xl font-bold">Our Mission</p>
-                    <p className="text-white/80 max-w-xs mx-auto">
-                      To create positive change, one refreshing sip at a time
-                    </p>
-                  </div>
-                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -274,6 +253,7 @@ export default function AboutPage() {
             <p className="text-white/80 max-w-xl mx-auto">
               Join thousands of Malaysians who have made the switch to purposeful refreshment.
             </p>
+            <div className="pt-4">
             <Link href="/shop">
               <GlassButton
                 variant="secondary"
@@ -284,6 +264,7 @@ export default function AboutPage() {
                 Shop Now
               </GlassButton>
             </Link>
+            </div>
           </motion.div>
         </div>
       </section>

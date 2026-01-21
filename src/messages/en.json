@@ -7,8 +7,13 @@
     "home": "Home",
     "shop": "Shop",
     "products": "Products",
+    "programs": "Programs",
+    "whereYourSipGoes": "Where Your Sip Goes",
+    "joinUs": "Join Us",
+    "career": "Career",
     "about": "About Us",
     "contact": "Contact",
+    "support": "Support",
     "language": "Language",
     "cart": "Cart"
   },
@@ -138,5 +143,78 @@
     "back": "Back",
     "next": "Next",
     "previous": "Previous"
+  },
+  "programs": {
+    "hero": {
+      "tagline": "Purpose-Driven",
+      "title": "Where Your",
+      "highlight": "Sip Goes",
+      "description": "Every bottle of Salaam Cola contributes to meaningful change. 10% of our profits support global humanitarian causes."
+    },
+    "globalMission": {
+      "title": "Global Mission",
+      "description1": "Salaam Cola was founded on the principle of 'Purposeful Consumption.' We connect with people who think and care deeply about what they consume.",
+      "description2": "Our core value is built on a cycle of kindness. With every purchase, you're not just enjoying a refreshing drink – you're contributing to humanitarian efforts around the world.",
+      "profits": "10% of Profits",
+      "countries": "33 Countries"
+    },
+    "malaysia": {
+      "tagline": "Local Impact",
+      "title": "MALAYSIA: SERVING THE HOME TEAM",
+      "description": "While we think globally, we act locally. Here's how Salaam Cola is making a difference right here in Malaysia.",
+      "youthHangouts": "Youth Hangouts",
+      "youthHangoutsDesc": "Supporting youth programs and community centers across Malaysia.",
+      "mosques": "Mosques & Orphanages",
+      "mosquesDesc": "Contributing to mosques and orphanages in local communities.",
+      "grassroots": "Grassroots Giving",
+      "grassrootsDesc": "Direct support to families and individuals in need."
+    },
+    "cta": {
+      "learnMore": "Learn More",
+      "joinUs": "Join Us",
+      "partner": "Want to Partner With Us?"
+    }
+  },
+  "joinUsPage": {
+    "hero": {
+      "tagline": "Partner With Us",
+      "title": "Join the",
+      "highlight": "Movement",
+      "description": "Whether you want to distribute Salaam Cola or build your career with us, we're excited to hear from you."
+    },
+    "distribute": {
+      "tagline": "Distribution",
+      "title": "Distribute Salaam Cola",
+      "description": "Bring purposeful refreshment to your customers. Partner with us to stock Malaysia's favorite ethical cola brand.",
+      "retail": {
+        "title": "Retail Partner",
+        "description": "Stock Salaam Cola in your store, supermarket, or convenience outlet. Join our growing network of retail partners."
+      },
+      "business": {
+        "title": "Business Partner",
+        "description": "Serve Salaam Cola in your restaurant, cafe, or food service business. Perfect for F&B establishments."
+      },
+      "corporate": {
+        "title": "Corporate Partner",
+        "description": "Bulk orders for events, offices, or corporate gifting. Make a statement with purpose-driven refreshments."
+      },
+      "whyPartner": "Why Partner With Salaam Cola?",
+      "talkToUs": "Talk to Us"
+    },
+    "career": {
+      "title": "Build Your Career With Us",
+      "description1": "Join a team that's making a difference. At Salaam Cola, we're not just selling beverages – we're building a movement for ethical consumption.",
+      "description2": "We're always looking for passionate individuals who share our values and want to contribute to something meaningful.",
+      "whatWeLookFor": "What We Look For",
+      "sendCv": "Send Your CV",
+      "submitApplication": "Submit Application",
+      "applicationSent": "Application Sent!",
+      "applicationSuccess": "Thank you for your interest. We'll review your application and get back to you soon."
+    },
+    "contact": {
+      "title": "Have Questions?",
+      "description": "Our team is ready to assist with any inquiries about distribution, partnerships, or career opportunities.",
+      "cta": "Contact Us"
+    }
   }
 }
