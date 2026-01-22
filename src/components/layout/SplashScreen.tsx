@@ -91,11 +91,11 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
                   className="overflow-visible"
                 >
                   <Image
-                    src="/images/Untitled design.png"
+                    src="/images/loader.png"
                     alt="Salaam Cola"
-                    width={300}
-                    height={600}
-                    className="h-[350px] md:h-[450px] lg:h-[500px] w-auto min-w-[280px] md:min-w-0 drop-shadow-2xl"
+                    width={500}
+                    height={800}
+                    className="h-[450px] md:h-[550px] lg:h-[650px] w-auto min-w-[350px] md:min-w-0 drop-shadow-2xl"
                     priority
                   />
                 </motion.div>
