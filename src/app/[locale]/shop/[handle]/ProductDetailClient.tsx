@@ -17,42 +17,38 @@ import {
   Star,
 } from 'lucide-react'
 import Image from 'next/image'
-
-interface DemoProduct {
-  id: string
-  handle: string
-  title: string
-  category: string
-  description: string
-  longDescription?: string
-  price: number
-  originalPrice: number | null
-  discount: number | null
-  rating: number
-  reviews: number
-  image: string
-  availableForSale: boolean
-}
+import type { Product } from '@/lib/shopify/types'
 
 interface ProductDetailClientProps {
-  product: DemoProduct
-  relatedProducts: DemoProduct[]
+  product: Product
+  relatedProducts: Product[]
 }
 
 export function ProductDetailClient({
   product,
   relatedProducts,
 }: ProductDetailClientProps) {
-  const { addDemoItem, isLoading } = useCart()
+  const { addItem, isLoading } = useCart()
 
   const [quantity, setQuantity] = useState(1)
   const [isAdded, setIsAdded] = useState(false)
   const [activeTab, setActiveTab] = useState<'description' | 'additional' | 'review'>('description')
 
-  const handleAddToCart = () => {
-    addDemoItem(product.id, quantity)
-    setIsAdded(true)
-    setTimeout(() => setIsAdded(false), 2000)
+  // Calculate discount percentage
+  const discount = product.compareAtPrice
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
+    : null
+
+  const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
+  const category = product.tags[0] || 'PRODUCT'
+
+  const handleAddToCart = async () => {
+    const variantId = product.variants[0]?.id
+    if (variantId) {
+      await addItem(variantId, quantity)
+      setIsAdded(true)
+      setTimeout(() => setIsAdded(false), 2000)
+    }
   }
 
   const incrementQuantity = () => setQuantity((q) => q + 1)
@@ -87,17 +83,17 @@ export function ProductDetailClient({
             {/* Main image */}
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-gray-50">
               <Image
-                src={product.image}
-                alt={product.title}
+                src={imageUrl}
+                alt={product.featuredImage?.altText || product.title}
                 fill
                 className="object-contain p-8"
                 priority
               />
 
               {/* Discount badge */}
-              {product.discount && (
+              {discount && discount > 0 && (
                 <div className="absolute top-6 left-6 px-4 py-2 bg-salaam-red-500 text-white font-semibold rounded-full">
-                  -{product.discount}% OFF
+                  -{discount}% OFF
                 </div>
               )}
             </div>
@@ -107,7 +103,7 @@ export function ProductDetailClient({
           <motion.div variants={fadeInRight} className="space-y-6">
             {/* Category */}
             <span className="inline-block px-3 py-1 text-xs font-medium text-salaam-red-500 bg-salaam-red-50 rounded-full uppercase tracking-wide">
-              {product.category}
+              {category}
             </span>
 
             <div className="space-y-4">
@@ -121,25 +117,20 @@ export function ProductDetailClient({
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-5 h-5 ${
-                        i < product.rating
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'fill-gray-200 text-gray-200'
-                      }`}
+                      className="w-5 h-5 fill-yellow-400 text-yellow-400"
                     />
                   ))}
                 </div>
-                <span className="text-gray-500">({product.reviews} reviews)</span>
               </div>
 
               {/* Price */}
               <div className="flex items-center gap-3">
                 <span className="text-3xl font-bold text-salaam-red-500">
-                  RM{product.price.toFixed(2)}
+                  {product.currencyCode} {product.price.toFixed(2)}
                 </span>
-                {product.originalPrice && (
+                {product.compareAtPrice && (
                   <span className="text-xl text-gray-400 line-through">
-                    RM{product.originalPrice.toFixed(2)}
+                    {product.currencyCode} {product.compareAtPrice.toFixed(2)}
                   </span>
                 )}
               </div>
@@ -198,7 +189,7 @@ export function ProductDetailClient({
               ) : (
                 <>
                   <ShoppingBag className="w-6 h-6" />
-                  Add to Cart - RM{(product.price * quantity).toFixed(2)}
+                  Add to Cart - {product.currencyCode} {(product.price * quantity).toFixed(2)}
                 </>
               )}
             </motion.button>
@@ -272,12 +263,15 @@ export function ProductDetailClient({
           {/* Tab Content */}
           <div className="py-8">
             {activeTab === 'description' && (
-              <div className="prose prose-gray max-w-none space-y-4">
-                {(product.longDescription || product.description).split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="text-gray-600 leading-relaxed">
-                    {paragraph}
-                  </p>
-                ))}
+              <div className="prose prose-gray max-w-none">
+                {product.descriptionHtml ? (
+                  <div
+                    className="text-gray-600 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+                  />
+                ) : (
+                  <p className="text-gray-600 leading-relaxed">{product.description}</p>
+                )}
               </div>
             )}
 
@@ -292,7 +286,7 @@ export function ProductDetailClient({
                   <div className="text-gray-500">Volume</div>
                   <div className="text-gray-900 font-medium">330ml</div>
                   <div className="text-gray-500">Category</div>
-                  <div className="text-gray-900 font-medium">{product.category}</div>
+                  <div className="text-gray-900 font-medium">{category}</div>
                   <div className="text-gray-500">Certification</div>
                   <div className="text-gray-900 font-medium">Halal JAKIM, KKM-Approved</div>
                   <div className="text-gray-500">Origin</div>
@@ -380,21 +374,17 @@ export function ProductDetailClient({
             {activeTab === 'review' && (
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="text-4xl font-bold text-gray-900">{product.rating}.0</div>
+                  <div className="text-4xl font-bold text-gray-900">5.0</div>
                   <div>
                     <div className="flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-5 h-5 ${
-                            i < product.rating
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'fill-gray-200 text-gray-200'
-                          }`}
+                          className="w-5 h-5 fill-yellow-400 text-yellow-400"
                         />
                       ))}
                     </div>
-                    <p className="text-gray-500 text-sm mt-1">Based on {product.reviews} reviews</p>
+                    <p className="text-gray-500 text-sm mt-1">Based on customer reviews</p>
                   </div>
                 </div>
                 <div className="border-t pt-6 space-y-4">
@@ -432,44 +422,53 @@ export function ProductDetailClient({
               You May Also Like
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {relatedProducts.map((relatedProduct) => (
-                <Link key={relatedProduct.id} href={`/shop/${relatedProduct.handle}`}>
-                  <motion.div
-                    whileHover={{ y: -5 }}
-                    className="group text-center"
-                  >
-                    <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4">
-                      <Image
-                        src={relatedProduct.image}
-                        alt={relatedProduct.title}
-                        fill
-                        className="object-contain p-8 transition-transform duration-500 group-hover:scale-105"
-                      />
-                      {relatedProduct.discount && (
-                        <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
-                          -{relatedProduct.discount}% OFF
-                        </div>
+              {relatedProducts.map((relatedProduct) => {
+                const relatedDiscount = relatedProduct.compareAtPrice
+                  ? Math.round((1 - relatedProduct.price / relatedProduct.compareAtPrice) * 100)
+                  : null
+                const relatedImageUrl = relatedProduct.featuredImage?.url || '/images/products/placeholder.webp'
+
+                return (
+                  <Link key={relatedProduct.id} href={`/shop/${relatedProduct.handle}`}>
+                    <motion.div
+                      whileHover={{ y: -5 }}
+                      className="group text-center"
+                    >
+                      <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4">
+                        <Image
+                          src={relatedImageUrl}
+                          alt={relatedProduct.featuredImage?.altText || relatedProduct.title}
+                          fill
+                          className="object-contain p-8 transition-transform duration-500 group-hover:scale-105"
+                        />
+                        {relatedDiscount && relatedDiscount > 0 && (
+                          <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
+                            -{relatedDiscount}% OFF
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
+                        {relatedProduct.title}
+                      </h3>
+                      {relatedProduct.tags[0] && (
+                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
+                          {relatedProduct.tags[0]}
+                        </p>
                       )}
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
-                      {relatedProduct.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                      {relatedProduct.category}
-                    </p>
-                    <div className="flex items-center justify-center gap-2">
-                      {relatedProduct.originalPrice && (
-                        <span className="text-gray-400 line-through">
-                          RM{relatedProduct.originalPrice.toFixed(2)}
+                      <div className="flex items-center justify-center gap-2">
+                        {relatedProduct.compareAtPrice && (
+                          <span className="text-gray-400 line-through">
+                            {relatedProduct.currencyCode} {relatedProduct.compareAtPrice.toFixed(2)}
+                          </span>
+                        )}
+                        <span className="text-lg font-bold text-salaam-red-500">
+                          {relatedProduct.currencyCode} {relatedProduct.price.toFixed(2)}
                         </span>
-                      )}
-                      <span className="text-lg font-bold text-salaam-red-500">
-                        RM{relatedProduct.price.toFixed(2)}
-                      </span>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
+                      </div>
+                    </motion.div>
+                  </Link>
+                )
+              })}
             </div>
           </motion.div>
         )}

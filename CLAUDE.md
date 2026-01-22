@@ -183,15 +183,35 @@ floatAnimation, glassReveal
 
 ## Shopify Integration
 
+### Status: **LIVE** ✓
+
+Shopify Storefront API is fully integrated and connected to the live store.
+
 ### Configuration
 ```env
-SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
-SHOPIFY_STOREFRONT_ACCESS_TOKEN=your-token
+SHOPIFY_STORE_DOMAIN=27ut15-e9.myshopify.com
+SHOPIFY_STOREFRONT_ACCESS_TOKEN=<stored in .env.local>
 ```
 
-### Demo Mode
-When Shopify is not configured, the app falls back to:
-- 3 hardcoded demo products
+### What's Connected
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Product listing (`/shop`) | ✓ Live | Fetches from Shopify |
+| Product detail (`/shop/[handle]`) | ✓ Live | Fetches by handle |
+| Landing page best sellers | ✓ Live | Shows 3 products |
+| Cart creation | ✓ Live | Shopify Cart API |
+| Add to cart | ✓ Live | Creates real cart |
+| Checkout | ✓ Live | Redirects to Shopify checkout |
+
+### API Version
+Using Storefront API `2026-01`
+
+### Important: Product Visibility
+Products must be published to the **Headless** sales channel in Shopify Admin to appear on the website. Go to Products → Select product → Sales channels → Enable "Headless".
+
+### Fallback Mode
+When Shopify is not configured (no env vars), the app falls back to:
+- Mock demo products
 - localStorage-based cart
 - Simulated checkout flow
 
@@ -199,14 +219,13 @@ When Shopify is not configured, the app falls back to:
 ```typescript
 // lib/shopify/queries/products.ts
 getProducts()      // Fetch all products
-getProduct(handle) // Single product
-getBestSellers()   // Featured products
+getProduct(handle) // Single product by handle
 
 // lib/shopify/queries/cart.ts
-createCart()       // New cart
-addToCart()        // Add item
+createCart()       // New Shopify cart
+addToCart()        // Add item to cart
 updateCartLine()   // Update quantity
-removeFromCart()   // Remove item
+removeFromCart()   // Remove item from cart
 ```
 
 ## Internationalization
@@ -321,15 +340,15 @@ import Image from 'next/image'
 ## Known Quirks
 
 1. **Locale detection disabled**: Hardcoded to English in middleware
-2. **Demo mode active**: Shopify not configured, uses mock products
-3. **Build warnings ignored**: `eslint.ignoreDuringBuilds: true` in next.config
-4. **Untracked file**: `ChangeStartsSmall 2.tsx` is a duplicate (can be deleted)
+2. **Build warnings ignored**: `eslint.ignoreDuringBuilds: true` in next.config
+3. **Placeholder images**: Some fallback images (placeholder.webp, avatar-placeholder.jpg) return 404
+4. **Headless channel required**: Products must be published to Headless sales channel to appear
 
 ## Development Tips
 
 1. Use `cn()` from `lib/utils.ts` to merge Tailwind classes
 2. Animation variants are centralized in `lib/animations.ts` - reuse them
-3. Check `isShopifyConfigured()` before assuming real product data
+3. Shopify is now configured - products fetch from live store
 4. Glass components accept className for customization
 5. All interactive components need `'use client'` directive
 6. Use `section-padding` and `container-padding` utility classes for consistent spacing

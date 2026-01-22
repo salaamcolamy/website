@@ -8,63 +8,31 @@ import { useCart } from '@/context/CartContext'
 import { fadeInUp, staggerContainer, scaleIn } from '@/lib/animations'
 import { Grid, List, SlidersHorizontal, Star, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
+import type { Product } from '@/lib/shopify/types'
 
-// Static products matching the landing page BestSellers
-const staticProducts = [
-  {
-    id: 'original',
-    title: 'Original',
-    category: 'CLASSIC',
-    price: 20.00,
-    originalPrice: null,
-    discount: null,
-    rating: 5,
-    reviews: 3,
-    image: '/images/products/1111.webp',
-    href: '/shop/original',
-  },
-  {
-    id: 'zero-sugar',
-    title: 'Zero Sugar',
-    category: 'NO SUGAR',
-    price: 34.00,
-    originalPrice: null,
-    discount: null,
-    rating: 5,
-    reviews: 3,
-    image: '/images/products/2222.webp',
-    href: '/shop/zero-sugar',
-  },
-  {
-    id: 'keffiyah',
-    title: 'Keffiyah Edition',
-    category: 'LIMITED EDITION',
-    price: 25.20,
-    originalPrice: 28.00,
-    discount: 10,
-    rating: 5,
-    reviews: 3,
-    image: '/images/products/3333.webp',
-    href: '/shop/keffiyeh',
-  },
-]
+interface ShopPageClientProps {
+  products: Product[]
+}
 
 type SortOption = 'newest' | 'price-low-high' | 'price-high-low'
 
-export function ShopPageClient() {
+export function ShopPageClient({ products }: ShopPageClientProps) {
   const t = useTranslations('shop')
-  const { addDemoItem, isLoading } = useCart()
+  const { addItem, isLoading } = useCart()
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  const handleAddToCart = (e: React.MouseEvent, productId: string) => {
+  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
     e.preventDefault()
     e.stopPropagation()
-    addDemoItem(productId)
+    const variantId = product.variants[0]?.id
+    if (variantId) {
+      await addItem(variantId, 1)
+    }
   }
 
   // Sort products
-  const sortedProducts = [...staticProducts].sort((a, b) => {
+  const sortedProducts = [...products].sort((a, b) => {
     switch (sortBy) {
       case 'price-low-high':
         return a.price - b.price
@@ -156,83 +124,91 @@ export function ShopPageClient() {
                   : 'flex flex-col gap-4'
               }
             >
-              {sortedProducts.map((product, index) => (
-                <motion.div key={product.id} variants={scaleIn} custom={index}>
-                  <Link href={product.href}>
-                    <div className="group text-center">
-                      {/* Product Image */}
-                      <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto">
-                        <Image
-                          src={product.image}
-                          alt={product.title}
-                          fill
-                          className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
-                        />
+              {sortedProducts.map((product, index) => {
+                const discount = product.compareAtPrice
+                  ? Math.round((1 - product.price / product.compareAtPrice) * 100)
+                  : null
+                const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
 
-                        {/* Discount Badge */}
-                        {product.discount && (
-                          <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
-                            -{product.discount}% OFF
-                          </div>
-                        )}
-
-                        {/* Add to Cart Button - appears on hover */}
-                        <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <motion.button
-                            onClick={(e) => handleAddToCart(e, product.id)}
-                            disabled={isLoading}
-                            className="px-6 py-2.5 bg-salaam-red-500 text-white rounded-full font-medium hover:bg-salaam-red-600 disabled:opacity-50 flex items-center gap-2"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                            Add to Cart
-                          </motion.button>
-                        </div>
-                      </div>
-
-                      {/* Rating */}
-                      <div className="flex items-center justify-center gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < product.rating
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : 'fill-gray-200 text-gray-200'
-                            }`}
+                return (
+                  <motion.div key={product.id} variants={scaleIn} custom={index}>
+                    <Link href={`/shop/${product.handle}`}>
+                      <div className="group text-center">
+                        {/* Product Image */}
+                        <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto">
+                          <Image
+                            src={imageUrl}
+                            alt={product.featuredImage?.altText || product.title}
+                            fill
+                            className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
                           />
-                        ))}
-                        <span className="text-sm text-gray-500 ml-1">({product.reviews} reviews)</span>
-                      </div>
 
-                      {/* Product Info */}
-                      <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
-                        {product.title}
-                      </h3>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{product.category}</p>
+                          {/* Discount Badge */}
+                          {discount && discount > 0 && (
+                            <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
+                              -{discount}% OFF
+                            </div>
+                          )}
 
-                      {/* Price */}
-                      <div className="flex items-center justify-center gap-2 mb-3">
-                        {product.originalPrice && (
-                          <span className="text-gray-400 line-through">RM{product.originalPrice.toFixed(2)}</span>
+                          {/* Add to Cart Button - appears on hover */}
+                          <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <motion.button
+                              onClick={(e) => handleAddToCart(e, product)}
+                              disabled={isLoading || !product.availableForSale}
+                              className="px-6 py-2.5 bg-salaam-red-500 text-white rounded-full font-medium hover:bg-salaam-red-600 disabled:opacity-50 flex items-center gap-2"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <ShoppingCart className="w-4 h-4" />
+                              {product.availableForSale ? 'Add to Cart' : 'Out of Stock'}
+                            </motion.button>
+                          </div>
+                        </div>
+
+                        {/* Rating */}
+                        <div className="flex items-center justify-center gap-1 mb-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                            />
+                          ))}
+                        </div>
+
+                        {/* Product Info */}
+                        <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
+                          {product.title}
+                        </h3>
+                        {product.tags[0] && (
+                          <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{product.tags[0]}</p>
                         )}
-                        <span className="text-lg font-bold text-salaam-red-500">RM{product.price.toFixed(2)}</span>
-                      </div>
 
-                      {/* Mobile Add to Cart Button */}
-                      <button
-                        onClick={(e) => handleAddToCart(e, product.id)}
-                        disabled={isLoading}
-                        className="lg:hidden w-full max-w-[280px] mx-auto px-6 py-2.5 bg-salaam-red-500 text-white rounded-full font-medium hover:bg-salaam-red-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                        Add to Cart
-                      </button>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+                        {/* Price */}
+                        <div className="flex items-center justify-center gap-2 mb-3">
+                          {product.compareAtPrice && (
+                            <span className="text-gray-400 line-through">
+                              {product.currencyCode} {product.compareAtPrice.toFixed(2)}
+                            </span>
+                          )}
+                          <span className="text-lg font-bold text-salaam-red-500">
+                            {product.currencyCode} {product.price.toFixed(2)}
+                          </span>
+                        </div>
+
+                        {/* Mobile Add to Cart Button */}
+                        <button
+                          onClick={(e) => handleAddToCart(e, product)}
+                          disabled={isLoading || !product.availableForSale}
+                          className="lg:hidden w-full max-w-[280px] mx-auto px-6 py-2.5 bg-salaam-red-500 text-white rounded-full font-medium hover:bg-salaam-red-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          {product.availableForSale ? 'Add to Cart' : 'Out of Stock'}
+                        </button>
+                      </div>
+                    </Link>
+                  </motion.div>
+                )
+              })}
             </motion.div>
           ) : (
             <motion.div

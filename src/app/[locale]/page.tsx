@@ -7,6 +7,7 @@ import { ChangeStartsSmall } from '@/components/sections/ChangeStartsSmall'
 import { Supporters } from '@/components/sections/Supporters'
 import { PledgeSection } from '@/components/sections/PledgeSection'
 import { InstagramFeed } from '@/components/sections/InstagramFeed'
+import { getProducts } from '@/lib/shopify/queries/products'
 
 interface HomePageProps {
   params: Promise<{ locale: string }>
@@ -15,6 +16,9 @@ interface HomePageProps {
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params
   setRequestLocale(locale)
+
+  // Fetch products from Shopify (or fallback mock products)
+  const products = await getProducts(3)
 
   return (
     <>
@@ -25,7 +29,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <TasteIsEverything />
 
       {/* Best Sellers - Product showcase */}
-      <BestSellers />
+      <BestSellers products={products} />
 
       {/* Change Starts Small - Image grid + text */}
       <ChangeStartsSmall />

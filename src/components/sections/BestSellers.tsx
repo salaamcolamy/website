@@ -6,47 +6,13 @@ import { useRef } from 'react'
 import { Link } from '@/i18n/routing'
 import { ArrowRight, Star } from 'lucide-react'
 import Image from 'next/image'
+import type { Product } from '@/lib/shopify/types'
 
-const products = [
-  {
-    id: 1,
-    title: 'Original',
-    category: 'CLASSIC',
-    price: 20.00,
-    originalPrice: null,
-    discount: null,
-    rating: 5,
-    reviews: 3,
-    image: '/images/products/1111.webp',
-    href: '/shop/original',
-  },
-  {
-    id: 2,
-    title: 'Zero Sugar',
-    category: 'NO SUGAR',
-    price: 34.00,
-    originalPrice: null,
-    discount: null,
-    rating: 5,
-    reviews: 3,
-    image: '/images/products/2222.webp',
-    href: '/shop/zero-sugar',
-  },
-  {
-    id: 3,
-    title: 'Keffiyah Edition',
-    category: 'LIMITED EDITION',
-    price: 25.20,
-    originalPrice: 28.00,
-    discount: 10,
-    rating: 5,
-    reviews: 3,
-    image: '/images/products/3333.webp',
-    href: '/shop/keffiyeh',
-  },
-]
+interface BestSellersProps {
+  products: Product[]
+}
 
-export function BestSellers() {
+export function BestSellers({ products }: BestSellersProps) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
@@ -69,64 +35,72 @@ export function BestSellers() {
         {/* Products Grid */}
         <div className="relative">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <Link href={product.href} scroll={true} onClick={() => window.scrollTo(0, 0)}>
-                  <div className="group text-center">
-                    {/* Product Image */}
-                    <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto">
-                      <Image
-                        src={product.image}
-                        alt={product.title}
-                        fill
-                        className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
-                      />
+            {products.map((product, index) => {
+              const discount = product.compareAtPrice
+                ? Math.round((1 - product.price / product.compareAtPrice) * 100)
+                : null
+              const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
 
-                      {/* Discount Badge */}
-                      {product.discount && (
-                        <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
-                          -{product.discount}% OFF
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Rating */}
-                    <div className="flex items-center justify-center gap-1 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < product.rating
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'fill-gray-200 text-gray-200'
-                          }`}
+              return (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                >
+                  <Link href={`/shop/${product.handle}`} scroll={true} onClick={() => window.scrollTo(0, 0)}>
+                    <div className="group text-center">
+                      {/* Product Image */}
+                      <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto">
+                        <Image
+                          src={imageUrl}
+                          alt={product.featuredImage?.altText || product.title}
+                          fill
+                          className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
                         />
-                      ))}
-                      <span className="text-sm text-gray-500 ml-1">({product.reviews} reviews)</span>
-                    </div>
 
-                    {/* Product Info */}
-                    <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
-                      {product.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{product.category}</p>
+                        {/* Discount Badge */}
+                        {discount && discount > 0 && (
+                          <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
+                            -{discount}% OFF
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Price */}
-                    <div className="flex items-center justify-center gap-2">
-                      {product.originalPrice && (
-                        <span className="text-gray-400 line-through">RM{product.originalPrice.toFixed(2)}</span>
+                      {/* Rating */}
+                      <div className="flex items-center justify-center gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                          />
+                        ))}
+                      </div>
+
+                      {/* Product Info */}
+                      <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
+                        {product.title}
+                      </h3>
+                      {product.tags[0] && (
+                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{product.tags[0]}</p>
                       )}
-                      <span className="text-lg font-bold text-salaam-red-500">RM{product.price.toFixed(2)}</span>
+
+                      {/* Price */}
+                      <div className="flex items-center justify-center gap-2">
+                        {product.compareAtPrice && (
+                          <span className="text-gray-400 line-through">
+                            {product.currencyCode} {product.compareAtPrice.toFixed(2)}
+                          </span>
+                        )}
+                        <span className="text-lg font-bold text-salaam-red-500">
+                          {product.currencyCode} {product.price.toFixed(2)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                  </Link>
+                </motion.div>
+              )
+            })}
           </div>
         </div>
 

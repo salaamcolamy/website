@@ -41,7 +41,6 @@ const PRODUCT_FRAGMENT = `
           id
           title
           availableForSale
-          quantityAvailable
           price {
             amount
             currencyCode
@@ -128,7 +127,7 @@ const mockProducts: Product[] = [
     price: 3.50,
     compareAtPrice: null,
     currencyCode: 'MYR',
-    variants: [{ id: 'variant-1', title: 'Default', availableForSale: true, quantityAvailable: 100, price: { amount: '3.50', currencyCode: 'MYR' }, compareAtPrice: null, selectedOptions: [], image: null }],
+    variants: [{ id: 'variant-1', title: 'Default', availableForSale: true, price: { amount: '3.50', currencyCode: 'MYR' }, compareAtPrice: null, selectedOptions: [], image: null }],
     options: [],
     tags: ['best-seller'],
   },
@@ -156,7 +155,7 @@ const mockProducts: Product[] = [
     price: 3.50,
     compareAtPrice: null,
     currencyCode: 'MYR',
-    variants: [{ id: 'variant-2', title: 'Default', availableForSale: true, quantityAvailable: 100, price: { amount: '3.50', currencyCode: 'MYR' }, compareAtPrice: null, selectedOptions: [], image: null }],
+    variants: [{ id: 'variant-2', title: 'Default', availableForSale: true, price: { amount: '3.50', currencyCode: 'MYR' }, compareAtPrice: null, selectedOptions: [], image: null }],
     options: [],
     tags: ['best-seller'],
   },
@@ -184,7 +183,7 @@ const mockProducts: Product[] = [
     price: 3.80,
     compareAtPrice: 4.20,
     currencyCode: 'MYR',
-    variants: [{ id: 'variant-3', title: 'Default', availableForSale: true, quantityAvailable: 50, price: { amount: '3.80', currencyCode: 'MYR' }, compareAtPrice: { amount: '4.20', currencyCode: 'MYR' }, selectedOptions: [], image: null }],
+    variants: [{ id: 'variant-3', title: 'Default', availableForSale: true, price: { amount: '3.80', currencyCode: 'MYR' }, compareAtPrice: { amount: '4.20', currencyCode: 'MYR' }, selectedOptions: [], image: null }],
     options: [],
     tags: ['new'],
   },
@@ -212,7 +211,7 @@ const mockProducts: Product[] = [
     price: 18.00,
     compareAtPrice: 21.00,
     currencyCode: 'MYR',
-    variants: [{ id: 'variant-4', title: 'Default', availableForSale: true, quantityAvailable: 30, price: { amount: '18.00', currencyCode: 'MYR' }, compareAtPrice: { amount: '21.00', currencyCode: 'MYR' }, selectedOptions: [], image: null }],
+    variants: [{ id: 'variant-4', title: 'Default', availableForSale: true, price: { amount: '18.00', currencyCode: 'MYR' }, compareAtPrice: { amount: '21.00', currencyCode: 'MYR' }, selectedOptions: [], image: null }],
     options: [],
     tags: ['best-seller', 'value'],
   },
