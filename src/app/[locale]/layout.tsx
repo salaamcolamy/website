@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
@@ -11,6 +12,14 @@ import { CartDrawer } from '@/components/shop/CartDrawer'
 import { SmoothScroll } from '@/components/layout/SmoothScroll'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { SplashScreen } from '@/components/layout/SplashScreen'
+
+export const metadata: Metadata = {
+  icons: {
+    icon: '/favico.svg',
+    shortcut: '/favico.svg',
+    apple: '/favico.svg',
+  },
+}
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
