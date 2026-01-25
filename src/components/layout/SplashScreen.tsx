@@ -36,7 +36,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
             initial={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.1 }}
             transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-salaam-red-500 overflow-hidden"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-salaam-red-500 overflow-visible"
           >
             {/* Animated background waves */}
             <div className="absolute inset-0 overflow-hidden">
@@ -95,7 +95,8 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
                     alt="Salaam Cola"
                     width={500}
                     height={800}
-                    className="h-[450px] md:h-[550px] lg:h-[650px] w-auto min-w-[350px] md:min-w-0 drop-shadow-2xl"
+                    className="w-full max-w-[90vw] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] h-auto object-contain drop-shadow-2xl"
+                    style={{ aspectRatio: '500/800' }}
                     priority
                   />
                 </motion.div>
