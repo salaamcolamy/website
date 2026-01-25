@@ -103,8 +103,8 @@ export function Supporters() {
         // Modify SVG to highlight states
         let modifiedSvg = svg
 
-        // Change default fill color
-        modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#e5e7eb"')
+        // Change default fill color to white
+        modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#ffffff"')
 
         // Hide East Malaysia states (Sabah & Sarawak)
         hiddenStates.forEach(stateId => {

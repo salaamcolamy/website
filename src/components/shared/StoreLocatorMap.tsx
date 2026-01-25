@@ -103,8 +103,8 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }
       .then(svg => {
         let modifiedSvg = svg
 
-        // Change default fill color
-        modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#e5e7eb"')
+        // Change default fill color to white
+        modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#ffffff"')
 
         // Hide East Malaysia states
         hiddenStates.forEach(stateId => {
