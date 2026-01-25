@@ -6,37 +6,10 @@ import { useRef, useState, useEffect } from 'react'
 import { MapPin, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
-// Store locations with coordinates based on the SVG viewBox (0 0 1000 332)
+// Store locations with coordinates based on the SVG viewBox (50 40 200 280)
 const storeLocations = [
   {
     id: 1,
-    name: 'Eraman (KLIA)',
-    address: 'KLIA Terminal, Sepang',
-    contact: '+603-8787-1234',
-    state: 'MY10', // Selangor
-    x: 135,
-    y: 220,
-  },
-  {
-    id: 2,
-    name: 'Hadramawt Bukit Bintang',
-    address: 'Jalan Bukit Bintang, KL',
-    contact: '+603-2142-5678',
-    state: 'MY14', // KL
-    x: 128,
-    y: 195,
-  },
-  {
-    id: 3,
-    name: 'Kunafa Crisp',
-    address: 'Bukit Bintang, KL',
-    contact: '+603-2143-9012',
-    state: 'MY14', // KL
-    x: 138,
-    y: 190,
-  },
-  {
-    id: 4,
     name: 'BETAWI TTDI',
     address: 'TTDI, Kuala Lumpur',
     contact: '+603-7728-3456',
@@ -45,40 +18,67 @@ const storeLocations = [
     y: 188,
   },
   {
-    id: 5,
-    name: 'Woodfire',
-    address: 'Multiple Locations, KL',
+    id: 2,
+    name: 'The Great Chase',
+    address: 'Solaris Dutamas, Kuala Lumpur',
     contact: '+603-6201-7890',
+    state: 'MY14', // KL
+    x: 125,
+    y: 195,
+  },
+  {
+    id: 3,
+    name: 'Fennel & Co',
+    address: 'Kuala Lumpur',
+    contact: '+603-2142-5678',
+    state: 'MY14', // KL
+    x: 130,
+    y: 192,
+  },
+  {
+    id: 4,
+    name: 'Tepuk Tepung',
+    address: 'Putrajaya',
+    contact: '+603-2110-2345',
+    state: 'MY16', // Putrajaya
+    x: 120,
+    y: 210,
+  },
+  {
+    id: 5,
+    name: 'KLIA Food Station',
+    address: 'KLIA Terminal, Sepang',
+    contact: '+603-8787-1234',
     state: 'MY10', // Selangor
-    x: 145,
-    y: 205,
+    x: 135,
+    y: 220,
   },
   {
     id: 6,
-    name: 'Ignition Burgers',
-    address: 'Kuala Lumpur',
-    contact: '+603-2110-2345',
-    state: 'MY14', // KL
-    x: 125,
-    y: 200,
+    name: 'Karya Kopi Roastery',
+    address: 'Shah Alam, Selangor',
+    contact: '+603-9000-6789',
+    state: 'MY10', // Selangor
+    x: 140,
+    y: 205,
   },
   {
     id: 7,
-    name: 'VPS Vending',
-    address: 'Various Locations',
-    contact: '+603-9000-6789',
-    state: 'MY10', // Selangor
-    x: 150,
-    y: 215,
-  },
-  {
-    id: 8,
-    name: 'Outlets N. Sembilan',
-    address: 'Pedas, Nilai, Seremban, USIM',
+    name: 'Lot 15',
+    address: 'Negeri Sembilan',
     contact: '+606-601-0123',
     state: 'MY05', // Negeri Sembilan
     x: 135,
     y: 245,
+  },
+  {
+    id: 8,
+    name: 'Tujuh Tiga Cafe',
+    address: 'Negeri Sembilan',
+    contact: '+606-601-0124',
+    state: 'MY05', // Negeri Sembilan
+    x: 138,
+    y: 248,
   },
 ]
 
