@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { TreePine, Truck, CreditCard, RotateCcw } from 'lucide-react'
+import { TreePine, Truck } from 'lucide-react'
 
 const pledges = [
   {
@@ -15,16 +15,6 @@ const pledges = [
     icon: Truck,
     title: 'Business',
     description: 'Distribute Salaam Cola at your premise',
-  },
-  {
-    icon: CreditCard,
-    title: 'Pay Later',
-    description: 'Buy now, pay later in four easy installments',
-  },
-  {
-    icon: RotateCcw,
-    title: 'Easy Returns',
-    description: 'Within 14 days of purchase date',
   },
 ]
 
@@ -43,7 +33,7 @@ export function PledgeSection() {
         >
           Join Us
         </motion.h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 gap-6 md:gap-8 max-w-2xl mx-auto">
           {pledges.map((pledge, index) => (
             <motion.div
               key={pledge.title}
