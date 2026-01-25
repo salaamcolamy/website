@@ -3,19 +3,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
-import { useCart } from '@/context/CartContext'
 import { fadeInUp, fadeInLeft, fadeInRight, staggerContainer } from '@/lib/animations'
-import {
-  ShoppingBag,
-  Minus,
-  Plus,
-  ChevronLeft,
-  Check,
-  Truck,
-  Shield,
-  RefreshCw,
-  Star,
-} from 'lucide-react'
+import { ChevronLeft, Truck, Shield, RefreshCw, Star } from 'lucide-react'
 import Image from 'next/image'
 import type { Product } from '@/lib/shopify/types'
 
@@ -28,26 +17,10 @@ export function ProductDetailClient({
   product,
   relatedProducts,
 }: ProductDetailClientProps) {
-  const { addItem, isLoading } = useCart()
-
-  const [quantity, setQuantity] = useState(1)
-  const [isAdded, setIsAdded] = useState(false)
   const [activeTab, setActiveTab] = useState<'description' | 'additional' | 'review'>('description')
 
   const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
   const category = product.tags[0] || 'PRODUCT'
-
-  const handleAddToCart = async () => {
-    const variantId = product.variants[0]?.id
-    if (variantId) {
-      await addItem(variantId, quantity)
-      setIsAdded(true)
-      setTimeout(() => setIsAdded(false), 2000)
-    }
-  }
-
-  const incrementQuantity = () => setQuantity((q) => q + 1)
-  const decrementQuantity = () => setQuantity((q) => Math.max(1, q - 1))
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
@@ -118,59 +91,6 @@ export function ProductDetailClient({
             <div className="prose prose-gray max-w-none">
               <p className="text-gray-600 leading-relaxed">{product.description}</p>
             </div>
-
-            {/* Quantity selector */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Quantity</label>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center border border-gray-200 rounded-full overflow-hidden">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={decrementQuantity}
-                    className="w-12 h-12 flex items-center justify-center text-gray-500 hover:text-salaam-red-500 transition-colors"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </motion.button>
-                  <span className="w-12 text-center font-semibold text-gray-900">
-                    {quantity}
-                  </span>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={incrementQuantity}
-                    className="w-12 h-12 flex items-center justify-center text-gray-500 hover:text-salaam-red-500 transition-colors"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-
-            {/* Add to cart button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleAddToCart}
-              disabled={isLoading || !product.availableForSale}
-              className={`w-full py-4 px-8 rounded-full font-semibold text-lg flex items-center justify-center gap-3 transition-all ${
-                isAdded
-                  ? 'bg-green-500 text-white'
-                  : 'bg-salaam-red-500 text-white hover:bg-salaam-red-600'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {isAdded ? (
-                <>
-                  <Check className="w-6 h-6" />
-                  Added to Cart!
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="w-6 h-6" />
-                  Add to Cart
-                </>
-              )}
-            </motion.button>
 
             {/* Features */}
             <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-100">

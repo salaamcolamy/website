@@ -4,9 +4,8 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
-import { useCart } from '@/context/CartContext'
 import { fadeInUp, staggerContainer, scaleIn } from '@/lib/animations'
-import { Grid, List, Star, ShoppingCart } from 'lucide-react'
+import { Grid, List, Star } from 'lucide-react'
 import Image from 'next/image'
 import type { Product } from '@/lib/shopify/types'
 
@@ -16,17 +15,7 @@ interface ShopPageClientProps {
 
 export function ShopPageClient({ products }: ShopPageClientProps) {
   const t = useTranslations('shop')
-  const { addItem, isLoading } = useCart()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-
-  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const variantId = product.variants[0]?.id
-    if (variantId) {
-      await addItem(variantId, 1)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
@@ -109,20 +98,6 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                             fill
                             className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
                           />
-
-                          {/* Add to Cart Button - appears on hover */}
-                          <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <motion.button
-                              onClick={(e) => handleAddToCart(e, product)}
-                              disabled={isLoading || !product.availableForSale}
-                              className="px-6 py-2.5 bg-salaam-red-500 text-white rounded-full font-medium hover:bg-salaam-red-600 disabled:opacity-50 flex items-center gap-2"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                            >
-                              <ShoppingCart className="w-4 h-4" />
-                              {product.availableForSale ? 'Add to Cart' : 'Out of Stock'}
-                            </motion.button>
-                          </div>
                         </div>
 
                         {/* Rating */}
@@ -142,16 +117,6 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                         {product.tags[0] && (
                           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{product.tags[0]}</p>
                         )}
-
-                        {/* Mobile Add to Cart Button */}
-                        <button
-                          onClick={(e) => handleAddToCart(e, product)}
-                          disabled={isLoading || !product.availableForSale}
-                          className="lg:hidden w-full max-w-[280px] mx-auto px-6 py-2.5 bg-salaam-red-500 text-white rounded-full font-medium hover:bg-salaam-red-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-                        >
-                          <ShoppingCart className="w-4 h-4" />
-                          {product.availableForSale ? 'Add to Cart' : 'Out of Stock'}
-                        </button>
                       </div>
                     </Link>
                   </motion.div>
