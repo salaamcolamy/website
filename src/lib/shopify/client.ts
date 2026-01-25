@@ -13,13 +13,20 @@ export async function shopifyFetch<T>({
   variables = {},
   cache = 'force-cache',
   tags,
+  revalidate,
 }: {
   query: string
   variables?: Record<string, unknown>
   cache?: RequestCache
   tags?: string[]
+  /** Revalidate cached response after N seconds. Use so Shopify product changes show up. */
+  revalidate?: number
 }): Promise<T> {
   try {
+    const nextOptions: { tags?: string[]; revalidate?: number } = {}
+    if (tags?.length) nextOptions.tags = tags
+    if (revalidate != null) nextOptions.revalidate = revalidate
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -28,7 +35,7 @@ export async function shopifyFetch<T>({
       },
       body: JSON.stringify({ query, variables }),
       cache,
-      ...(tags && { next: { tags } }),
+      ...(Object.keys(nextOptions).length > 0 && { next: nextOptions }),
     })
 
     const body: ShopifyResponse<T> = await response.json()

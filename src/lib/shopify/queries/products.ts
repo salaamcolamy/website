@@ -241,6 +241,7 @@ export async function getProducts(first: number = 20): Promise<Product[]> {
     query,
     variables: { first },
     tags: ['products'],
+    revalidate: 60,
   })
 
   return data.products.edges.map((edge) => transformProduct(edge.node))
@@ -264,6 +265,7 @@ export async function getProduct(handle: string): Promise<Product | null> {
     query,
     variables: { handle },
     tags: ['product', handle],
+    revalidate: 60,
   })
 
   return data.product ? transformProduct(data.product) : null
@@ -293,6 +295,7 @@ export async function getBestSellers(first: number = 4): Promise<Product[]> {
     query,
     variables: { first },
     tags: ['best-sellers'],
+    revalidate: 60,
   })
 
   return data.products.edges.map((edge) => transformProduct(edge.node))
