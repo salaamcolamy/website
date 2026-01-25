@@ -72,7 +72,7 @@ export function TasteIsEverything() {
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <Link
-              href="/contact"
+              href="/shop"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-salaam-red-500 rounded-full font-semibold hover:bg-white/90 transition-colors shadow-lg"
             >
               Taste the Impact
