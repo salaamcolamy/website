@@ -38,11 +38,11 @@ const storeLocations = [
   {
     id: 4,
     name: 'Tepuk Tepung',
-    address: 'Putrajaya',
+    address: 'Hartamas Shopping Centre, Kuala Lumpur',
     contact: '+603-2110-2345',
-    state: 'MY16', // Putrajaya
-    x: 120,
-    y: 210,
+    state: 'MY14', // KL
+    x: 122,
+    y: 190,
   },
   {
     id: 5,
@@ -69,7 +69,7 @@ const storeLocations = [
     contact: '+606-601-0123',
     state: 'MY05', // Negeri Sembilan
     x: 135,
-    y: 245,
+    y: 235,
   },
   {
     id: 8,
@@ -78,7 +78,7 @@ const storeLocations = [
     contact: '+606-601-0124',
     state: 'MY05', // Negeri Sembilan
     x: 138,
-    y: 248,
+    y: 238,
   },
 ]
 
