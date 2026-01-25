@@ -6,8 +6,7 @@ import { Link } from '@/i18n/routing'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { GlassButton } from '@/components/ui/GlassButton'
 import { useCart } from '@/context/CartContext'
-import { formatPrice } from '@/lib/utils'
-import { ShoppingBag, Eye } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import Image from 'next/image'
 import type { Product } from '@/lib/shopify/types'
 
@@ -68,18 +67,7 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
               </p>
             </div>
 
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-bold text-salaam-red-500">
-                  {formatPrice(product.price, product.currencyCode)}
-                </span>
-                {product.compareAtPrice && product.compareAtPrice > product.price && (
-                  <span className="text-sm text-gray-400 line-through">
-                    {formatPrice(product.compareAtPrice, product.currencyCode)}
-                  </span>
-                )}
-              </div>
-
+            <div className="flex items-center justify-end mt-4">
               <GlassButton
                 variant="primary"
                 size="sm"
@@ -140,13 +128,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
             </motion.div>
           </div>
 
-          {/* Sale badge */}
-          {product.compareAtPrice && product.compareAtPrice > product.price && (
-            <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
-              Sale
-            </div>
-          )}
-
           {/* Out of stock badge */}
           {!product.availableForSale && (
             <div className="absolute top-4 right-4 px-3 py-1 bg-gray-900 text-white text-sm font-semibold rounded-full">
@@ -160,16 +141,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
           <h3 className="font-semibold text-gray-900 group-hover:text-salaam-red-500 transition-colors line-clamp-1">
             {product.title}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-salaam-red-500">
-              {formatPrice(product.price, product.currencyCode)}
-            </span>
-            {product.compareAtPrice && product.compareAtPrice > product.price && (
-              <span className="text-sm text-gray-400 line-through">
-                {formatPrice(product.compareAtPrice, product.currencyCode)}
-              </span>
-            )}
-          </div>
         </div>
       </GlassCard>
     </Link>

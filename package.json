@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "setup-github-ssh": "bash scripts/setup-github-ssh.sh",
+    "push": "git push"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

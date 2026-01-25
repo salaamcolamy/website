@@ -166,17 +166,6 @@ export function ProductLineup() {
                       <p className="text-sm text-gray-500">{product.subtitle}</p>
                     </div>
 
-                    {/* Price */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-salaam-red-500">
-                        {product.price}
-                      </span>
-                      {product.originalPrice && (
-                        <span className="text-sm text-gray-400 line-through">
-                          {product.originalPrice}
-                        </span>
-                      )}
-                    </div>
                   </div>
                 </GlassCard>
               </motion.div>

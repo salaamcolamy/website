@@ -34,11 +34,6 @@ export function ProductDetailClient({
   const [isAdded, setIsAdded] = useState(false)
   const [activeTab, setActiveTab] = useState<'description' | 'additional' | 'review'>('description')
 
-  // Calculate discount percentage
-  const discount = product.compareAtPrice
-    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
-    : null
-
   const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
   const category = product.tags[0] || 'PRODUCT'
 
@@ -90,12 +85,6 @@ export function ProductDetailClient({
                 priority
               />
 
-              {/* Discount badge */}
-              {discount && discount > 0 && (
-                <div className="absolute top-6 left-6 px-4 py-2 bg-salaam-red-500 text-white font-semibold rounded-full">
-                  -{discount}% OFF
-                </div>
-              )}
             </div>
           </motion.div>
 
@@ -123,17 +112,6 @@ export function ProductDetailClient({
                 </div>
               </div>
 
-              {/* Price */}
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold text-salaam-red-500">
-                  {product.currencyCode} {product.price.toFixed(2)}
-                </span>
-                {product.compareAtPrice && (
-                  <span className="text-xl text-gray-400 line-through">
-                    {product.currencyCode} {product.compareAtPrice.toFixed(2)}
-                  </span>
-                )}
-              </div>
             </div>
 
             {/* Description */}
@@ -189,7 +167,7 @@ export function ProductDetailClient({
               ) : (
                 <>
                   <ShoppingBag className="w-6 h-6" />
-                  Add to Cart - {product.currencyCode} {(product.price * quantity).toFixed(2)}
+                  Add to Cart
                 </>
               )}
             </motion.button>
@@ -423,9 +401,6 @@ export function ProductDetailClient({
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {relatedProducts.map((relatedProduct) => {
-                const relatedDiscount = relatedProduct.compareAtPrice
-                  ? Math.round((1 - relatedProduct.price / relatedProduct.compareAtPrice) * 100)
-                  : null
                 const relatedImageUrl = relatedProduct.featuredImage?.url || '/images/products/placeholder.webp'
 
                 return (
@@ -441,11 +416,6 @@ export function ProductDetailClient({
                           fill
                           className="object-contain p-8 transition-transform duration-500 group-hover:scale-105"
                         />
-                        {relatedDiscount && relatedDiscount > 0 && (
-                          <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
-                            -{relatedDiscount}% OFF
-                          </div>
-                        )}
                       </div>
                       <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
                         {relatedProduct.title}
@@ -455,16 +425,6 @@ export function ProductDetailClient({
                           {relatedProduct.tags[0]}
                         </p>
                       )}
-                      <div className="flex items-center justify-center gap-2">
-                        {relatedProduct.compareAtPrice && (
-                          <span className="text-gray-400 line-through">
-                            {relatedProduct.currencyCode} {relatedProduct.compareAtPrice.toFixed(2)}
-                          </span>
-                        )}
-                        <span className="text-lg font-bold text-salaam-red-500">
-                          {relatedProduct.currencyCode} {relatedProduct.price.toFixed(2)}
-                        </span>
-                      </div>
                     </motion.div>
                   </Link>
                 )

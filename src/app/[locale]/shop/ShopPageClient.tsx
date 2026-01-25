@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
 import { useCart } from '@/context/CartContext'
 import { fadeInUp, staggerContainer, scaleIn } from '@/lib/animations'
-import { Grid, List, SlidersHorizontal, Star, ShoppingCart } from 'lucide-react'
+import { Grid, List, Star, ShoppingCart } from 'lucide-react'
 import Image from 'next/image'
 import type { Product } from '@/lib/shopify/types'
 
@@ -14,12 +14,9 @@ interface ShopPageClientProps {
   products: Product[]
 }
 
-type SortOption = 'newest' | 'price-low-high' | 'price-high-low'
-
 export function ShopPageClient({ products }: ShopPageClientProps) {
   const t = useTranslations('shop')
   const { addItem, isLoading } = useCart()
-  const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
@@ -30,18 +27,6 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
       await addItem(variantId, 1)
     }
   }
-
-  // Sort products
-  const sortedProducts = [...products].sort((a, b) => {
-    switch (sortBy) {
-      case 'price-low-high':
-        return a.price - b.price
-      case 'price-high-low':
-        return b.price - a.price
-      default:
-        return 0
-    }
-  })
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
@@ -69,26 +54,11 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
           >
             {/* Product count */}
             <p className="text-gray-500">
-              {sortedProducts.length} products
+              {products.length} products
             </p>
 
-            {/* Sort and view controls */}
+            {/* View mode toggle */}
             <div className="flex items-center gap-4">
-              {/* Sort dropdown */}
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-gray-500" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50"
-                >
-                  <option value="newest">{t('newest')}</option>
-                  <option value="price-low-high">{t('priceLowHigh')}</option>
-                  <option value="price-high-low">{t('priceHighLow')}</option>
-                </select>
-              </div>
-
-              {/* View mode toggle */}
               <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -115,7 +85,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
           </motion.div>
 
           {/* Products grid */}
-          {sortedProducts.length > 0 ? (
+          {products.length > 0 ? (
             <motion.div
               variants={staggerContainer}
               className={
@@ -124,10 +94,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                   : 'flex flex-col gap-4'
               }
             >
-              {sortedProducts.map((product, index) => {
-                const discount = product.compareAtPrice
-                  ? Math.round((1 - product.price / product.compareAtPrice) * 100)
-                  : null
+              {products.map((product, index) => {
                 const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
 
                 return (
@@ -142,13 +109,6 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                             fill
                             className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
                           />
-
-                          {/* Discount Badge */}
-                          {discount && discount > 0 && (
-                            <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
-                              -{discount}% OFF
-                            </div>
-                          )}
 
                           {/* Add to Cart Button - appears on hover */}
                           <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -182,18 +142,6 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                         {product.tags[0] && (
                           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{product.tags[0]}</p>
                         )}
-
-                        {/* Price */}
-                        <div className="flex items-center justify-center gap-2 mb-3">
-                          {product.compareAtPrice && (
-                            <span className="text-gray-400 line-through">
-                              {product.currencyCode} {product.compareAtPrice.toFixed(2)}
-                            </span>
-                          )}
-                          <span className="text-lg font-bold text-salaam-red-500">
-                            {product.currencyCode} {product.price.toFixed(2)}
-                          </span>
-                        </div>
 
                         {/* Mobile Add to Cart Button */}
                         <button

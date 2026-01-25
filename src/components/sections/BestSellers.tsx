@@ -36,9 +36,6 @@ export function BestSellers({ products }: BestSellersProps) {
         <div className="relative">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, index) => {
-              const discount = product.compareAtPrice
-                ? Math.round((1 - product.price / product.compareAtPrice) * 100)
-                : null
               const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
 
               return (
@@ -58,13 +55,6 @@ export function BestSellers({ products }: BestSellersProps) {
                           fill
                           className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
                         />
-
-                        {/* Discount Badge */}
-                        {discount && discount > 0 && (
-                          <div className="absolute top-4 left-4 px-3 py-1 bg-salaam-red-500 text-white text-sm font-semibold rounded-full">
-                            -{discount}% OFF
-                          </div>
-                        )}
                       </div>
 
                       {/* Rating */}
@@ -82,20 +72,8 @@ export function BestSellers({ products }: BestSellersProps) {
                         {product.title}
                       </h3>
                       {product.tags[0] && (
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{product.tags[0]}</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide">{product.tags[0]}</p>
                       )}
-
-                      {/* Price */}
-                      <div className="flex items-center justify-center gap-2">
-                        {product.compareAtPrice && (
-                          <span className="text-gray-400 line-through">
-                            {product.currencyCode} {product.compareAtPrice.toFixed(2)}
-                          </span>
-                        )}
-                        <span className="text-lg font-bold text-salaam-red-500">
-                          {product.currencyCode} {product.price.toFixed(2)}
-                        </span>
-                      </div>
                     </div>
                   </Link>
                 </motion.div>
