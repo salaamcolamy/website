@@ -26,10 +26,7 @@ export function BestSellers({ products }: BestSellersProps) {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <span className="inline-block px-4 py-1.5 mb-3 text-sm font-medium text-salaam-red-500 bg-salaam-red-50 backdrop-blur-sm border border-salaam-red-100 rounded-full">
-            Must-haves
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Shop Now</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Meet Salaam Cola</h2>
         </motion.div>
 
         {/* Products Grid */}
@@ -93,7 +90,7 @@ export function BestSellers({ products }: BestSellersProps) {
             href="/shop"
             className="inline-flex items-center gap-2 px-8 py-3 bg-salaam-red-500 text-white rounded-full font-semibold hover:bg-salaam-red-600 transition-colors"
           >
-            Shop all
+            View All
             <ArrowRight className="w-5 h-5" />
           </Link>
         </motion.div>
