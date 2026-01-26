@@ -79,6 +79,15 @@ const storeLocations = [
     x: 138,
     y: 238,
   },
+  {
+    id: 9,
+    name: 'Selera Nate Glenmarie',
+    address: 'Glenmarie, Shah Alam, Selangor',
+    contact: '+603-5555-0125',
+    state: 'MY10', // Selangor
+    x: 137,
+    y: 208,
+  },
 ]
 
 // States to highlight (where we have stores)
@@ -138,7 +147,7 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }
         {/* Left: Interactive Map */}
         <div className="relative">
           {/* SVG Map Container */}
-          <div className="relative bg-white rounded-2xl shadow-lg p-4 md:p-6 overflow-hidden">
+          <div className="relative bg-salaam-red-100 rounded-2xl shadow-lg p-4 md:p-6 overflow-hidden">
             <TransformWrapper
               initialScale={1}
               minScale={0.5}
