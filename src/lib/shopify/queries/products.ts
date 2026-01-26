@@ -300,3 +300,43 @@ export async function getBestSellers(first: number = 4): Promise<Product[]> {
 
   return data.products.edges.map((edge) => transformProduct(edge.node))
 }
+
+/** Fetch products from a collection in the collection's sort order (e.g. manual). */
+export async function getCollectionProducts(
+  collectionHandle: string,
+  first: number = 20
+): Promise<Product[]> {
+  if (!isShopifyConfigured()) {
+    return mockProducts.slice(0, first)
+  }
+
+  const query = `
+    query getCollectionProducts($handle: String!, $first: Int!) {
+      collection(handle: $handle) {
+        products(first: $first, sortKey: COLLECTION_DEFAULT) {
+          edges {
+            node {
+              ...ProductFragment
+            }
+          }
+        }
+      }
+    }
+    ${PRODUCT_FRAGMENT}
+  `
+
+  const data = await shopifyFetch<{
+    collection: { products: { edges: Array<{ node: ShopifyProduct }> } } | null
+  }>({
+    query,
+    variables: { handle: collectionHandle, first },
+    tags: ['collection', collectionHandle],
+    revalidate: 60,
+  })
+
+  if (!data.collection) {
+    return []
+  }
+
+  return data.collection.products.edges.map((edge) => transformProduct(edge.node))
+}

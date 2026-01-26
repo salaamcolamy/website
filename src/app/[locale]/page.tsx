@@ -7,7 +7,10 @@ import { ChangeStartsSmall } from '@/components/sections/ChangeStartsSmall'
 import { Supporters } from '@/components/sections/Supporters'
 import { PledgeSection } from '@/components/sections/PledgeSection'
 import { InstagramFeed } from '@/components/sections/InstagramFeed'
-import { getProducts } from '@/lib/shopify/queries/products'
+import { getCollectionProducts } from '@/lib/shopify/queries/products'
+
+const FEATURED_COLLECTION =
+  process.env.NEXT_PUBLIC_FEATURED_COLLECTION || 'frontpage'
 
 interface HomePageProps {
   params: Promise<{ locale: string }>
@@ -17,8 +20,8 @@ export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  // Fetch products from Shopify (or fallback mock products)
-  const products = await getProducts(3)
+  // Featured products in collection order (e.g. Shopify homepage collection)
+  const products = await getCollectionProducts(FEATURED_COLLECTION, 3)
 
   return (
     <>
