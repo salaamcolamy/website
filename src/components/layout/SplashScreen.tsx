@@ -16,11 +16,11 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
       document.body.style.overflow = ''
     }
 
-    // Auto-dismiss after animation completes
+    // Auto-dismiss after animation completes (reduced from 2800ms for faster feel)
     const timer = setTimeout(() => {
       setShowSplash(false)
       setCanScroll(true)
-    }, 2800)
+    }, 1400)
 
     return () => {
       clearTimeout(timer)
@@ -34,8 +34,8 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
         {showSplash && (
           <motion.div
             initial={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-salaam-red-500 overflow-visible"
           >
             {/* Animated background waves */}
@@ -128,7 +128,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
                   transition={{ duration: 0.6, delay: 1.2 }}
                   className="mt-2 text-white/80 text-sm md:text-base"
                 >
-                  Taste The Freedom
+                  Taste the Freedom
                 </motion.p>
               </motion.div>
 
