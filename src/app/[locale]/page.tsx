@@ -25,7 +25,7 @@ export default async function HomePage({ params }: HomePageProps) {
     <>
       <HeroSection />
       <TasteIsEverything />
-      <BestSellers products={products} />
+      <BestSellers />
       <ChangeStartsSmall />
       <Supporters />
       <PledgeSection />
