@@ -173,8 +173,8 @@ export function Supporters() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h2 className="text-2xl md:text-3xl font-bold text-salaam-red-500 mb-2">
-            Get Your Salaam Cola At
+          <h2 className="text-2xl md:text-3xl font-quora font-bold text-salaam-red-500 mb-2">
+            Get Your Salaam Cola
           </h2>
           <p className="text-gray-600">Find us across Malaysia</p>
         </motion.div>

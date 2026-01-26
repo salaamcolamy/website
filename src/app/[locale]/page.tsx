@@ -1,13 +1,11 @@
 import { setRequestLocale } from 'next-intl/server'
 import { HeroSection } from '@/components/sections/HeroSection'
 import { Certifications } from '@/components/sections/Certifications'
-import { ReviewNewsletter } from '@/components/sections/ReviewNewsletter'
 import { BestSellers } from '@/components/sections/BestSellers'
 import { TasteIsEverything } from '@/components/sections/TasteIsEverything'
 import { ChangeStartsSmall } from '@/components/sections/ChangeStartsSmall'
 import { Supporters } from '@/components/sections/Supporters'
 import { PledgeSection } from '@/components/sections/PledgeSection'
-import { InstagramFeed } from '@/components/sections/InstagramFeed'
 import { getCollectionProducts } from '@/lib/shopify/queries/products'
 
 const FEATURED_COLLECTION =
@@ -32,9 +30,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <BestSellers products={products} />
       <ChangeStartsSmall />
       <Supporters />
-      <InstagramFeed />
       <PledgeSection />
-      <ReviewNewsletter />
     </>
   )
 }
