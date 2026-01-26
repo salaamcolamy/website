@@ -82,7 +82,7 @@ export default async function LocaleLayout({
           <CartProvider>
             <SplashScreen>
               <SmoothScroll>
-                <div className="flex min-h-screen flex-col">
+                <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden">
                   <Header />
                   <main className="flex-1">
                     <PageTransition>

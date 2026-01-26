@@ -20,10 +20,12 @@
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-white text-gray-900 antialiased;
+    overflow-x: hidden;
   }
 
   /* RTL Support */
