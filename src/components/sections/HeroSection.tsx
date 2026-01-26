@@ -33,28 +33,13 @@ export function HeroSection() {
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="font-poppins text-white text-center space-y-4 mt-56 md:mt-72 lg:mt-96"
         >
-          <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight uppercase tracking-wide text-white">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight tracking-wide text-white">
             Taste the Freedom
           </h1>
-          <p className="text-2xl md:text-3xl lg:text-4xl font-black uppercase tracking-wide text-white">
+          <p className="text-2xl md:text-3xl lg:text-4xl font-black tracking-wide text-white">
             Rasai Kebebasan
           </p>
         </motion.div>
-      </div>
-
-      {/* Bottom wave transition to next section */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-        <svg
-          viewBox="0 0 1440 120"
-          preserveAspectRatio="none"
-          className="w-full h-20 md:h-32"
-          aria-hidden
-        >
-          <path
-            fill="white"
-            d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"
-          />
-        </svg>
       </div>
     </section>
   )
