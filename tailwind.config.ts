@@ -27,6 +27,7 @@ const config: Config = {
         mono: ['var(--font-geist-mono)', 'monospace'],
         arabic: ['var(--font-noto-arabic)', 'system-ui', 'sans-serif'],
         quora: ['Quora', 'system-ui', 'sans-serif'],
+        poppins: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
       },
       backdropBlur: {
         xs: '2px',
