@@ -16,21 +16,6 @@ export function TasteIsEverything() {
 
   return (
     <section ref={ref} className="relative min-h-screen overflow-hidden -mt-px">
-      {/* Wave at top of section */}
-      <div className="absolute top-0 left-0 right-0 pointer-events-none z-20">
-        <svg
-          viewBox="0 0 1440 120"
-          preserveAspectRatio="none"
-          className="w-full h-20 md:h-28 lg:h-32"
-          aria-hidden
-        >
-          <path
-            fill="white"
-            d="M0,40 C180,80 360,20 540,60 C720,100 900,40 1080,70 C1260,100 1380,50 1440,60 L1440,0 L0,0 Z"
-          />
-        </svg>
-      </div>
-
       {/* Full-bleed background */}
       <div className="absolute inset-0">
         {/* Video background (if provided) */}
