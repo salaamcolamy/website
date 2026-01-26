@@ -53,7 +53,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="pt-4 md:pt-6"
+            className="pt-32 md:pt-6"
           >
             <Link
               href="/about"
