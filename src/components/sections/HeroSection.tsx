@@ -31,7 +31,7 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="font-quora text-white text-center space-y-4"
+          className="font-quora text-white text-center space-y-4 mt-16 md:mt-24 lg:mt-32"
         >
           <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight uppercase tracking-wide text-white">
             Taste the Freedom
