@@ -8,22 +8,45 @@ import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 
 const SECTION_IMAGE = '/images/pour.jpg'
+// Add your video path here (e.g., '/videos/pour-video.mp4')
+const SECTION_VIDEO = process.env.NEXT_PUBLIC_SECTION_VIDEO || ''
 
 export function TasteIsEverything() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="relative min-h-[85vh] overflow-hidden">
+    <section ref={ref} className="relative min-h-[85vh] overflow-hidden -mt-px">
       {/* Full-bleed background */}
       <div className="absolute inset-0">
-        <Image
-          src={SECTION_IMAGE}
-          alt=""
-          fill
-          className="object-cover"
-          sizes="100vw"
-        />
+        {/* Video background (if provided) */}
+        {SECTION_VIDEO ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src={SECTION_VIDEO} type="video/mp4" />
+            {/* Fallback to image if video fails */}
+            <Image
+              src={SECTION_IMAGE}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="100vw"
+            />
+          </video>
+        ) : (
+          <Image
+            src={SECTION_IMAGE}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+        )}
         <div
           className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/40"
           aria-hidden
@@ -37,7 +60,7 @@ export function TasteIsEverything() {
           transition={{ duration: 0.8 }}
           className="max-w-4xl mx-auto text-center"
         >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-poppins font-black text-white tracking-wide mb-6">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-quora font-black text-white tracking-wide mb-6">
             Taste is Everything
           </h2>
 
