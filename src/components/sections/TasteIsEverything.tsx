@@ -5,18 +5,17 @@ import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Link } from '@/i18n/routing'
-import Image from 'next/image'
 
 const SECTION_IMAGE = '/images/pour.jpg'
-// Add your video path here (e.g., '/videos/pour-video.mp4')
-const SECTION_VIDEO = process.env.NEXT_PUBLIC_SECTION_VIDEO || ''
+const SECTION_VIDEO =
+  process.env.NEXT_PUBLIC_SECTION_VIDEO || '/videos/pour-video.mp4'
 
 export function TasteIsEverything() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="relative min-h-[85vh] overflow-hidden -mt-px">
+    <section ref={ref} className="relative min-h-screen overflow-hidden -mt-px">
       {/* Wave at top of section */}
       <div className="absolute top-0 left-0 right-0 pointer-events-none z-20">
         <svg
@@ -35,40 +34,23 @@ export function TasteIsEverything() {
       {/* Full-bleed background */}
       <div className="absolute inset-0">
         {/* Video background (if provided) */}
-        {SECTION_VIDEO ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          >
-            <source src={SECTION_VIDEO} type="video/mp4" />
-            {/* Fallback to image if video fails */}
-            <Image
-              src={SECTION_IMAGE}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="100vw"
-            />
-          </video>
-        ) : (
-          <Image
-            src={SECTION_IMAGE}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-          />
-        )}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          poster={SECTION_IMAGE}
+        >
+          <source src={SECTION_VIDEO} type="video/mp4" />
+        </video>
         <div
           className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/40"
           aria-hidden
         />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10 pt-24 pb-24 md:pt-32 md:pb-32 min-h-[85vh] flex flex-col items-center justify-center">
+      <div className="container mx-auto px-4 relative z-10 pt-24 pb-24 md:pt-32 md:pb-32 min-h-screen flex flex-col items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
