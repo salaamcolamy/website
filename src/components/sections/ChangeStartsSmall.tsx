@@ -28,7 +28,7 @@ export function ChangeStartsSmall() {
               src={SECTION_IMAGE}
               alt="Change starts small"
               fill
-              className="object-cover"
+              className="object-cover object-[center_30%]"
             />
           </motion.div>
 

@@ -24,14 +24,16 @@ export function BestSellers({ products }: BestSellersProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-0"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Meet Salaam Cola</h2>
+          <h2 className="font-quora font-black text-salaam-red-500 text-[3.6rem] md:text-[4.48rem] lg:text-[5.4rem] xl:text-[7.2rem] leading-tight">
+            Meet Salaam Cola
+          </h2>
         </motion.div>
 
         {/* Products Grid */}
         <div className="relative">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
             {products.map((product, index) => {
               const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
 
@@ -45,7 +47,7 @@ export function BestSellers({ products }: BestSellersProps) {
                   <Link href={`/shop/${product.handle}`} scroll={true} onClick={() => window.scrollTo(0, 0)}>
                     <div className="group text-center">
                       {/* Product Image */}
-                      <div className="relative aspect-square overflow-hidden mb-4 max-w-[320px] md:max-w-[400px] lg:max-w-[480px] mx-auto">
+                      <div className="relative aspect-square overflow-hidden mb-4 max-w-[480px] md:max-w-[600px] lg:max-w-[720px] mx-auto">
                         <Image
                           src={imageUrl}
                           alt={product.featuredImage?.altText || product.title}

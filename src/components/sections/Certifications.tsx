@@ -3,40 +3,63 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Check } from 'lucide-react'
+import Image from 'next/image'
+
+const certifications = [
+  {
+    text: 'HALAL',
+    logo: '/images/jakim-logo-vector-720x340.png',
+  },
+  {
+    text: 'JAKIM',
+    logo: null,
+  },
+  {
+    text: 'KKM',
+    logo: '/images/49c08ae21f09324a91f311dcb741c685.png',
+  },
+  {
+    text: 'APPROVED',
+    logo: null,
+  },
+]
 
 export function Certifications() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
 
-  const certifications = [
-    'Halal JAKIM',
-    'KKM-Approved',
-  ]
-
   return (
-    <section ref={ref} className="relative py-12 md:py-16 overflow-hidden bg-white -mt-px">
-      <div className="container mx-auto px-4 relative z-10">
+    <section ref={ref} className="relative py-4 md:py-6 overflow-hidden bg-white -mt-px flex items-center">
+      <div className="container mx-auto px-4 relative z-10 w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="flex flex-wrap justify-center items-center gap-8 md:gap-12"
+          className="flex flex-wrap items-center justify-center gap-2 md:gap-4"
         >
           {certifications.map((cert, index) => (
             <motion.div
-              key={cert}
+              key={index}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="flex items-center gap-3"
+              transition={{ duration: 0.5, delay: index * 0.08 }}
+              className="flex items-center"
             >
-              <div className="w-6 h-6 rounded-full bg-salaam-red-500 flex items-center justify-center flex-shrink-0">
-                <Check className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg md:text-xl font-semibold text-gray-900">
-                {cert}
-              </span>
+              {cert.logo ? (
+                <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden bg-white flex items-center justify-center shrink-0 border-2 border-black">
+                  <Image
+                    src={cert.logo}
+                    alt={cert.text}
+                    width={64}
+                    height={64}
+                    className="object-contain p-1.5"
+                  />
+                </div>
+              ) : (
+                <span className="text-2xl md:text-4xl lg:text-5xl font-black text-black uppercase tracking-tight leading-none">
+                  {cert.text}
+                </span>
+              )}
             </motion.div>
           ))}
         </motion.div>
