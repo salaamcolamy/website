@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
@@ -9,13 +8,6 @@ import { ArrowRight, Star } from 'lucide-react'
 import Image from 'next/image'
 import type { Product } from '@/lib/shopify/types'
 
-const tabs = [
-  { key: 'featured', label: 'Featured', href: '/shop' },
-  { key: 'original', label: 'Original', href: '/shop?category=original' },
-  { key: 'zero-sugar', label: 'Zero Sugar', href: '/shop?category=zero-sugar' },
-  { key: 'keffiyeh', label: 'Keffiyeh Edition', href: '/shop?category=keffiyeh' },
-]
-
 interface BestSellersProps {
   products: Product[]
 }
@@ -23,41 +15,18 @@ interface BestSellersProps {
 export function BestSellers({ products }: BestSellersProps) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
-  const [activeTab, setActiveTab] = useState('featured')
 
   return (
-    <section ref={ref} className="py-16 md:py-20 bg-gray-50">
+    <section ref={ref} className="py-16 bg-white">
       <div className="container mx-auto px-4">
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-10"
+          className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Meet Salaam Cola</h2>
-        </motion.div>
-
-        {/* Tab bar */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="flex flex-wrap justify-center gap-2 mb-10"
-        >
-          {tabs.map((tab) => (
-            <Link
-              key={tab.key}
-              href={tab.href}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-salaam-red-500 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              {tab.label}
-            </Link>
-          ))}
         </motion.div>
 
         {/* Products Grid */}
@@ -76,7 +45,7 @@ export function BestSellers({ products }: BestSellersProps) {
                   <Link href={`/shop/${product.handle}`} scroll={true} onClick={() => window.scrollTo(0, 0)}>
                     <div className="group text-center">
                       {/* Product Image */}
-                      <div className="relative aspect-square bg-white rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto shadow-sm border border-gray-100">
+                      <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto">
                         <Image
                           src={imageUrl}
                           alt={product.featuredImage?.altText || product.title}
@@ -110,7 +79,7 @@ export function BestSellers({ products }: BestSellersProps) {
           </div>
         </div>
 
-        {/* Explore our brands CTA */}
+        {/* Shop All Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}

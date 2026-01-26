@@ -23,7 +23,7 @@ export function PledgeSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="py-16 md:py-20 bg-gray-50 border-t border-gray-200">
+    <section ref={ref} className="py-16 bg-white border-t border-gray-100">
       <div className="container mx-auto px-4">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}

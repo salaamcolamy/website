@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
@@ -34,8 +35,25 @@ const navItems: NavItem[] = [
 export function Header() {
   const t = useTranslations('navigation')
   const { cart, toggleCart } = useCart()
+  const pathname = usePathname()
+  const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+
+  // Check if on landing page (home page) - matches /, /en, /ms, /ar, etc.
+  const isLandingPage = pathname === '/' || /^\/[a-z]{2}$/.test(pathname)
+
+  // Use dark style if not on landing page OR if scrolled
+  const useDarkStyle = !isLandingPage || isScrolled
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <>
@@ -43,7 +61,12 @@ export function Header() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm"
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          useDarkStyle
+            ? 'bg-white/70 backdrop-blur-xl shadow-glass border-b border-white/20'
+            : 'bg-transparent'
+        )}
       >
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-between h-20">
@@ -59,10 +82,10 @@ export function Header() {
                   alt="Salaam Cola"
                   width={180}
                   height={48}
-                  className="h-12 w-auto"
-                  style={{
-                    filter: 'brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6000%) hue-rotate(355deg) brightness(90%) contrast(115%)',
-                  }}
+                  className="h-12 w-auto transition-all duration-300"
+                  style={useDarkStyle ? {
+                    filter: 'brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6000%) hue-rotate(355deg) brightness(90%) contrast(115%)'
+                  } : undefined}
                   priority
                 />
               </motion.div>
@@ -79,7 +102,12 @@ export function Header() {
                     onMouseLeave={() => setOpenDropdown(null)}
                   >
                     <button
-                      className="relative font-medium text-gray-700 hover:text-salaam-red-500 transition-colors duration-200 group flex items-center gap-1"
+                      className={cn(
+                        "relative font-medium transition-colors duration-200 group flex items-center gap-1",
+                        useDarkStyle
+                          ? "text-gray-700 hover:text-salaam-red-500"
+                          : "text-white hover:text-white/80"
+                      )}
                     >
                       {t(item.key)}
                       <ChevronDown className={cn(
@@ -113,10 +141,18 @@ export function Header() {
                   <Link
                     key={item.key}
                     href={item.href!}
-                    className="relative font-medium text-gray-700 hover:text-salaam-red-500 transition-colors duration-200 group"
+                    className={cn(
+                      "relative font-medium transition-colors duration-200 group",
+                      useDarkStyle
+                        ? "text-gray-700 hover:text-salaam-red-500"
+                        : "text-white hover:text-white/80"
+                    )}
                   >
                     {t(item.key)}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-salaam-red-500 transition-all duration-300 group-hover:w-full" />
+                    <span className={cn(
+                      "absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full",
+                      useDarkStyle ? "bg-salaam-red-500" : "bg-white"
+                    )} />
                   </Link>
                 )
               ))}
@@ -131,7 +167,12 @@ export function Header() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={toggleCart}
-                className="relative p-2 text-gray-700 hover:text-salaam-red-500 transition-colors"
+                className={cn(
+                  "relative p-2 transition-colors",
+                  useDarkStyle
+                    ? "text-gray-700 hover:text-salaam-red-500"
+                    : "text-white hover:text-white/80"
+                )}
                 aria-label={t('cart')}
               >
                 <ShoppingBag className="w-6 h-6" />
@@ -139,7 +180,12 @@ export function Header() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-5 h-5 text-xs rounded-full flex items-center justify-center font-medium bg-salaam-red-500 text-white"
+                    className={cn(
+                      "absolute -top-1 -right-1 w-5 h-5 text-xs rounded-full flex items-center justify-center font-medium",
+                      useDarkStyle
+                        ? "bg-salaam-red-500 text-white"
+                        : "bg-white text-salaam-red-500"
+                    )}
                   >
                     {cart.totalQuantity}
                   </motion.span>
@@ -151,7 +197,12 @@ export function Header() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 text-gray-700 hover:text-salaam-red-500 transition-colors"
+                className={cn(
+                  "md:hidden p-2 transition-colors",
+                  useDarkStyle
+                    ? "text-gray-700 hover:text-salaam-red-500"
+                    : "text-white hover:text-white/80"
+                )}
                 aria-label="Toggle menu"
               >
                 {isMobileMenuOpen ? (
