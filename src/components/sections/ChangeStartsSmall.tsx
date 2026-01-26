@@ -21,9 +21,9 @@ export function ChangeStartsSmall() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="py-16 bg-white">
+    <section ref={ref} className="py-16 md:py-20 bg-white">
       <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Image Grid */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
