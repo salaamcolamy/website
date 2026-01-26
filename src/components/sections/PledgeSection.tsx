@@ -56,7 +56,7 @@ export function PledgeSection() {
                 whileHover={{ scale: 1.05, y: -5 }}
                 className="relative group"
               >
-                <div className={`relative bg-gradient-to-br ${pledge.bgGradient} rounded-3xl p-8 md:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-white/50 backdrop-blur-sm overflow-hidden`}>
+                <div className="relative bg-white/20 backdrop-blur-md rounded-3xl p-8 md:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border-2 border-white/50 overflow-hidden">
                   {/* Decorative gradient overlay */}
                   <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${pledge.gradient} opacity-10 rounded-full blur-2xl`}></div>
                   

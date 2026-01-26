@@ -5,6 +5,7 @@ import { useInView } from 'framer-motion'
 import { useRef, useState, useEffect } from 'react'
 import { MapPin, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import Image from 'next/image'
 
 // Store locations with coordinates based on the SVG viewBox (50 40 200 280)
 const storeLocations = [
@@ -129,12 +130,14 @@ export function Supporters() {
         // Modify SVG to highlight states
         let modifiedSvg = svg
 
-        // Change default fill color to white
-        modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#ffffff"')
-
-        // State borders: visible lines separating states (replace root stroke)
-        modifiedSvg = modifiedSvg.replace('stroke="#ffffff"', 'stroke="#94a3b8"')
-        modifiedSvg = modifiedSvg.replace('stroke-width=".5"', 'stroke-width="1"')
+        // Glassmorphic states: semi-transparent white fill, faded borders
+        // Replace all fill colors with transparent white
+        modifiedSvg = modifiedSvg.replace(/fill="#[^"]*"/g, 'fill="rgba(255,255,255,0.15)"')
+        modifiedSvg = modifiedSvg.replace(/fill='#[^']*'/g, "fill='rgba(255,255,255,0.15)'")
+        // Replace all stroke colors with faded white (remove grey)
+        modifiedSvg = modifiedSvg.replace(/stroke="#[^"]*"/g, 'stroke="rgba(255,255,255,0.3)"')
+        modifiedSvg = modifiedSvg.replace(/stroke='#[^']*'/g, "stroke='rgba(255,255,255,0.3)'")
+        modifiedSvg = modifiedSvg.replace(/stroke-width="[^"]*"/g, 'stroke-width="1"')
 
         // Hide East Malaysia states (Sabah & Sarawak)
         hiddenStates.forEach(stateId => {
@@ -150,11 +153,7 @@ export function Supporters() {
         modifiedSvg = modifiedSvg.replace(/height="332"/, '')
         modifiedSvg = modifiedSvg.replace(/viewbox="0 0 1000 332"/i, 'viewBox="50 40 200 280"')
 
-        // Highlight states where we have stores (red border overrides default)
-        highlightedStates.forEach(stateId => {
-          const regex = new RegExp(`id="${stateId}"`, 'g')
-          modifiedSvg = modifiedSvg.replace(regex, `id="${stateId}" fill="#fecaca" stroke="#ef4444" stroke-width="1.5"`)
-        })
+        // All states get glassmorphic style (already applied above via global replace)
 
         setSvgContent(modifiedSvg)
       })
@@ -165,8 +164,22 @@ export function Supporters() {
   }
 
   return (
-    <section id="supporters" ref={ref} className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
+    <section id="supporters" ref={ref} className="py-16 relative overflow-hidden">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <Image
+          src="/ttt.jpg"
+          alt="Salaam Cola background"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black/50"></div>
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -176,7 +189,7 @@ export function Supporters() {
           <h2 className="text-2xl md:text-3xl font-quora font-bold text-salaam-red-500 mb-2">
             Get Your Salaam Cola
           </h2>
-          <p className="text-gray-600">Find us across Malaysia</p>
+          <p className="text-white/90">Find us across Malaysia</p>
         </motion.div>
 
         {/* Map and Store List Side by Side */}
@@ -188,8 +201,6 @@ export function Supporters() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative"
           >
-            {/* SVG Map Container */}
-            <div className="relative bg-salaam-red-100 rounded-2xl shadow-lg p-4 md:p-6 overflow-hidden">
             <TransformWrapper
               initialScale={1}
               minScale={0.5}
@@ -231,17 +242,16 @@ export function Supporters() {
                     wrapperStyle={{ width: '100%', minHeight: '250px' }}
                     contentStyle={{ width: '100%' }}
                   >
-                    <div className="w-full relative">
-                      {svgContent ? (
-                        <div
-                          dangerouslySetInnerHTML={{ __html: svgContent }}
-                          className="w-full [&>svg]:w-full [&>svg]:h-auto"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-64">
-                          <div className="animate-pulse text-gray-400">Loading map...</div>
-                        </div>
-                      )}
+                    {svgContent ? (
+                      <div
+                        dangerouslySetInnerHTML={{ __html: svgContent }}
+                        className="w-full [&>svg]:w-full [&>svg]:h-auto [&>svg_path]:fill-[rgba(255,255,255,0.15)] [&>svg_path]:stroke-[rgba(255,255,255,0.3)] [&>svg_path]:stroke-width-[1] [&>svg_g_path]:fill-[rgba(255,255,255,0.15)] [&>svg_g_path]:stroke-[rgba(255,255,255,0.3)] [&>svg_g_path]:stroke-width-[1]"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-64">
+                        <div className="animate-pulse text-gray-400">Loading map...</div>
+                      </div>
+                    )}
 
                       {/* State labels + Location markers overlay */}
                       {svgContent && (
@@ -259,9 +269,9 @@ export function Supporters() {
                                 y={s.y}
                                 fontSize={4.5}
                                 fontWeight={600}
-                                fill="#475569"
-                                stroke="#fff"
-                                strokeWidth={0.4}
+                                fill="#000000"
+                                stroke="none"
+                                strokeWidth={0}
                                 paintOrder="stroke"
                                 textAnchor="middle"
                                 dominantBaseline="middle"
@@ -308,7 +318,6 @@ export function Supporters() {
                           })}
                         </svg>
                       )}
-                    </div>
                   </TransformComponent>
                 </>
               )}
@@ -340,19 +349,18 @@ export function Supporters() {
                 </div>
               </motion.div>
             )}
-          </div>
 
             {/* Legend & Instructions */}
             <div className="flex flex-col items-center gap-2 mt-4">
-              <p className="text-xs text-gray-400">Scroll to zoom • Drag to pan</p>
+              <p className="text-xs text-white/70">Scroll to zoom • Drag to pan</p>
               <div className="flex items-center justify-center gap-4">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-salaam-red-500 rounded-full border-2 border-white shadow"></div>
-                  <span className="text-xs text-gray-600">Store</span>
+                  <span className="text-xs text-white/90">Store</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-red-200 border border-red-400 rounded"></div>
-                  <span className="text-xs text-gray-600">Region</span>
+                  <span className="text-xs text-white/90">Region</span>
                 </div>
               </div>
             </div>
@@ -364,7 +372,7 @@ export function Supporters() {
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Our Locations</h3>
+            <h3 className="text-lg font-bold text-white mb-4">Our Locations</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 auto-rows-min">
               {storeLocations.map((location, index) => (
                 <motion.div
