@@ -7,6 +7,7 @@ import { ChangeStartsSmall } from '@/components/sections/ChangeStartsSmall'
 import { Supporters } from '@/components/sections/Supporters'
 import { PledgeSection } from '@/components/sections/PledgeSection'
 import { InstagramFeed } from '@/components/sections/InstagramFeed'
+import { LiquidWave } from '@/components/shared/LiquidWave'
 import { getCollectionProducts } from '@/lib/shopify/queries/products'
 
 const FEATURED_COLLECTION =
@@ -25,28 +26,27 @@ export default async function HomePage({ params }: HomePageProps) {
 
   return (
     <>
-      {/* Hero - Red background with floating can */}
       <HeroSection />
+      <LiquidWave />
 
-      {/* Taste Is Everything - Red section */}
       <TasteIsEverything />
+      <LiquidWave />
 
-      {/* Best Sellers - Product showcase */}
       <BestSellers products={products} />
+      <LiquidWave />
 
-      {/* Change Starts Small - Image grid + text */}
       <ChangeStartsSmall />
+      <LiquidWave />
 
-      {/* Supporters Logos */}
       <Supporters />
+      <LiquidWave />
 
-      {/* Join Us - TikTok Link */}
       <InstagramFeed />
+      <LiquidWave />
 
-      {/* Pledge Section - Icons row */}
       <PledgeSection />
+      <LiquidWave />
 
-      {/* Customer Review + Newsletter Subscribe - Before footer */}
       <ReviewNewsletter />
     </>
   )

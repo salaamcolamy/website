@@ -14,7 +14,7 @@ export function TasteIsEverything() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="relative min-h-[85vh] overflow-hidden -mt-px">
+    <section ref={ref} className="relative min-h-[85vh] overflow-hidden">
       {/* Full-bleed background */}
       <div className="absolute inset-0">
         <Image
