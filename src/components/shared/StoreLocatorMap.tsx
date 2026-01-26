@@ -67,8 +67,8 @@ const storeLocations = [
     address: 'Negeri Sembilan',
     contact: '+606-601-0123',
     state: 'MY05', // Negeri Sembilan
-    x: 135,
-    y: 235,
+    x: 158,
+    y: 224,
   },
   {
     id: 8,
@@ -76,8 +76,8 @@ const storeLocations = [
     address: 'Negeri Sembilan',
     contact: '+606-601-0124',
     state: 'MY05', // Negeri Sembilan
-    x: 138,
-    y: 238,
+    x: 162,
+    y: 228,
   },
   {
     id: 9,
