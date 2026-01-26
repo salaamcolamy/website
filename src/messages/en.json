@@ -121,8 +121,8 @@
     "itemAdded": "Item added to cart"
   },
   "shop": {
-    "title": "SHOP SOON",
-    "allProducts": "All Products Will Be Available For Order Soon",
+    "title": "Shop",
+    "allProducts": "All Products",
     "categories": "Categories",
     "sortBy": "Sort by",
     "newest": "Newest",
