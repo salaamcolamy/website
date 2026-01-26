@@ -23,7 +23,7 @@ export function BestSellers() {
           <h2 className="font-quora font-black text-salaam-red-500 text-[3.6rem] md:text-[4.48rem] lg:text-[5.4rem] xl:text-[7.2rem] leading-tight">
             <span className="block md:inline">Meet</span>
             <br className="md:hidden" />
-            <span className="md:inline"> Salaam Cola</span>
+            <span className="block md:inline -mt-2 md:mt-0">Salaam Cola</span>
           </h2>
         </motion.div>
 
