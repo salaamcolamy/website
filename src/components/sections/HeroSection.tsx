@@ -4,17 +4,28 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 
 const BANNER_IMAGE = '/images/[No Font] SALAM COLA FEEDS_pict.png'
+const MOBILE_BANNER_IMAGE = '/images/Untitled design-75.png'
 
 export function HeroSection() {
   return (
     <section className="relative min-h-screen overflow-hidden">
       {/* Full-bleed banner image */}
       <div className="absolute inset-0">
+        {/* Mobile banner image */}
+        <Image
+          src={MOBILE_BANNER_IMAGE}
+          alt="Salaam Cola"
+          fill
+          className="object-contain md:hidden"
+          priority
+          sizes="100vw"
+        />
+        {/* Desktop banner image */}
         <Image
           src={BANNER_IMAGE}
           alt="Salaam Cola"
           fill
-          className="object-contain md:object-cover"
+          className="hidden md:block object-cover"
           priority
           sizes="100vw"
         />
