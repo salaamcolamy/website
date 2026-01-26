@@ -10,7 +10,7 @@ const MOBILE_BANNER_IMAGE = '/images/mobile-banner.png'
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-black">
+    <section className="relative min-h-screen overflow-hidden bg-white md:bg-black">
       {/* Full-bleed banner image */}
       <div className="absolute inset-0">
         {/* Mobile banner image */}
@@ -18,7 +18,7 @@ export function HeroSection() {
           src={MOBILE_BANNER_IMAGE}
           alt="Salaam Cola"
           fill
-          className="object-contain md:hidden"
+          className="object-cover md:hidden"
           priority
           sizes="100vw"
         />
@@ -53,7 +53,7 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="pt-32 md:pt-6"
+            className="pt-56 md:pt-6"
           >
             <Link
               href="/about"
