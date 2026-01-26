@@ -186,7 +186,7 @@ export function Supporters() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h2 className="text-2xl md:text-3xl font-quora font-bold text-salaam-red-500 mb-2 [-webkit-text-stroke:1px_white] [text-shadow:0_0_3px_rgba(255,255,255,0.8)]">
+          <h2 className="text-2xl md:text-3xl font-quora font-bold text-salaam-red-500 mb-2 [-webkit-text-stroke:0.5px_white] [text-shadow:0_0_2px_rgba(255,255,255,0.6)]">
             Get Your Salaam Cola
           </h2>
           <p className="text-white/90">Find us across Malaysia</p>
