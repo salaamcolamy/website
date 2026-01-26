@@ -94,6 +94,23 @@ const storeLocations = [
 // States to highlight (where we have stores)
 const highlightedStates = ['MY10', 'MY14', 'MY05']
 
+// State labels (Peninsular Malaysia only; exclude Sabah, Sarawak, Labuan)
+const stateLabels = [
+  { id: 'MY09', name: 'Perlis', x: 73.4, y: 55.2 },
+  { id: 'MY02', name: 'Kedah', x: 93.7, y: 80.9 },
+  { id: 'MY07', name: 'Pulau Pinang', x: 83.1, y: 106.1 },
+  { id: 'MY08', name: 'Perak', x: 108.6, y: 128.6 },
+  { id: 'MY03', name: 'Kelantan', x: 156.5, y: 118.5 },
+  { id: 'MY11', name: 'Terengganu', x: 196.7, y: 122 },
+  { id: 'MY06', name: 'Pahang', x: 174.6, y: 183.5 },
+  { id: 'MY10', name: 'Selangor', x: 131.5, y: 198.2 },
+  { id: 'MY14', name: 'Kuala Lumpur', x: 140.3, y: 210.9 },
+  { id: 'MY16', name: 'Putrajaya', x: 140.6, y: 220.8 },
+  { id: 'MY05', name: 'Negeri Sembilan', x: 164.6, y: 226.1 },
+  { id: 'MY04', name: 'Melaka', x: 170.3, y: 249.2 },
+  { id: 'MY01', name: 'Johor', x: 219.2, y: 262.2 },
+]
+
 export function Supporters() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
@@ -115,18 +132,25 @@ export function Supporters() {
         // Change default fill color to white
         modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#ffffff"')
 
+        // State borders: visible lines separating states (replace root stroke)
+        modifiedSvg = modifiedSvg.replace('stroke="#ffffff"', 'stroke="#94a3b8"')
+        modifiedSvg = modifiedSvg.replace('stroke-width=".5"', 'stroke-width="1"')
+
         // Hide East Malaysia states (Sabah & Sarawak)
         hiddenStates.forEach(stateId => {
           const regex = new RegExp(`id="${stateId}"`, 'g')
           modifiedSvg = modifiedSvg.replace(regex, `id="${stateId}" style="display:none"`)
         })
 
+        // Hide label_points group (we use our own overlay labels)
+        modifiedSvg = modifiedSvg.replace('<g id="label_points">', '<g id="label_points" style="display:none">')
+
         // Adjust viewBox to focus on Peninsular Malaysia only (crop out East Malaysia)
         modifiedSvg = modifiedSvg.replace(/width="1000"/, '')
         modifiedSvg = modifiedSvg.replace(/height="332"/, '')
         modifiedSvg = modifiedSvg.replace(/viewbox="0 0 1000 332"/i, 'viewBox="50 40 200 280"')
 
-        // Highlight states where we have stores
+        // Highlight states where we have stores (red border overrides default)
         highlightedStates.forEach(stateId => {
           const regex = new RegExp(`id="${stateId}"`, 'g')
           modifiedSvg = modifiedSvg.replace(regex, `id="${stateId}" fill="#fecaca" stroke="#ef4444" stroke-width="1.5"`)
@@ -219,13 +243,34 @@ export function Supporters() {
                         </div>
                       )}
 
-                      {/* Location Markers Overlay */}
+                      {/* State labels + Location markers overlay */}
                       {svgContent && (
                         <svg
                           viewBox="50 40 200 280"
                           className="absolute top-0 left-0 w-full h-full pointer-events-none"
                           style={{ zIndex: 10 }}
                         >
+                          {/* State labels */}
+                          <g className="pointer-events-none" aria-hidden="true">
+                            {stateLabels.map((s) => (
+                              <text
+                                key={s.id}
+                                x={s.x}
+                                y={s.y}
+                                fontSize={4.5}
+                                fontWeight={600}
+                                fill="#475569"
+                                stroke="#fff"
+                                strokeWidth={0.4}
+                                paintOrder="stroke"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                              >
+                                {s.name}
+                              </text>
+                            ))}
+                          </g>
+                          {/* Location markers */}
                           {storeLocations.map((location) => {
                             // Scale markers inversely with zoom (smaller base size)
                             const baseRadius = 4
