@@ -5,7 +5,9 @@ export const metadata: Metadata = {
   title: 'Salaam Cola - Taste the Freedom',
   description: 'Premium halal cola made with passion and purpose. Experience the authentic taste of freedom with Salaam Cola Malaysia.',
   icons: {
-    icon: '/favico.svg',
+    icon: '/images/Salaam Cola Logo -2.png',
+    shortcut: '/images/Salaam Cola Logo -2.png',
+    apple: '/images/Salaam Cola Logo -2.png',
   },
 }
 

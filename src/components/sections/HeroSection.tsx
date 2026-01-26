@@ -36,10 +36,25 @@ export function HeroSection() {
           <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-quora font-black leading-tight tracking-wide text-white">
             Taste the Freedom
           </h1>
-          <p className="text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-wide text-white">
+          <p className="text-2xl md:text-3xl lg:text-4xl font-poppins font-normal tracking-wide text-white">
             Rasai Kebebasan
           </p>
         </motion.div>
+      </div>
+
+      {/* Wave at bottom of banner */}
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-20">
+        <svg
+          viewBox="0 0 1440 120"
+          preserveAspectRatio="none"
+          className="w-full h-20 md:h-28 lg:h-32"
+          aria-hidden
+        >
+          <path
+            fill="white"
+            d="M0,80 C180,40 360,100 540,60 C720,20 900,80 1080,50 C1260,20 1380,60 1440,40 L1440,120 L0,120 Z"
+          />
+        </svg>
       </div>
     </section>
   )

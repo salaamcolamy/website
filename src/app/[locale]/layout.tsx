@@ -15,9 +15,9 @@ import { SplashScreen } from '@/components/layout/SplashScreen'
 
 export const metadata: Metadata = {
   icons: {
-    icon: '/favico.svg',
-    shortcut: '/favico.svg',
-    apple: '/favico.svg',
+    icon: '/images/Salaam Cola Logo -2.png',
+    shortcut: '/images/Salaam Cola Logo -2.png',
+    apple: '/images/Salaam Cola Logo -2.png',
   },
 }
 
