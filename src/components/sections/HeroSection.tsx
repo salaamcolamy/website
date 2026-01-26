@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 
 const BANNER_IMAGE = '/images/[No Font] SALAM COLA FEEDS_pict.png'
-const MOBILE_BANNER_IMAGE = '/images/Untitled design-75.png'
+const MOBILE_BANNER_IMAGE = '/images/mobile-banner.png'
 
 export function HeroSection() {
   return (
