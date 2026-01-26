@@ -8,7 +8,7 @@ const MOBILE_BANNER_IMAGE = '/images/mobile-banner.png'
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen overflow-hidden">
+    <section className="relative min-h-screen overflow-hidden bg-black">
       {/* Full-bleed banner image */}
       <div className="absolute inset-0">
         {/* Mobile banner image */}
@@ -28,11 +28,6 @@ export function HeroSection() {
           className="hidden md:block object-cover"
           priority
           sizes="100vw"
-        />
-        {/* Gradient overlay for text readability */}
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-black/30"
-          aria-hidden
         />
       </div>
 
