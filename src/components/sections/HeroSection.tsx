@@ -14,7 +14,7 @@ export function HeroSection() {
           src={BANNER_IMAGE}
           alt="Salaam Cola"
           fill
-          className="object-cover"
+          className="object-contain md:object-cover"
           priority
           sizes="100vw"
         />
