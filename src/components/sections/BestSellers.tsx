@@ -34,7 +34,7 @@ export function BestSellers() {
         >
           <div className="relative w-full max-w-5xl mx-auto">
             <Image
-              src="/images/Salaam Cola cans.png"
+              src="/images/Salaam Cola cans-2.png"
               alt="Salaam Cola cans - Keffiyeh Edition, Original, Seriously No Sugar"
               width={1200}
               height={800}
