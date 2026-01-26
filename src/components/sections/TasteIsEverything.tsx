@@ -6,7 +6,6 @@ import { useRef } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 
-const SECTION_IMAGE = '/images/pour.jpg'
 const SECTION_VIDEO =
   process.env.NEXT_PUBLIC_SECTION_VIDEO || '/videos/pour-video.mp4'
 
@@ -25,7 +24,6 @@ export function TasteIsEverything() {
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
-          poster={SECTION_IMAGE}
         >
           <source src={SECTION_VIDEO} type="video/mp4" />
         </video>
