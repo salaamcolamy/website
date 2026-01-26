@@ -31,12 +31,12 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="font-quora text-white text-center space-y-4 mt-16 md:mt-24 lg:mt-32"
+          className="font-quora text-white text-center space-y-4 mt-32 md:mt-48 lg:mt-64"
         >
-          <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight uppercase tracking-wide text-white">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight uppercase tracking-wide text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.9),0_4px_12px_rgba(0,0,0,0.7)]">
             Taste the Freedom
           </h1>
-          <p className="text-2xl md:text-3xl lg:text-4xl font-black uppercase tracking-wide text-white">
+          <p className="text-2xl md:text-3xl lg:text-4xl font-black uppercase tracking-wide text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.9),0_4px_12px_rgba(0,0,0,0.7)]">
             Rasai Kebebasan
           </p>
         </motion.div>
