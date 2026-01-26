@@ -175,8 +175,8 @@ export function Supporters() {
           priority
           sizes="100vw"
         />
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/50"></div>
+        {/* Light overlay for text readability */}
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -186,7 +186,7 @@ export function Supporters() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h2 className="text-2xl md:text-3xl font-quora font-bold text-salaam-red-500 mb-2 [-webkit-text-stroke:0.5px_white] [text-shadow:0_0_2px_rgba(255,255,255,0.6)]">
+          <h2 className="text-2xl md:text-3xl font-quora font-bold text-white mb-2">
             Get Your Salaam Cola
           </h2>
           <p className="text-white/90">Find us across Malaysia</p>

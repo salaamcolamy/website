@@ -30,7 +30,7 @@ export function BestSellers() {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex justify-center mt-0"
+          className="flex flex-col items-center mt-0"
         >
           <div className="relative w-full max-w-5xl mx-auto">
             <Image
@@ -41,23 +41,21 @@ export function BestSellers() {
               className="w-full h-auto object-contain"
               priority
             />
-            
-            {/* Shop All Button - Hovering at bottom, centred */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="absolute bottom-4 left-0 right-0 flex justify-center"
-            >
-              <Link
-                href="/shop"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-salaam-red-500 text-white rounded-full font-semibold hover:bg-salaam-red-600 transition-colors shadow-lg"
-              >
-                View All
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </motion.div>
           </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex justify-center mt-6"
+          >
+            <Link
+              href="/shop"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-salaam-red-500 text-white rounded-full font-semibold hover:bg-salaam-red-600 transition-colors shadow-lg"
+            >
+              View All
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </motion.div>
         </motion.div>
       </div>
     </section>
