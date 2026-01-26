@@ -186,7 +186,7 @@ export function Supporters() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h2 className="text-2xl md:text-3xl font-quora font-bold text-white mb-2">
+          <h2 className="text-4xl md:text-5xl font-quora font-bold text-white mb-2">
             Get Your Salaam Cola
           </h2>
           <p className="text-white/90">Find us across Malaysia</p>
@@ -206,7 +206,7 @@ export function Supporters() {
               minScale={0.5}
               maxScale={4}
               centerOnInit={true}
-              wheel={{ step: 0.1 }}
+              wheel={{ disabled: true }}
               panning={{ velocityDisabled: true }}
               onTransformed={(_, state) => setZoomScale(state.scale)}
             >
@@ -352,7 +352,7 @@ export function Supporters() {
 
             {/* Legend & Instructions */}
             <div className="flex flex-col items-center gap-2 mt-4">
-              <p className="text-xs text-white/70">Scroll to zoom • Drag to pan</p>
+              <p className="text-xs text-white/70">Use buttons to zoom • Drag to pan</p>
               <div className="flex items-center justify-center gap-4">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-salaam-red-500 rounded-full border-2 border-white shadow"></div>
