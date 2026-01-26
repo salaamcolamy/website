@@ -30,7 +30,7 @@ export function BestSellers() {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex justify-center mt-4 md:mt-6"
+          className="flex justify-center mt-0"
         >
           <div className="relative w-full max-w-5xl mx-auto">
             <Image
