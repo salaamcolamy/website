@@ -186,7 +186,7 @@ export function Supporters() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h2 className="text-2xl md:text-3xl font-quora font-bold text-salaam-red-500 mb-2">
+          <h2 className="text-2xl md:text-3xl font-quora font-bold text-salaam-red-500 mb-2 [-webkit-text-stroke:1px_white] [text-shadow:0_0_3px_rgba(255,255,255,0.8)]">
             Get Your Salaam Cola
           </h2>
           <p className="text-white/90">Find us across Malaysia</p>
@@ -269,7 +269,7 @@ export function Supporters() {
                                 y={s.y}
                                 fontSize={4.5}
                                 fontWeight={600}
-                                fill="#000000"
+                                fill="#ffffff"
                                 stroke="none"
                                 strokeWidth={0}
                                 paintOrder="stroke"
@@ -380,15 +380,15 @@ export function Supporters() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
                   transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
-                  className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300 cursor-pointer"
+                  className="bg-white/20 backdrop-blur-md rounded-lg p-3 shadow-sm border-2 border-white/50 hover:shadow-md hover:border-white/70 transition-all duration-300 cursor-pointer"
                   onMouseEnter={() => handleMouseEnter(location)}
                   onMouseLeave={() => setHoveredLocation(null)}
                 >
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3.5 h-3.5 text-salaam-red-500 flex-shrink-0" />
-                    <span className="font-medium text-gray-900 text-sm leading-tight">{location.name}</span>
+                    <span className="font-medium text-white text-sm leading-tight">{location.name}</span>
                   </div>
-                  <p className="text-xs text-gray-500 pl-5 mt-0.5 leading-tight">{location.address}</p>
+                  <p className="text-xs text-white/80 pl-5 mt-0.5 leading-tight">{location.address}</p>
                 </motion.div>
               ))}
             </div>
