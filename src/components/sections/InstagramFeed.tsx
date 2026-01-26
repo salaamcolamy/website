@@ -3,8 +3,12 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
+import Script from 'next/script'
 import { TikTokIcon } from '@/components/icons/SocialIcons'
 import Image from 'next/image'
+
+const TIKTOK_HANDLE = 'salaamcolamy'
+const TIKTOK_VIDEO_ID = process.env.NEXT_PUBLIC_TIKTOK_LATEST_VIDEO_ID || ''
 
 export function InstagramFeed() {
   const ref = useRef(null)
@@ -12,6 +16,10 @@ export function InstagramFeed() {
 
   return (
     <section ref={ref} className="relative bg-gray-900 overflow-hidden py-20">
+      <Script
+        src="https://www.tiktok.com/embed.js"
+        strategy="lazyOnload"
+      />
       {/* Background image */}
       <div className="absolute inset-0">
         <Image
@@ -37,9 +45,36 @@ export function InstagramFeed() {
             Be part of the Salaam Cola movement. Connect with us on TikTok for the latest updates and behind-the-scenes content!
           </p>
 
+          {/* TikTok video embed – set NEXT_PUBLIC_TIKTOK_LATEST_VIDEO_ID (video ID from Share → Embed) */}
+          {TIKTOK_VIDEO_ID && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex justify-center"
+            >
+              <blockquote
+                className="tiktok-embed"
+                cite={`https://www.tiktok.com/@${TIKTOK_HANDLE}/video/${TIKTOK_VIDEO_ID}`}
+                data-video-id={TIKTOK_VIDEO_ID}
+                style={{ maxWidth: '605px', minWidth: '325px' }}
+              >
+                <section>
+                  <a
+                    href={`https://www.tiktok.com/@${TIKTOK_HANDLE}/video/${TIKTOK_VIDEO_ID}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View on TikTok
+                  </a>
+                </section>
+              </blockquote>
+            </motion.div>
+          )}
+
           {/* TikTok Link Button */}
           <motion.a
-            href="https://www.tiktok.com/@salaamcolamy"
+            href={`https://www.tiktok.com/@${TIKTOK_HANDLE}`}
             target="_blank"
             rel="noopener noreferrer"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -53,7 +88,7 @@ export function InstagramFeed() {
             <span>Follow us on TikTok</span>
           </motion.a>
 
-          <p className="text-white/50 text-sm">@salaamcolamy</p>
+          <p className="text-white/50 text-sm">@{TIKTOK_HANDLE}</p>
         </motion.div>
       </div>
     </section>
