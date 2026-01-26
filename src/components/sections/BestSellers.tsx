@@ -20,10 +20,9 @@ export function BestSellers() {
           transition={{ duration: 0.6 }}
           className="text-center mb-0"
         >
-          <h2 className="font-quora font-black text-salaam-red-500 text-[3.6rem] md:text-[4.48rem] lg:text-[5.4rem] xl:text-[7.2rem] leading-tight">
-            <span className="block md:inline">Meet</span>
-            <br className="md:hidden" />
-            <span className="block md:inline -mt-2 md:mt-0">Salaam Cola</span>
+          <h2 className="font-quora font-black text-salaam-red-500 text-[3.6rem] md:text-[4.48rem] lg:text-[5.4rem] xl:text-[7.2rem] leading-none md:leading-tight flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-0 md:gap-x-2">
+            <span className="md:inline">Meet</span>
+            <span className="md:inline">Salaam Cola</span>
           </h2>
         </motion.div>
 
