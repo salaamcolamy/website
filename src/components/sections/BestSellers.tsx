@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Link } from '@/i18n/routing'
-import { ArrowRight, Star } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import type { Product } from '@/lib/shopify/types'
 
@@ -31,7 +31,7 @@ export function BestSellers({ products }: BestSellersProps) {
 
         {/* Products Grid */}
         <div className="relative">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {products.map((product, index) => {
               const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
 
@@ -45,23 +45,13 @@ export function BestSellers({ products }: BestSellersProps) {
                   <Link href={`/shop/${product.handle}`} scroll={true} onClick={() => window.scrollTo(0, 0)}>
                     <div className="group text-center">
                       {/* Product Image */}
-                      <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto">
+                      <div className="relative aspect-square overflow-hidden mb-4 max-w-[320px] md:max-w-[400px] lg:max-w-[480px] mx-auto">
                         <Image
                           src={imageUrl}
                           alt={product.featuredImage?.altText || product.title}
                           fill
-                          className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
+                          className="object-contain p-6 sm:p-10 transition-transform duration-500 group-hover:scale-105"
                         />
-                      </div>
-
-                      {/* Rating */}
-                      <div className="flex items-center justify-center gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className="w-4 h-4 fill-yellow-400 text-yellow-400"
-                          />
-                        ))}
                       </div>
 
                       {/* Product Info */}
