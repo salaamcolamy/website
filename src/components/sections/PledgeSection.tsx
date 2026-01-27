@@ -3,23 +3,23 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { HeartHandshake, Store, ArrowRight } from 'lucide-react'
+import { HeartHandshake, Store, ArrowRight, Sparkles } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 
 const pledges = [
   {
     icon: HeartHandshake,
     title: 'Sip with Purpose',
-    description: 'Join the mission for global humanitarian aids',
-    gradient: 'from-salaam-red-500 to-red-600',
-    bgGradient: 'from-salaam-red-50 to-red-100',
+    description: 'Join the mission for global humanitarian aid. Every sip supports communities.',
+    accent: 'bg-salaam-red-500',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(194,19,22,0.4)]',
   },
   {
     icon: Store,
     title: 'Business',
-    description: 'Distribute Salaam Cola at your premise',
-    gradient: 'from-salaam-red-500 to-red-600',
-    bgGradient: 'from-salaam-red-50 to-red-100',
+    description: 'Distribute Salaam Cola at your premise. Partner with a brand that cares.',
+    accent: 'bg-amber-500',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(245,158,11,0.35)]',
   },
 ]
 
@@ -28,85 +28,138 @@ export function PledgeSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="py-20 bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-salaam-red-100 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-red-100 rounded-full blur-3xl opacity-20"></div>
+    <section
+      ref={ref}
+      className="relative py-24 md:py-32 overflow-hidden bg-gradient-to-b from-gray-900 via-salaam-red-950/90 to-gray-900"
+    >
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-[0.07]">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)`,
+            backgroundSize: '48px 48px',
+          }}
+        />
       </div>
 
+      {/* Gradient orbs */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-salaam-red-500/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+
       <div className="container mx-auto px-4 relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-3xl md:text-4xl font-quora font-black text-center text-salaam-red-500 mb-12 md:mb-16"
+          className="text-center mb-16 md:mb-20"
         >
-          Join Us
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto">
+          <motion.span
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="inline-flex items-center gap-2 text-amber-400/90 text-sm font-semibold tracking-widest uppercase mb-4"
+          >
+            <Sparkles className="w-4 h-4" />
+            Be part of it
+          </motion.span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-poppins font-black text-white uppercase tracking-tight">
+            Join Us
+          </h2>
+          <p className="mt-4 text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
+            Whether you sip with purpose or run a business that cares — there&apos;s a place for you.
+          </p>
+        </motion.div>
+
+        {/* Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
           {pledges.map((pledge, index) => {
             const Icon = pledge.icon
             return (
               <motion.div
                 key={pledge.title}
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-                transition={{ duration: 0.6, delay: index * 0.15, type: 'spring', stiffness: 100 }}
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="relative group"
+                initial={{ opacity: 0, y: 40 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.15 + index * 0.1,
+                  type: 'spring',
+                  stiffness: 80,
+                  damping: 14,
+                }}
+                whileHover={{ y: -6 }}
+                className="group"
               >
-                <div className="relative bg-white/20 backdrop-blur-md rounded-3xl p-8 md:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border-2 border-white/50 overflow-hidden">
-                  {/* Decorative gradient overlay */}
-                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${pledge.gradient} opacity-10 rounded-full blur-2xl`}></div>
-                  
-                  {/* Icon container */}
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={isInView ? { scale: 1 } : {}}
-                    transition={{ duration: 0.5, delay: index * 0.15 + 0.2, type: 'spring' }}
-                    className="relative mb-6"
+                <Link href="/join-us" className="block h-full">
+                  <div
+                    className={`relative h-full rounded-2xl md:rounded-3xl p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 
+                      hover:bg-white/10 hover:border-white/20 transition-all duration-500 ${pledge.glow} 
+                      overflow-hidden`}
                   >
-                    <div className={`w-20 h-20 md:w-24 md:h-24 mx-auto rounded-2xl bg-gradient-to-br ${pledge.gradient} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
-                      <Icon className="w-10 h-10 md:w-12 md:h-12 text-white" strokeWidth={2.5} />
+                    {/* Accent stripe */}
+                    <div
+                      className={`absolute left-0 top-0 bottom-0 w-1.5 md:w-2 rounded-l-2xl ${pledge.accent} 
+                        group-hover:scale-y-105 origin-top transition-transform duration-500`}
+                    />
+
+                    <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8 pl-2">
+                      {/* Icon */}
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={isInView ? { scale: 1, opacity: 1 } : {}}
+                        transition={{ duration: 0.5, delay: 0.25 + index * 0.1 }}
+                        className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl ${pledge.accent} 
+                          flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                      >
+                        <Icon className="w-8 h-8 md:w-10 md:h-10 text-white" strokeWidth={2.5} />
+                      </motion.div>
+
+                      {/* Content */}
+                      <div className="flex-1">
+                        <h3 className="font-poppins font-bold text-xl md:text-2xl text-white mb-2 group-hover:text-amber-50 transition-colors">
+                          {pledge.title}
+                        </h3>
+                        <p className="text-gray-400 text-sm md:text-base leading-relaxed group-hover:text-gray-300 transition-colors">
+                          {pledge.description}
+                        </p>
+                        <span className="inline-flex items-center gap-2 mt-4 text-salaam-red-400 text-sm font-semibold group-hover:gap-3 transition-all">
+                          Learn more
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </span>
+                      </div>
                     </div>
-                    {/* Decorative ring */}
-                    <div className={`absolute inset-0 rounded-2xl border-2 border-white/30 scale-110`}></div>
-                  </motion.div>
 
-                  {/* Content */}
-                  <div className="relative text-center">
-                    <h3 className="font-quora font-bold text-xl md:text-2xl text-gray-900 mb-3 group-hover:text-salaam-red-500 transition-colors duration-300">
-                      {pledge.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-                      {pledge.description}
-                    </p>
+                    {/* Hover gradient */}
+                    <div
+                      className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 
+                        bg-gradient-to-r ${pledge.accent === 'bg-salaam-red-500' ? 'from-salaam-red-500/5' : 'from-amber-500/5'} to-transparent pointer-events-none`}
+                    />
                   </div>
-
-                  {/* Hover effect glow */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${pledge.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-3xl`}></div>
-                </div>
+                </Link>
               </motion.div>
             )
           })}
         </div>
 
-        {/* Join Us Button */}
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex justify-center mt-12 md:mt-16"
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex justify-center mt-14 md:mt-16"
         >
           <Link
             href="/join-us"
-            className="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-salaam-red-500 to-red-600 text-white rounded-full font-semibold hover:shadow-2xl hover:shadow-salaam-red-500/50 transition-all duration-300 overflow-hidden"
+            className="group inline-flex items-center gap-3 px-10 py-4 md:px-12 md:py-5 
+              bg-white text-gray-900 rounded-full font-poppins font-bold text-lg
+              hover:bg-salaam-red-500 hover:text-white 
+              shadow-xl hover:shadow-[0_0_50px_rgba(194,19,22,0.4)]
+              transition-all duration-300"
           >
-            <span className="relative z-10">Join Us</span>
-            <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-            {/* Hover effect gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-salaam-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            Join Us
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>
       </div>
