@@ -14,7 +14,7 @@ export function TasteIsEverything() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} className="relative min-h-screen overflow-hidden -mt-20 md:-mt-28">
+    <section ref={ref} className="relative min-h-screen overflow-hidden -mt-px">
       {/* Full-bleed background */}
       <div className="absolute inset-0">
         {/* Video background (if provided) */}
@@ -29,11 +29,6 @@ export function TasteIsEverything() {
         </video>
         <div
           className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/40"
-          aria-hidden
-        />
-        {/* Top gradient to blend with hero overlap */}
-        <div
-          className="absolute top-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-b from-black/50 to-transparent pointer-events-none"
           aria-hidden
         />
       </div>

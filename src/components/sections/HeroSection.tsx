@@ -31,11 +31,6 @@ export function HeroSection() {
           priority
           sizes="100vw"
         />
-        {/* Bottom gradient bridge for seamless flow into next section */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-24 md:h-40 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
-          aria-hidden
-        />
       </div>
 
       {/* Centered text */}
