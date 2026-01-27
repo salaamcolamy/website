@@ -34,12 +34,12 @@ export function HeroSection() {
       </div>
 
       {/* Centered text */}
-      <div className="relative z-10 container mx-auto px-4 pt-28 pb-20 min-h-screen flex flex-col items-center justify-start md:justify-end md:pb-32 lg:pb-40">
+      <div className="relative z-10 container mx-auto px-4 pt-28 pb-20 min-h-screen flex flex-col items-center justify-start md:justify-end md:pb-12 lg:pb-14 xl:pb-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="text-white text-center space-y-1 md:space-y-4 pt-6 md:pt-0"
+          className="text-white text-center space-y-0 md:space-y-1 pt-6 md:pt-0"
         >
           <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-quora font-black leading-tight tracking-wide text-salaam-red-500 md:text-white">
             Taste the Freedom
