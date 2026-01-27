@@ -10,8 +10,17 @@ import Image from 'next/image'
 // Store locations with coordinates based on the SVG viewBox (50 40 200 280)
 const storeLocations = [
   {
+    id: 10,
+    name: 'Fennel & Co',
+    address: 'Bukit Tunku, Kuala Lumpur',
+    contact: '+603-2142-5679',
+    state: 'MY14', // KL
+    x: 128,
+    y: 194,
+  },
+  {
     id: 1,
-    name: 'BETAWI TTDI',
+    name: 'Betawi',
     address: 'TTDI, Kuala Lumpur',
     contact: '+603-7728-3456',
     state: 'MY14', // KL
@@ -37,9 +46,18 @@ const storeLocations = [
     y: 190,
   },
   {
+    id: 11,
+    name: 'Sungei Wang Plaza',
+    address: 'Bukit Bintang, Kuala Lumpur',
+    contact: '+603-2144-9866',
+    state: 'MY14', // KL
+    x: 127,
+    y: 193,
+  },
+  {
     id: 5,
-    name: 'KLIA Food Station',
-    address: 'KLIA Terminal, Sepang',
+    name: 'Food Station Level 1 KLIA Terminal 1',
+    address: 'KLIA Terminal 1, Sepang',
     contact: '+603-8787-1234',
     state: 'MY10', // Selangor
     x: 135,
@@ -62,15 +80,6 @@ const storeLocations = [
     state: 'MY10', // Selangor
     x: 137,
     y: 208,
-  },
-  {
-    id: 10,
-    name: 'Fennel & Co',
-    address: 'Bukit Tunku, Kuala Lumpur',
-    contact: '+603-2142-5679',
-    state: 'MY14', // KL
-    x: 128,
-    y: 194,
   },
   {
     id: 7,
