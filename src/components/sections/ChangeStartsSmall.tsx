@@ -39,7 +39,7 @@ export function ChangeStartsSmall() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="space-y-6 text-center lg:text-left"
           >
-            <h2 className="text-2xl md:text-4xl lg:text-5xl font-quora font-black text-salaam-red-500 tracking-wide">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-poppins font-black text-salaam-red-500 tracking-wide">
               Change Starts Small
             </h2>
             <p className="text-gray-600 leading-relaxed text-sm md:text-base">

@@ -40,8 +40,8 @@ export function TasteIsEverything() {
           transition={{ duration: 0.8 }}
           className="max-w-4xl mx-auto text-center"
         >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-quora font-black text-white tracking-wide mb-6 [text-shadow:0_2px_4px_rgba(0,0,0,0.25),0_4px_8px_rgba(0,0,0,0.15)]">
-            Taste is Everything
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-poppins font-black text-white tracking-wide mb-6 uppercase [text-shadow:0_2px_4px_rgba(0,0,0,0.25),0_4px_8px_rgba(0,0,0,0.15)]">
+            TASTE IS EVERYTHING
           </h2>
 
           <p className="text-white/90 text-lg md:text-xl leading-relaxed mb-8 max-w-3xl mx-auto">

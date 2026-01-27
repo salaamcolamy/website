@@ -28,15 +28,6 @@ const storeLocations = [
     y: 195,
   },
   {
-    id: 3,
-    name: 'Fennel & Co',
-    address: 'Kuala Lumpur',
-    contact: '+603-2142-5678',
-    state: 'MY14', // KL
-    x: 130,
-    y: 192,
-  },
-  {
     id: 4,
     name: 'Tepuk Tepung',
     address: 'Hartamas Shopping Centre, Kuala Lumpur',
@@ -64,24 +55,6 @@ const storeLocations = [
     y: 205,
   },
   {
-    id: 7,
-    name: 'Lot 15',
-    address: 'Negeri Sembilan',
-    contact: '+606-601-0123',
-    state: 'MY05', // Negeri Sembilan
-    x: 158,
-    y: 224,
-  },
-  {
-    id: 8,
-    name: 'Tujuh Tiga Cafe',
-    address: 'Negeri Sembilan',
-    contact: '+606-601-0124',
-    state: 'MY05', // Negeri Sembilan
-    x: 162,
-    y: 228,
-  },
-  {
     id: 9,
     name: 'Selera Nate Glenmarie',
     address: 'Glenmarie, Shah Alam, Selangor',
@@ -89,6 +62,33 @@ const storeLocations = [
     state: 'MY10', // Selangor
     x: 137,
     y: 208,
+  },
+  {
+    id: 10,
+    name: 'Fennel & Co',
+    address: 'Bukit Tunku, Kuala Lumpur',
+    contact: '+603-2142-5679',
+    state: 'MY14', // KL
+    x: 128,
+    y: 194,
+  },
+  {
+    id: 7,
+    name: 'Lot 15',
+    address: 'Nilai, Negeri Sembilan',
+    contact: '+606-601-0123',
+    state: 'MY05', // Negeri Sembilan
+    x: 158,
+    y: 224,
+  },
+  {
+    id: 8,
+    name: 'Tiga Tujuh Cafe',
+    address: 'Seremban, Negeri Sembilan',
+    contact: '+606-601-0124',
+    state: 'MY05', // Negeri Sembilan
+    x: 162,
+    y: 228,
   },
 ]
 
@@ -186,8 +186,8 @@ export function Supporters() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h2 className="text-4xl md:text-5xl font-quora font-bold text-white mb-2">
-            Get Your Salaam Cola
+          <h2 className="text-4xl md:text-5xl font-poppins font-bold text-white mb-2 uppercase">
+            GET YOUR SALAAM COLA
           </h2>
           <p className="text-white/90">Find us across Malaysia</p>
         </motion.div>
