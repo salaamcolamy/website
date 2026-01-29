@@ -116,6 +116,42 @@ const storeLocations = [
     x: 160,
     y: 226,
   },
+  {
+    id: 14,
+    name: 'Duwa Cafe',
+    address: 'Taman Melawati, Kuala Lumpur',
+    contact: '+603-4100-0001',
+    state: 'MY14',
+    x: 120,
+    y: 186,
+  },
+  {
+    id: 15,
+    name: 'Hadramawt Restaurant',
+    address: 'Tun Razak City, Kuala Lumpur',
+    contact: '+603-4100-0002',
+    state: 'MY14',
+    x: 126,
+    y: 198,
+  },
+  {
+    id: 16,
+    name: 'Hadramawt Restaurant',
+    address: 'Neo Damansara, Petaling Jaya, Selangor',
+    contact: '+603-4100-0003',
+    state: 'MY10',
+    x: 132,
+    y: 200,
+  },
+  {
+    id: 17,
+    name: 'Sahra Saver',
+    address: 'Chow Kit, Kuala Lumpur',
+    contact: '+603-4100-0004',
+    state: 'MY14',
+    x: 124,
+    y: 192,
+  },
 ]
 
 // States to highlight (where we have stores)
