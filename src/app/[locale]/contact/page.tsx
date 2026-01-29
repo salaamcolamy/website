@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { ThreadsIcon, TikTokIcon, XIcon, YouTubeIcon } from '@/components/icons/SocialIcons'
 import { StoreLocatorMap } from '@/components/shared/StoreLocatorMap'
+import Image from 'next/image'
 
 const contactInfo = [
   {
@@ -270,9 +271,19 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Store Locator Map Section */}
-      <section id="store-locator" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+      {/* Store Locator Map Section – matches homepage (Supporters) design */}
+      <section id="store-locator" className="py-16 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="/ttt.jpg"
+            alt=""
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/20" />
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -280,19 +291,18 @@ export default function ContactPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-10"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-salaam-red-500 mb-2">
-              Find Salaam Cola
+            <h2 className="text-4xl md:text-5xl font-poppins font-bold text-white mb-2 uppercase">
+              GET YOUR SALAAM COLA
             </h2>
-            <p className="text-gray-600">Locate our stores across Malaysia</p>
+            <p className="text-white/90">Find us across Malaysia</p>
           </motion.div>
-
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <StoreLocatorMap maxWidth="max-w-4xl" showStoreList={true} />
+            <StoreLocatorMap maxWidth="max-w-6xl" showStoreList={true} variant="homepage" />
           </motion.div>
         </div>
       </section>

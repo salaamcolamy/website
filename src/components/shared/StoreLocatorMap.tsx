@@ -144,12 +144,15 @@ const stateLabels = [
 interface StoreLocatorMapProps {
   maxWidth?: string
   showStoreList?: boolean
+  /** When true, match homepage (Supporters) design: glassmorphic map, dark-friendly list, etc. */
+  variant?: 'default' | 'homepage'
 }
 
-export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }: StoreLocatorMapProps) {
+export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, variant = 'default' }: StoreLocatorMapProps) {
   const [hoveredLocation, setHoveredLocation] = useState<typeof storeLocations[0] | null>(null)
   const [svgContent, setSvgContent] = useState<string>('')
   const [zoomScale, setZoomScale] = useState(1)
+  const isHomepage = variant === 'homepage'
 
   useEffect(() => {
     fetch('/images/malaysia-map.svg')
@@ -157,36 +160,35 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }
       .then(svg => {
         let modifiedSvg = svg
 
-        // Change default fill color to white
-        modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#ffffff"')
+        if (isHomepage) {
+          // Homepage-style: glassmorphic states (semi-transparent white fill, faded white borders)
+          modifiedSvg = modifiedSvg.replace(/fill="#[^"]*"/g, 'fill="rgba(255,255,255,0.15)"')
+          modifiedSvg = modifiedSvg.replace(/fill='#[^']*'/g, "fill='rgba(255,255,255,0.15)'")
+          modifiedSvg = modifiedSvg.replace(/stroke="#[^"]*"/g, 'stroke="rgba(255,255,255,0.3)"')
+          modifiedSvg = modifiedSvg.replace(/stroke='#[^']*'/g, "stroke='rgba(255,255,255,0.3)'")
+          modifiedSvg = modifiedSvg.replace(/stroke-width="[^"]*"/g, 'stroke-width="1"')
+        } else {
+          modifiedSvg = modifiedSvg.replace('fill="#6f9c76"', 'fill="#ffffff"')
+          modifiedSvg = modifiedSvg.replace('stroke="#ffffff"', 'stroke="#94a3b8"')
+          modifiedSvg = modifiedSvg.replace('stroke-width=".5"', 'stroke-width="1"')
+          highlightedStates.forEach(stateId => {
+            const regex = new RegExp(`id="${stateId}"`, 'g')
+            modifiedSvg = modifiedSvg.replace(regex, `id="${stateId}" fill="#fecaca" stroke="#ef4444" stroke-width="1.5"`)
+          })
+        }
 
-        // State borders: visible lines separating states (replace root stroke)
-        modifiedSvg = modifiedSvg.replace('stroke="#ffffff"', 'stroke="#94a3b8"')
-        modifiedSvg = modifiedSvg.replace('stroke-width=".5"', 'stroke-width="1"')
-
-        // Hide East Malaysia states
         hiddenStates.forEach(stateId => {
           const regex = new RegExp(`id="${stateId}"`, 'g')
           modifiedSvg = modifiedSvg.replace(regex, `id="${stateId}" style="display:none"`)
         })
-
-        // Hide label_points group (we use our own overlay labels)
         modifiedSvg = modifiedSvg.replace('<g id="label_points">', '<g id="label_points" style="display:none">')
-
-        // Adjust viewBox to focus on Peninsular Malaysia
         modifiedSvg = modifiedSvg.replace(/width="1000"/, '')
         modifiedSvg = modifiedSvg.replace(/height="332"/, '')
         modifiedSvg = modifiedSvg.replace(/viewbox="0 0 1000 332"/i, 'viewBox="50 40 200 280"')
 
-        // Highlight states where we have stores (red border overrides default)
-        highlightedStates.forEach(stateId => {
-          const regex = new RegExp(`id="${stateId}"`, 'g')
-          modifiedSvg = modifiedSvg.replace(regex, `id="${stateId}" fill="#fecaca" stroke="#ef4444" stroke-width="1.5"`)
-        })
-
         setSvgContent(modifiedSvg)
       })
-  }, [])
+  }, [isHomepage])
 
   const handleMouseEnter = (location: typeof storeLocations[0]) => {
     setHoveredLocation(location)
@@ -194,18 +196,15 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }
 
   return (
     <div className={`${maxWidth} mx-auto`}>
-      {/* Map and Store List Side by Side */}
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Left: Interactive Map */}
         <div className="relative">
-          {/* SVG Map Container */}
-          <div className="relative bg-salaam-red-100 rounded-2xl shadow-lg p-4 md:p-6 overflow-hidden">
+          <div className={isHomepage ? 'relative overflow-hidden' : 'relative bg-salaam-red-100 rounded-2xl shadow-lg p-4 md:p-6 overflow-hidden'}>
             <TransformWrapper
               initialScale={1}
               minScale={0.5}
               maxScale={4}
               centerOnInit={true}
-              wheel={{ step: 0.1 }}
+              wheel={{ disabled: true }}
               panning={{ velocityDisabled: true }}
               onTransformed={(_, state) => setZoomScale(state.scale)}
             >
@@ -245,7 +244,7 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }
                       {svgContent ? (
                         <div
                           dangerouslySetInnerHTML={{ __html: svgContent }}
-                          className="w-full [&>svg]:w-full [&>svg]:h-auto"
+                          className={`w-full [&>svg]:w-full [&>svg]:h-auto ${isHomepage ? '[&>svg_path]:fill-[rgba(255,255,255,0.15)] [&>svg_path]:stroke-[rgba(255,255,255,0.3)] [&>svg_path]:stroke-width-[1] [&>svg_g_path]:fill-[rgba(255,255,255,0.15)] [&>svg_g_path]:stroke-[rgba(255,255,255,0.3)] [&>svg_g_path]:stroke-width-[1]' : ''}`}
                         />
                       ) : (
                         <div className="flex items-center justify-center h-64">
@@ -269,9 +268,9 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }
                                 y={s.y}
                                 fontSize={4.5}
                                 fontWeight={600}
-                                fill="#475569"
-                                stroke="#fff"
-                                strokeWidth={0.4}
+                                fill={isHomepage ? '#ffffff' : '#475569'}
+                                stroke={isHomepage ? 'none' : '#fff'}
+                                strokeWidth={isHomepage ? 0 : 0.4}
                                 paintOrder="stroke"
                                 textAnchor="middle"
                                 dominantBaseline="middle"
@@ -350,37 +349,40 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true }
 
           {/* Legend & Instructions */}
           <div className="flex flex-col items-center gap-2 mt-4">
-            <p className="text-xs text-gray-400">Scroll to zoom • Drag to pan</p>
+            <p className={`text-xs ${isHomepage ? 'text-white/70' : 'text-gray-400'}`}>
+              Use buttons to zoom • Drag to pan
+            </p>
             <div className="flex items-center justify-center gap-4">
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-salaam-red-500 rounded-full border-2 border-white shadow"></div>
-                <span className="text-xs text-gray-600">Store</span>
+                <span className={`text-xs ${isHomepage ? 'text-white/90' : 'text-gray-600'}`}>Store</span>
               </div>
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-red-200 border border-red-400 rounded"></div>
-                <span className="text-xs text-gray-600">Region</span>
+                <span className={`text-xs ${isHomepage ? 'text-white/90' : 'text-gray-600'}`}>Region</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right: Store List */}
         {showStoreList && (
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Our Locations</h3>
+            <h3 className={`text-lg font-bold mb-4 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Our Locations</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 auto-rows-min">
               {storeLocations.map((location) => (
                 <motion.div
                   key={location.id}
-                  className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300 cursor-pointer"
+                  className={isHomepage
+                    ? 'bg-white/20 backdrop-blur-md rounded-lg p-3 shadow-sm border-2 border-white/50 hover:shadow-md hover:border-white/70 transition-all duration-300 cursor-pointer'
+                    : 'bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300 cursor-pointer'}
                   onMouseEnter={() => handleMouseEnter(location)}
                   onMouseLeave={() => setHoveredLocation(null)}
                 >
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3.5 h-3.5 text-salaam-red-500 flex-shrink-0" />
-                    <span className="font-medium text-gray-900 text-sm leading-tight">{location.name}</span>
+                    <span className={`font-medium text-sm leading-tight ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{location.name}</span>
                   </div>
-                  <p className="text-xs text-gray-500 pl-5 mt-0.5 leading-tight">{location.address}</p>
+                  <p className={`text-xs pl-5 mt-0.5 leading-tight ${isHomepage ? 'text-white/80' : 'text-gray-500'}`}>{location.address}</p>
                 </motion.div>
               ))}
             </div>
