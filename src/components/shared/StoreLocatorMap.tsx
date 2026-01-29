@@ -6,10 +6,20 @@ import { MapPin, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 
 // Store locations with coordinates based on the SVG viewBox (50 40 200 280)
+// Kept in sync with Supporters.tsx (homepage) and contact page map
 const storeLocations = [
   {
+    id: 10,
+    name: 'Fennel & Co',
+    address: 'Bukit Tunku, Kuala Lumpur',
+    contact: '+603-2142-5679',
+    state: 'MY14', // KL
+    x: 128,
+    y: 194,
+  },
+  {
     id: 1,
-    name: 'BETAWI TTDI',
+    name: 'Betawi',
     address: 'TTDI, Kuala Lumpur',
     contact: '+603-7728-3456',
     state: 'MY14', // KL
@@ -35,9 +45,18 @@ const storeLocations = [
     y: 190,
   },
   {
+    id: 11,
+    name: 'Sungei Wang Plaza',
+    address: 'Bukit Bintang, Kuala Lumpur',
+    contact: '+603-2144-9866',
+    state: 'MY14', // KL
+    x: 127,
+    y: 193,
+  },
+  {
     id: 5,
-    name: 'KLIA Food Station',
-    address: 'KLIA Terminal, Sepang',
+    name: 'Food Station Level 1',
+    address: 'KLIA Terminal 1, Sepang',
     contact: '+603-8787-1234',
     state: 'MY10', // Selangor
     x: 135,
@@ -54,7 +73,7 @@ const storeLocations = [
   },
   {
     id: 9,
-    name: 'Selera Nate Glenmarie',
+    name: 'Selera Nate',
     address: 'Glenmarie, Shah Alam, Selangor',
     contact: '+603-5555-0125',
     state: 'MY10', // Selangor
@@ -62,17 +81,8 @@ const storeLocations = [
     y: 208,
   },
   {
-    id: 10,
-    name: 'Fennel & Co',
-    address: 'Bukit Tunku, Kuala Lumpur',
-    contact: '+603-2142-5679',
-    state: 'MY14', // KL
-    x: 128,
-    y: 194,
-  },
-  {
     id: 7,
-    name: 'Lot 15',
+    name: 'Lot 15 Cafe',
     address: 'Nilai, Negeri Sembilan',
     contact: '+606-601-0123',
     state: 'MY05', // Negeri Sembilan
@@ -87,6 +97,24 @@ const storeLocations = [
     state: 'MY05', // Negeri Sembilan
     x: 162,
     y: 228,
+  },
+  {
+    id: 12,
+    name: 'Mujua Cafe',
+    address: 'Nilai, Negeri Sembilan',
+    contact: '+606-601-0125',
+    state: 'MY05', // Negeri Sembilan
+    x: 156,
+    y: 222,
+  },
+  {
+    id: 13,
+    name: 'Kopi dan Kita',
+    address: 'Nilai, Negeri Sembilan',
+    contact: '+606-601-0126',
+    state: 'MY05', // Negeri Sembilan
+    x: 160,
+    y: 226,
   },
 ]
 

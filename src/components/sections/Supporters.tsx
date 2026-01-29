@@ -56,7 +56,7 @@ const storeLocations = [
   },
   {
     id: 5,
-    name: 'Food Station Level 1 KLIA Terminal 1',
+    name: 'Food Station Level 1',
     address: 'KLIA Terminal 1, Sepang',
     contact: '+603-8787-1234',
     state: 'MY10', // Selangor
@@ -74,7 +74,7 @@ const storeLocations = [
   },
   {
     id: 9,
-    name: 'Selera Nate Glenmarie',
+    name: 'Selera Nate',
     address: 'Glenmarie, Shah Alam, Selangor',
     contact: '+603-5555-0125',
     state: 'MY10', // Selangor
@@ -83,7 +83,7 @@ const storeLocations = [
   },
   {
     id: 7,
-    name: 'Lot 15',
+    name: 'Lot 15 Cafe',
     address: 'Nilai, Negeri Sembilan',
     contact: '+606-601-0123',
     state: 'MY05', // Negeri Sembilan
@@ -98,6 +98,24 @@ const storeLocations = [
     state: 'MY05', // Negeri Sembilan
     x: 162,
     y: 228,
+  },
+  {
+    id: 12,
+    name: 'Mujua Cafe',
+    address: 'Nilai, Negeri Sembilan',
+    contact: '+606-601-0125',
+    state: 'MY05', // Negeri Sembilan
+    x: 156,
+    y: 222,
+  },
+  {
+    id: 13,
+    name: 'Kopi dan Kita',
+    address: 'Nilai, Negeri Sembilan',
+    contact: '+606-601-0126',
+    state: 'MY05', // Negeri Sembilan
+    x: 160,
+    y: 226,
   },
 ]
 
