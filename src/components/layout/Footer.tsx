@@ -11,7 +11,8 @@ const shopLinks = [
 ]
 
 const helpLinks = [
-  { label: 'Returns & Exchanges', href: '/returns' },
+  { label: 'Payment Policy', href: '/payment' },
+  { label: 'Returns & Refund SOP', href: '/returns' },
   { label: 'Privacy Policy', href: '/privacy' },
   { label: 'Terms & Conditions', href: '/terms' },
 ]

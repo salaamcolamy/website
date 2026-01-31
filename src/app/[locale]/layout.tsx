@@ -14,6 +14,7 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { SplashScreen } from '@/components/layout/SplashScreen'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://salaamcolamy.com'),
   icons: {
     icon: '/icon.png',
     shortcut: '/icon.png',
