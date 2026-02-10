@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, getDisplayTags } from '@/lib/utils'
 import { fadeInUp, fadeInLeft, fadeInRight, staggerContainer } from '@/lib/animations'
 import { ChevronLeft, Truck, Shield, RefreshCw, Star } from 'lucide-react'
 import Image from 'next/image'
@@ -21,7 +21,8 @@ export function ProductDetailClient({
   const [activeTab, setActiveTab] = useState<'description' | 'additional' | 'review'>('description')
 
   const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
-  const category = product.tags[0] || 'PRODUCT'
+  const displayTags = getDisplayTags(product.handle, product.title, product.tags)
+  const category = displayTags[0] || 'PRODUCT'
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
@@ -335,6 +336,7 @@ export function ProductDetailClient({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {relatedProducts.map((relatedProduct) => {
                 const relatedImageUrl = relatedProduct.featuredImage?.url || '/images/products/placeholder.webp'
+                const relatedTag = getDisplayTags(relatedProduct.handle, relatedProduct.title, relatedProduct.tags)[0]
 
                 return (
                   <Link key={relatedProduct.id} href={`/shop/${relatedProduct.handle}`}>
@@ -356,9 +358,9 @@ export function ProductDetailClient({
                       <p className="text-salaam-red-500 font-semibold mb-1">
                         {formatPrice(relatedProduct.price, relatedProduct.currencyCode)}
                       </p>
-                      {relatedProduct.tags[0] && (
+                      {relatedTag && (
                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
-                          {relatedProduct.tags[0]}
+                          {relatedTag}
                         </p>
                       )}
                     </motion.div>
