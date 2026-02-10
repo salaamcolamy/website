@@ -147,7 +147,7 @@ const storeLocations = [
   {
     id: 17,
     name: 'Sahra Savor',
-    address: 'Chow Kit, Kuala Lumpur',
+    address: 'Maxim Citylights Sentul, Kuala Lumpur',
     contact: '+603-4100-0004',
     state: 'MY14',
     x: 124,
