@@ -18,11 +18,11 @@ function is6Pack(handle: string, title: string): boolean {
   return /6[- ]?pack|6pack/.test(s)
 }
 
-/** Tags to display for a product; includes "Pre-Order" for 6-pack products. */
+/** Tags to display for a product; includes Ramadhan pre-order tag for 6-pack products. */
 export function getDisplayTags(handle: string, title: string, tags: string[]): string[] {
-  const preOrder = 'Pre-Order'
+  const preOrderTag = 'Ramadhan Pre-Order Starts 16 Feb'
   if (is6Pack(handle, title)) {
-    return tags.includes(preOrder) ? tags : [preOrder, ...tags]
+    return tags.includes(preOrderTag) ? tags : [preOrderTag, ...tags]
   }
   return tags
 }
