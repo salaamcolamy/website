@@ -146,7 +146,7 @@ const storeLocations = [
   },
   {
     id: 17,
-    name: 'Sahra Saver',
+    name: 'Sahra Savor',
     address: 'Chow Kit, Kuala Lumpur',
     contact: '+603-4100-0004',
     state: 'MY14',
