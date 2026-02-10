@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
+import { formatPrice } from '@/lib/utils'
 import { fadeInUp, staggerContainer, scaleIn } from '@/lib/animations'
 import { Grid, List, Star } from 'lucide-react'
 import Image from 'next/image'
@@ -114,6 +115,9 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                         <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
                           {product.title}
                         </h3>
+                        <p className="text-salaam-red-500 font-semibold mb-1">
+                          {formatPrice(product.price, product.currencyCode)}
+                        </p>
                         {product.tags[0] && (
                           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{product.tags[0]}</p>
                         )}
