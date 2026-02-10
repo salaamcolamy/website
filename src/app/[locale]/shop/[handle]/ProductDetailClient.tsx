@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
+import { formatPrice } from '@/lib/utils'
 import { fadeInUp, fadeInLeft, fadeInRight, staggerContainer } from '@/lib/animations'
 import { ChevronLeft, Truck, Shield, RefreshCw, Star } from 'lucide-react'
 import Image from 'next/image'
@@ -72,6 +73,18 @@ export function ProductDetailClient({
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
                 {product.title}
               </h1>
+
+              {/* Price */}
+              <div className="flex items-baseline gap-3">
+                <span className="text-2xl md:text-3xl font-bold text-salaam-red-500">
+                  {formatPrice(product.price, product.currencyCode)}
+                </span>
+                {product.compareAtPrice != null && product.compareAtPrice > product.price && (
+                  <span className="text-lg text-gray-400 line-through">
+                    {formatPrice(product.compareAtPrice, product.currencyCode)}
+                  </span>
+                )}
+              </div>
 
               {/* Rating */}
               <div className="flex items-center gap-2">
@@ -340,6 +353,9 @@ export function ProductDetailClient({
                       <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
                         {relatedProduct.title}
                       </h3>
+                      <p className="text-salaam-red-500 font-semibold mb-1">
+                        {formatPrice(relatedProduct.price, relatedProduct.currencyCode)}
+                      </p>
                       {relatedProduct.tags[0] && (
                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
                           {relatedProduct.tags[0]}

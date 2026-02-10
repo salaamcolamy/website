@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { GlassButton } from '@/components/ui/GlassButton'
+import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/context/CartContext'
 import { ShoppingBag } from 'lucide-react'
 import Image from 'next/image'
@@ -62,6 +63,9 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
               <h3 className="text-lg font-semibold text-gray-900 group-hover:text-salaam-red-500 transition-colors">
                 {product.title}
               </h3>
+              <p className="text-salaam-red-500 font-semibold mt-1">
+                {formatPrice(product.price, product.currencyCode)}
+              </p>
               <p className="text-gray-600 text-sm line-clamp-2 mt-1">
                 {product.description}
               </p>
@@ -141,6 +145,9 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
           <h3 className="font-semibold text-gray-900 group-hover:text-salaam-red-500 transition-colors line-clamp-1">
             {product.title}
           </h3>
+          <p className="text-salaam-red-500 font-semibold">
+            {formatPrice(product.price, product.currencyCode)}
+          </p>
         </div>
       </GlassCard>
     </Link>
