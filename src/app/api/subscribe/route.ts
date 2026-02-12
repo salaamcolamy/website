@@ -11,6 +11,10 @@ import { subscribeEmailToMarketing, isAdminApiConfigured } from '@/lib/shopify/q
  */
 export async function POST(request: NextRequest) {
   try {
+    // Parse request body first
+    const body = await request.json()
+    const { email } = body
+
     // Check if Admin API is configured
     if (!isAdminApiConfigured()) {
       // In development/demo mode, still accept the subscription but log it
@@ -27,10 +31,6 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       )
     }
-
-    // Parse request body
-    const body = await request.json()
-    const { email } = body
 
     // Validate email
     if (!email || typeof email !== 'string') {
