@@ -22,26 +22,35 @@ export const metadata: Metadata = {
   },
 }
 
+// Font configurations with fallback handling
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  display: 'swap',
+  fallback: ['system-ui', 'sans-serif'],
 })
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  display: 'swap',
+  fallback: ['monospace'],
 })
 
 const notoArabic = Noto_Sans_Arabic({
   variable: '--font-noto-arabic',
   subsets: ['arabic'],
   weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  fallback: ['system-ui', 'sans-serif'],
 })
 
 const poppins = Poppins({
   variable: '--font-poppins',
   subsets: ['latin'],
   weight: ['400', '600', '700', '800', '900'],
+  display: 'swap',
+  fallback: ['system-ui', 'sans-serif'],
 })
 
 export function generateStaticParams() {

@@ -37,6 +37,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Allow fonts to fail gracefully during build if network is unavailable
+  experimental: {
+    optimizePackageImports: ['next/font/google'],
+  },
 }
 
 export default withNextIntl(nextConfig)
