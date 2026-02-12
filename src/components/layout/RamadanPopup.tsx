@@ -14,6 +14,7 @@ export function RamadanPopup() {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState<string>('')
 
   useEffect(() => {
     // Wait for splash screen to finish (1400ms) before showing popup
@@ -24,11 +25,14 @@ export function RamadanPopup() {
     return () => clearTimeout(timer)
   }, [])
 
+  const [errorMessage, setErrorMessage] = useState<string>('')
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
 
     setStatus('loading')
+    setErrorMessage('')
 
     try {
       const response = await fetch('/api/subscribe', {
@@ -42,20 +46,42 @@ export function RamadanPopup() {
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to subscribe')
+        // Show specific error message
+        const errorMsg = data.error || 'Failed to subscribe'
+        setErrorMessage(errorMsg)
+        setStatus('error')
+        
+        // Reset error state after 5 seconds
+        setTimeout(() => {
+          setStatus('idle')
+          setErrorMessage('')
+        }, 5000)
+        return
       }
 
+      // Success - show success message
       setStatus('success')
       setEmail('')
+      setErrorMessage('')
+      
+      // If in demo mode, log it
+      if (data.demo) {
+        console.log('📧 Demo mode: Email subscription recorded:', data)
+      }
 
       // Reset after 3 seconds
       setTimeout(() => setStatus('idle'), 3000)
     } catch (error) {
       console.error('Subscription error:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+      setErrorMessage(errorMsg)
       setStatus('error')
       
       // Reset error state after 5 seconds
-      setTimeout(() => setStatus('idle'), 5000)
+      setTimeout(() => {
+        setStatus('idle')
+        setErrorMessage('')
+      }, 5000)
     }
   }
 
@@ -170,13 +196,20 @@ export function RamadanPopup() {
                   </GlassButton>
 
                   {status === 'error' && (
-                    <motion.p
+                    <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-red-500 text-sm text-center"
+                      className="p-3 rounded-lg bg-red-50 border border-red-200"
                     >
-                      {t('error')}
-                    </motion.p>
+                      <p className="text-red-700 text-sm text-center font-medium">
+                        {errorMessage || t('error')}
+                      </p>
+                      {errorMessage?.includes('not configured') && (
+                        <p className="text-red-600 text-xs text-center mt-2">
+                          Please contact support or check the setup guide.
+                        </p>
+                      )}
+                    </motion.div>
                   )}
                 </motion.form>
               </div>

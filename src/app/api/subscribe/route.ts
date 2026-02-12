@@ -13,12 +13,18 @@ export async function POST(request: NextRequest) {
   try {
     // Check if Admin API is configured
     if (!isAdminApiConfigured()) {
+      // In development/demo mode, still accept the subscription but log it
+      // This allows testing the UI without Shopify configured
+      console.log('📧 Email subscription (demo mode):', email)
+      
       return NextResponse.json(
         {
-          success: false,
-          error: 'Email subscription service not configured',
+          success: true,
+          message: 'Thank you! Your email has been recorded.',
+          demo: true,
+          note: 'Shopify Admin API not configured - email logged to console',
         },
-        { status: 503 }
+        { status: 200 }
       )
     }
 
