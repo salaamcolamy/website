@@ -12,7 +12,8 @@
     "push": "git push",
     "verify-shopify": "node scripts/verify-shopify-setup.js",
     "setup-shopify-admin": "bash scripts/setup-shopify-admin.sh",
-    "auto-setup-shopify": "bash scripts/auto-setup-shopify-admin.sh"
+    "auto-setup-shopify": "bash scripts/auto-setup-shopify-admin.sh",
+    "check-vercel": "node scripts/check-vercel-build.js"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

@@ -41,8 +41,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['next/font/google'],
   },
-  // Ensure proper output for Vercel
-  output: 'standalone',
 }
 
 export default withNextIntl(nextConfig)
