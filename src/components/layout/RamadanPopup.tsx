@@ -25,8 +25,6 @@ export function RamadanPopup() {
     return () => clearTimeout(timer)
   }, [])
 
-  const [errorMessage, setErrorMessage] = useState<string>('')
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
@@ -43,11 +41,25 @@ export function RamadanPopup() {
         body: JSON.stringify({ email }),
       })
 
-      const data = await response.json()
+      // Check if response is OK before parsing JSON
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        // If JSON parsing fails, it's likely a server error
+        console.error('Failed to parse API response:', parseError)
+        setErrorMessage('Server error. Please try again later.')
+        setStatus('error')
+        setTimeout(() => {
+          setStatus('idle')
+          setErrorMessage('')
+        }, 5000)
+        return
+      }
 
       if (!response.ok || !data.success) {
         // Show specific error message
-        const errorMsg = data.error || 'Failed to subscribe'
+        const errorMsg = data.error || 'Failed to subscribe. Please try again.'
         setErrorMessage(errorMsg)
         setStatus('error')
         
@@ -73,8 +85,15 @@ export function RamadanPopup() {
       setTimeout(() => setStatus('idle'), 3000)
     } catch (error) {
       console.error('Subscription error:', error)
-      const errorMsg = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
-      setErrorMessage(errorMsg)
+      
+      // Handle network errors specifically
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        setErrorMessage('Network error. Please check your connection and try again.')
+      } else {
+        const errorMsg = error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+        setErrorMessage(errorMsg)
+      }
+      
       setStatus('error')
       
       // Reset error state after 5 seconds

@@ -39,17 +39,39 @@ export async function shopifyAdminFetch<T>({
       body: JSON.stringify({ query, variables }),
     })
 
+    // Check if response is OK
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Shopify Admin API HTTP error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+      })
+      
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('Unauthorized: Invalid Shopify Admin API token')
+      }
+      
+      throw new Error(`Shopify Admin API error: ${response.status} ${response.statusText}`)
+    }
+
     const body: ShopifyAdminResponse<T> = await response.json()
 
     if (body.errors) {
       const errorMessage = body.errors[0]?.message || 'Shopify Admin API error'
       const errorCode = body.errors[0]?.extensions?.code
+      console.error('Shopify Admin API GraphQL error:', {
+        message: errorMessage,
+        code: errorCode,
+        errors: body.errors,
+      })
       throw new Error(errorCode ? `${errorCode}: ${errorMessage}` : errorMessage)
     }
 
     return body.data
   } catch (error) {
     console.error('Shopify Admin API error:', error)
+    // Re-throw to let the caller handle it
     throw error
   }
 }

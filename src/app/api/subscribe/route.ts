@@ -73,25 +73,65 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('Subscribe API error:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
 
     // Handle specific Shopify errors
     if (error instanceof Error) {
-      // Check if it's a duplicate email error - this is already handled by subscribeEmailToMarketing
-      // but we'll provide a user-friendly error message
-      if (error.message.includes('already exists') || error.message.includes('duplicate')) {
+      const errorMessage = error.message || 'Failed to subscribe email'
+      
+      // Check for common Shopify API errors
+      if (errorMessage.includes('already exists') || errorMessage.includes('duplicate') || errorMessage.includes('Email has already been taken')) {
         return NextResponse.json(
           {
             success: false,
-            error: 'This email is already subscribed',
+            error: 'This email is already subscribed to our newsletter.',
           },
           { status: 400 }
         )
       }
 
+      // Check for authentication/authorization errors
+      if (errorMessage.includes('Unauthorized') || errorMessage.includes('Invalid API key') || errorMessage.includes('Access denied')) {
+        console.error('Shopify Admin API authentication error - check SHOPIFY_ADMIN_ACCESS_TOKEN')
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Service configuration error. Please contact support.',
+          },
+          { status: 500 }
+        )
+      }
+
+      // Check for network/connection errors
+      if (errorMessage.includes('fetch failed') || errorMessage.includes('network') || errorMessage.includes('ENOTFOUND')) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Connection error. Please try again later.',
+          },
+          { status: 503 }
+        )
+      }
+
+      // Check for Shopify API errors
+      if (errorMessage.includes('Shopify Admin API') || errorMessage.includes('not configured')) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Service temporarily unavailable. Please try again later.',
+          },
+          { status: 503 }
+        )
+      }
+
+      // Return the error message for other cases
       return NextResponse.json(
         {
           success: false,
-          error: error.message || 'Failed to subscribe email',
+          error: errorMessage.includes('Failed to') ? errorMessage : `Unable to subscribe: ${errorMessage}`,
         },
         { status: 500 }
       )
@@ -100,7 +140,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred. Please try again.',
       },
       { status: 500 }
     )

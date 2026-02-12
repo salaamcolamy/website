@@ -5,6 +5,7 @@ import { TasteIsEverything } from '@/components/sections/TasteIsEverything'
 import { ChangeStartsSmall } from '@/components/sections/ChangeStartsSmall'
 import { Supporters } from '@/components/sections/Supporters'
 import { PledgeSection } from '@/components/sections/PledgeSection'
+import { HomePageWrapper } from '@/components/layout/HomePageWrapper'
 import type { Metadata } from 'next'
 
 interface HomePageProps {
@@ -29,13 +30,13 @@ export default async function HomePage({ params }: HomePageProps) {
   setRequestLocale(locale)
 
   return (
-    <>
+    <HomePageWrapper>
       <HeroSection />
       <TasteIsEverything />
       <BestSellers />
       <ChangeStartsSmall />
       <Supporters />
       <PledgeSection />
-    </>
+    </HomePageWrapper>
   )
 }
