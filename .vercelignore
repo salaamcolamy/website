@@ -1,0 +1,29 @@
+# Vercel ignore file
+# Files that shouldn't be deployed
+
+# Documentation (optional - can be deployed)
+# docs/
+# *.md
+
+# Scripts (optional - can be deployed)
+# scripts/
+
+# Environment files (should never be deployed)
+.env.local
+.env*.local
+
+# Development files
+node_modules/
+.next/
+out/
+dist/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
