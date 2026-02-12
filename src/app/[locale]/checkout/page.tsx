@@ -2,6 +2,9 @@ import { setRequestLocale } from 'next-intl/server'
 import { CheckoutPageClient } from './CheckoutPageClient'
 import type { Metadata } from 'next'
 
+// Force dynamic rendering to avoid font bundling issues during build
+export const dynamic = 'force-dynamic'
+
 interface CheckoutPageProps {
   params: Promise<{ locale: string }>
 }

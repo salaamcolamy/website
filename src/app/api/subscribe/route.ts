@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { subscribeEmailToMarketing, isAdminApiConfigured } from '@/lib/shopify/queries/customer'
+import { subscribeEmailToMarketing } from '@/lib/shopify/queries/customer'
+import { isAdminApiConfigured } from '@/lib/shopify/admin-client'
 
 /**
  * API Route: POST /api/subscribe

@@ -37,9 +37,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Allow fonts to fail gracefully during build if network is unavailable
   experimental: {
-    optimizePackageImports: ['next/font/google'],
+    // Optimize font imports but ensure they're handled correctly
+    optimizePackageImports: ['next/font'],
   },
 }
 
