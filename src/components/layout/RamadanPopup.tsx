@@ -16,8 +16,12 @@ export function RamadanPopup() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
   useEffect(() => {
-    // Show popup when component mounts (every time homepage loads)
-    setIsOpen(true)
+    // Wait for splash screen to finish (1400ms) before showing popup
+    const timer = setTimeout(() => {
+      setIsOpen(true)
+    }, 1500)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +74,7 @@ export function RamadanPopup() {
             animate="visible"
             exit="exit"
             onClick={handleClose}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm"
           />
 
           {/* Popup Modal */}
@@ -79,7 +83,7 @@ export function RamadanPopup() {
             initial="hidden"
             animate="visible"
             exit="hidden"
-            className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-[111] flex items-center justify-center p-4 pointer-events-none"
           >
             <GlassCard
               variant="light"

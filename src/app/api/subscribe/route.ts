@@ -69,35 +69,16 @@ export async function POST(request: NextRequest) {
 
     // Handle specific Shopify errors
     if (error instanceof Error) {
-      // Check if it's a duplicate email error
+      // Check if it's a duplicate email error - this is already handled by subscribeEmailToMarketing
+      // but we'll provide a user-friendly error message
       if (error.message.includes('already exists') || error.message.includes('duplicate')) {
-        // Try to update existing customer instead
-        try {
-          const body = await request.json()
-          const { email } = body
-          const customer = await subscribeEmailToMarketing(email.toLowerCase().trim())
-          
-          return NextResponse.json(
-            {
-              success: true,
-              message: 'Successfully subscribed to email marketing',
-              customer: {
-                id: customer.id,
-                email: customer.email,
-                acceptsMarketing: customer.acceptsMarketing,
-              },
-            },
-            { status: 200 }
-          )
-        } catch (retryError) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: 'Failed to subscribe email. Please try again.',
-            },
-            { status: 500 }
-          )
-        }
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'This email is already subscribed',
+          },
+          { status: 400 }
+        )
       }
 
       return NextResponse.json(
