@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "setup-github-ssh": "bash scripts/setup-github-ssh.sh",
-    "push": "git push"
+    "push": "git push",
+    "verify-shopify": "node scripts/verify-shopify-setup.js"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

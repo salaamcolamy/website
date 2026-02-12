@@ -65,6 +65,16 @@
     "success": "Thank you!",
     "error": "Something went wrong. Please try again."
   },
+  "ramadanBanner": {
+    "title": "Ramadan Orders Opening Soon",
+    "message": "Ramadan orders will open on 18th February",
+    "subtitle": "Subscribe to our email to be notified when orders open",
+    "placeholder": "Enter your email",
+    "cta": "Subscribe",
+    "close": "Close",
+    "success": "Thank you! We'll notify you when orders open.",
+    "error": "Something went wrong. Please try again."
+  },
   "products": {
     "title": "Mister Cola",
     "subtitle": "Experience the authentic taste",
