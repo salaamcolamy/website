@@ -1,5 +1,15 @@
 # 🎯 Exact Steps to Get Token in Shopify Admin (2026)
 
+## ⚠️ Important Clarification
+
+**You're NOT installing an email marketing app!**
+
+You're creating a **custom app** (just for API access) so your website can add customers to Shopify. Once customers are in Shopify, you can use:
+- ✅ Shopify's built-in email marketing (Marketing → Email campaigns)
+- ✅ Klaviyo, Mailchimp, or any email tool that syncs with Shopify
+
+The custom app is just a "key" that lets your website talk to Shopify's API. It's not an email marketing tool itself.
+
 ## Step-by-Step Instructions
 
 ### Step 1: Log into Shopify Admin
