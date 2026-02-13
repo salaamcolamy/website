@@ -34,10 +34,14 @@ function is24Pack(handle: string, title: string): boolean {
 export function getDisplayTags(handle: string, title: string, tags: string[]): string[] {
   const preOrderTag = 'Ramadhan Pre-Order Starts 18th Feb'
   const orderStartsTag = 'Order Starts 16 Feb'
+  const orderStarts24PackTag = 'ORDER STARTS 18TH FEB'
   if (is6Pack(handle, title)) {
     return tags.includes(preOrderTag) ? tags : [preOrderTag, ...tags]
   }
-  if (isCarton(handle, title) || is24Pack(handle, title)) {
+  if (is24Pack(handle, title)) {
+    return tags.includes(orderStarts24PackTag) ? tags : [orderStarts24PackTag, ...tags]
+  }
+  if (isCarton(handle, title)) {
     return tags.includes(orderStartsTag) ? tags : [orderStartsTag, ...tags]
   }
   return tags
