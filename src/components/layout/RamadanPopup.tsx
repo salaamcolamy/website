@@ -131,7 +131,7 @@ export function RamadanPopup() {
             className="fixed inset-0 z-[111] flex items-center justify-center p-4 pointer-events-none"
           >
             <GlassCard
-              variant="light"
+              variant="dark"
               blur="xl"
               glow
               padding="lg"
@@ -143,7 +143,7 @@ export function RamadanPopup() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleClose}
-                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-white/20 transition-colors z-10"
+                className="absolute top-4 right-4 p-2 text-white hover:text-white/90 rounded-full hover:bg-white/20 transition-colors z-10"
                 aria-label={t('close')}
               >
                 <X className="w-5 h-5" />
@@ -157,7 +157,7 @@ export function RamadanPopup() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="text-2xl md:text-3xl font-bold text-gray-900"
+                    className="text-2xl md:text-3xl font-bold text-white"
                   >
                     {t('title')}
                   </motion.h2>
@@ -165,7 +165,7 @@ export function RamadanPopup() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-lg text-salaam-red-600 font-semibold"
+                    className="text-lg text-white font-semibold"
                   >
                     {t('message')}
                   </motion.p>
@@ -173,7 +173,7 @@ export function RamadanPopup() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-sm text-gray-600"
+                    className="text-sm text-white"
                   >
                     {t('subtitle')}
                   </motion.p>
@@ -195,7 +195,7 @@ export function RamadanPopup() {
                     leftIcon={<Mail className="w-5 h-5" />}
                     disabled={status === 'loading' || status === 'success'}
                     required
-                    className="bg-white/20 border-white/30 text-gray-900 placeholder:text-gray-500"
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
                   />
 
                   <GlassButton
@@ -218,13 +218,13 @@ export function RamadanPopup() {
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-3 rounded-lg bg-red-50 border border-red-200"
+                      className="p-3 rounded-lg bg-red-900/40 border border-white/30"
                     >
-                      <p className="text-red-700 text-sm text-center font-medium">
+                      <p className="text-white text-sm text-center font-medium">
                         {errorMessage || t('error')}
                       </p>
                       {errorMessage?.includes('not configured') && (
-                        <p className="text-red-600 text-xs text-center mt-2">
+                        <p className="text-white/90 text-xs text-center mt-2">
                           Please contact support or check the setup guide.
                         </p>
                       )}
