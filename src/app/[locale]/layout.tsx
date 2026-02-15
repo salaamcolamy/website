@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import { Geist, Geist_Mono, Noto_Sans_Arabic, Poppins } from 'next/font/google'
+import { Geist, Geist_Mono, Noto_Sans_Arabic, Poppins, Anton } from 'next/font/google'
 import { routing } from '@/i18n/routing'
 import { localeDirection, Locale } from '@/i18n/config'
 import { CartProvider } from '@/context/CartContext'
@@ -53,6 +53,14 @@ const poppins = Poppins({
   fallback: ['system-ui', 'sans-serif'],
 })
 
+const anton = Anton({
+  variable: '--font-anton',
+  subsets: ['latin'],
+  weight: ['400'],
+  display: 'swap',
+  fallback: ['system-ui', 'sans-serif'],
+})
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
 }
@@ -85,7 +93,7 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       dir={direction}
-      className={`${geistSans.variable} ${geistMono.variable} ${notoArabic.variable} ${poppins.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoArabic.variable} ${poppins.variable} ${anton.variable}`}
     >
       <body className={`antialiased ${isRTL ? 'font-arabic' : 'font-sans'}`}>
         <NextIntlClientProvider messages={messages}>

@@ -28,6 +28,7 @@ const config: Config = {
         arabic: ['var(--font-noto-arabic)', 'system-ui', 'sans-serif'],
         quora: ['Quora', 'system-ui', 'sans-serif'],
         poppins: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
+        anton: ['var(--font-anton)', 'system-ui', 'sans-serif'],
       },
       backdropBlur: {
         xs: '2px',
