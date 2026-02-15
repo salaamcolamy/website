@@ -1,8 +1,7 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
-import { useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion'
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 
 const CAROUSEL_IMAGES = [
@@ -18,16 +17,24 @@ const CAROUSEL_IMAGES = [
 ]
 
 const IMAGE_ALT = 'Salaam Cola community and events'
-
-// Card dimensions for seamless loop (single source of truth)
-const CARD_WIDTH_PX = 420
-const CARD_GAP_PX = 32
-const TRANSLATE_PER_SET = (CARD_WIDTH_PX + CARD_GAP_PX) * CAROUSEL_IMAGES.length
+const SLIDE_DURATION_MS = 4500
+const FADE_DURATION_S = 0.7
 
 export function SalaamMovement() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
   const prefersReducedMotion = useReducedMotion()
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  useEffect(() => {
+    if (prefersReducedMotion) return
+    const id = setInterval(() => {
+      setCurrentIndex((i) => (i + 1) % CAROUSEL_IMAGES.length)
+    }, SLIDE_DURATION_MS)
+    return () => clearInterval(id)
+  }, [prefersReducedMotion])
+
+  const src = CAROUSEL_IMAGES[currentIndex]
 
   return (
     <section ref={ref} className="py-16 md:py-20 bg-slate-50 overflow-hidden">
@@ -50,52 +57,53 @@ export function SalaamMovement() {
         </motion.p>
       </div>
 
-      {/* Infinite scroll carousel: one strip with duplicated set for seamless loop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={isInView ? { opacity: 1 } : {}}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="relative w-full [mask-image:linear-gradient(to_right,transparent_0%,black_5%,black_95%,transparent_100%)]"
+        className="relative w-full max-w-4xl mx-auto px-4"
         aria-label="Photo carousel"
       >
-        <motion.div
-          className="flex w-max"
-          style={{ gap: CARD_GAP_PX }}
-          animate={
-            prefersReducedMotion ? {} : { x: [0, -TRANSLATE_PER_SET] }
-          }
-          transition={
-            prefersReducedMotion
-              ? {}
-              : {
-                  x: {
-                    repeat: Infinity,
-                    repeatType: 'loop',
-                    duration: 55,
-                    ease: 'linear',
-                  },
-                }
-          }
-        >
-          {[...CAROUSEL_IMAGES, ...CAROUSEL_IMAGES].map((src, i) => (
-            <div
-              key={i}
-              className="relative shrink-0 rounded-xl overflow-hidden shadow-lg"
-              style={{
-                width: CARD_WIDTH_PX,
-                height: Math.round(CARD_WIDTH_PX * (2 / 3)),
-              }}
+        <div className="relative w-full aspect-[4/3] max-h-[420px] rounded-2xl overflow-hidden shadow-xl bg-slate-200">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: FADE_DURATION_S, ease: 'easeInOut' }}
+              className="absolute inset-0"
             >
               <Image
                 src={src}
-                alt={`${IMAGE_ALT} ${(i % CAROUSEL_IMAGES.length) + 1}`}
+                alt={`${IMAGE_ALT} ${currentIndex + 1}`}
                 fill
                 className="object-cover"
-                sizes="420px"
+                sizes="(max-width: 896px) 100vw, 896px"
+                priority={currentIndex === 0}
               />
-            </div>
-          ))}
-        </motion.div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Dots indicator */}
+        {!prefersReducedMotion && (
+          <div className="flex justify-center gap-2 mt-4" aria-hidden>
+            {CAROUSEL_IMAGES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setCurrentIndex(i)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === currentIndex
+                    ? 'w-6 bg-salaam-red-500'
+                    : 'w-2 bg-salaam-red-500/30 hover:bg-salaam-red-500/50'
+                }`}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </motion.div>
     </section>
   )
