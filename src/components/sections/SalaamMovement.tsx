@@ -19,6 +19,11 @@ const CAROUSEL_IMAGES = [
 
 const IMAGE_ALT = 'Salaam Cola community and events'
 
+// Card dimensions for seamless loop (single source of truth)
+const CARD_WIDTH_PX = 420
+const CARD_GAP_PX = 32
+const TRANSLATE_PER_SET = (CARD_WIDTH_PX + CARD_GAP_PX) * CAROUSEL_IMAGES.length
+
 export function SalaamMovement() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
@@ -54,11 +59,10 @@ export function SalaamMovement() {
         aria-label="Photo carousel"
       >
         <motion.div
-          className="flex w-max gap-4 md:gap-6"
+          className="flex w-max"
+          style={{ gap: CARD_GAP_PX }}
           animate={
-            prefersReducedMotion
-              ? {}
-              : { x: [0, -((280 + 24) * CAROUSEL_IMAGES.length)] }
+            prefersReducedMotion ? {} : { x: [0, -TRANSLATE_PER_SET] }
           }
           transition={
             prefersReducedMotion
@@ -67,7 +71,7 @@ export function SalaamMovement() {
                   x: {
                     repeat: Infinity,
                     repeatType: 'loop',
-                    duration: 30,
+                    duration: 55,
                     ease: 'linear',
                   },
                 }
@@ -76,14 +80,18 @@ export function SalaamMovement() {
           {[...CAROUSEL_IMAGES, ...CAROUSEL_IMAGES].map((src, i) => (
             <div
               key={i}
-              className="relative w-[260px] md:w-[280px] h-[180px] md:h-[200px] shrink-0 rounded-xl overflow-hidden shadow-lg"
+              className="relative shrink-0 rounded-xl overflow-hidden shadow-lg"
+              style={{
+                width: CARD_WIDTH_PX,
+                height: Math.round(CARD_WIDTH_PX * (2 / 3)),
+              }}
             >
               <Image
                 src={src}
                 alt={`${IMAGE_ALT} ${(i % CAROUSEL_IMAGES.length) + 1}`}
                 fill
                 className="object-cover"
-                sizes="280px"
+                sizes="420px"
               />
             </div>
           ))}
