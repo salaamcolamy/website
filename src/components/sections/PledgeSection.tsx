@@ -3,8 +3,12 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
+import Image from 'next/image'
 import { HeartHandshake, Store, ArrowRight } from 'lucide-react'
 import { Link } from '@/i18n/routing'
+
+const SIP_WITH_PURPOSE_IMAGE = '/images/Copy of Apa Itu Salaam Cola.png'
+const BUSINESS_IMAGE = '/images/IG FEED-2.png'
 
 const pledges = [
   {
@@ -47,6 +51,7 @@ export function PledgeSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto">
           {pledges.map((pledge, index) => {
             const Icon = pledge.icon
+            const isSipWithPurpose = pledge.title === 'Sip with Purpose'
             return (
               <motion.div
                 key={pledge.title}
@@ -59,19 +64,42 @@ export function PledgeSection() {
                 <div className="relative bg-white/20 backdrop-blur-md rounded-3xl p-8 md:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border-2 border-white/50 overflow-hidden">
                   {/* Decorative gradient overlay */}
                   <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${pledge.gradient} opacity-10 rounded-full blur-2xl`}></div>
-                  
-                  {/* Icon container */}
+
+                  {/* Sip with Purpose & Business: images; fallback: icon */}
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={isInView ? { scale: 1 } : {}}
                     transition={{ duration: 0.5, delay: index * 0.15 + 0.2, type: 'spring' }}
                     className="relative mb-6"
                   >
-                    <div className={`w-20 h-20 md:w-24 md:h-24 mx-auto rounded-2xl bg-gradient-to-br ${pledge.gradient} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
-                      <Icon className="w-10 h-10 md:w-12 md:h-12 text-white" strokeWidth={2.5} />
-                    </div>
-                    {/* Decorative ring */}
-                    <div className={`absolute inset-0 rounded-2xl border-2 border-white/30 scale-110`}></div>
+                    {isSipWithPurpose ? (
+                      <div className="relative w-full aspect-[4/3] max-w-xs mx-auto rounded-2xl overflow-hidden shadow-lg">
+                        <Image
+                          src={SIP_WITH_PURPOSE_IMAGE}
+                          alt="Salaam Cola — sip with purpose"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 320px"
+                        />
+                      </div>
+                    ) : pledge.title === 'Business' ? (
+                      <div className="relative w-full aspect-[4/3] max-w-xs mx-auto rounded-2xl overflow-hidden shadow-lg">
+                        <Image
+                          src={BUSINESS_IMAGE}
+                          alt="Salaam Cola — distribute at your premise"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 320px"
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <div className={`w-20 h-20 md:w-24 md:h-24 mx-auto rounded-2xl bg-gradient-to-br ${pledge.gradient} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
+                          <Icon className="w-10 h-10 md:w-12 md:h-12 text-white" strokeWidth={2.5} />
+                        </div>
+                        <div className={`absolute inset-0 rounded-2xl border-2 border-white/30 scale-110`}></div>
+                      </>
+                    )}
                   </motion.div>
 
                   {/* Content */}
