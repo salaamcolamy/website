@@ -7,7 +7,7 @@ import { ArrowRight } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 
-const SECTION_IMAGE = '/images/DSC00799.jpg'
+const SECTION_IMAGE = '/images/FF_07329.JPG'
 
 export function ChangeStartsSmall() {
   const ref = useRef(null)
@@ -26,7 +26,7 @@ export function ChangeStartsSmall() {
           >
             <Image
               src={SECTION_IMAGE}
-              alt="Change starts small"
+              alt="Salaam Cola cans in hand at an event — change starts small"
               fill
               className="object-cover object-[center_35%]"
             />

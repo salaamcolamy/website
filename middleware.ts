@@ -25,11 +25,11 @@ export default function middleware(request: NextRequest) {
     return NextResponse.redirect(next, 308)
   }
 
-  // Prefer explicit locale prefix (routing uses localePrefix: 'always')
+  // Root: rewrite to default locale so the page is served (avoids 404 on /)
   if (url.pathname === '/') {
     const next = url.clone()
     next.pathname = `/${routing.defaultLocale}`
-    return NextResponse.redirect(next, 308)
+    return NextResponse.rewrite(next)
   }
 
   return intlMiddleware(request)
