@@ -3,6 +3,7 @@ import { HeroSection } from '@/components/sections/HeroSection'
 import { BestSellers } from '@/components/sections/BestSellers'
 import { TasteIsEverything } from '@/components/sections/TasteIsEverything'
 import { ChangeStartsSmall } from '@/components/sections/ChangeStartsSmall'
+import { SalaamMovement } from '@/components/sections/SalaamMovement'
 import { Supporters } from '@/components/sections/Supporters'
 import { PledgeSection } from '@/components/sections/PledgeSection'
 import { HomePageWrapper } from '@/components/layout/HomePageWrapper'
@@ -35,6 +36,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <TasteIsEverything />
       <BestSellers />
       <ChangeStartsSmall />
+      <SalaamMovement />
       <Supporters />
       <PledgeSection />
     </HomePageWrapper>
