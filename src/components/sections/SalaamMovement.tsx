@@ -35,6 +35,8 @@ export function SalaamMovement() {
   }, [prefersReducedMotion])
 
   const src = CAROUSEL_IMAGES[currentIndex]
+  const nextIndex = (currentIndex + 1) % CAROUSEL_IMAGES.length
+  const nextSrc = CAROUSEL_IMAGES[nextIndex]
 
   return (
     <section ref={ref} className="py-16 md:py-20 bg-slate-50 overflow-hidden">
@@ -65,6 +67,17 @@ export function SalaamMovement() {
         aria-label="Photo carousel"
       >
         <div className="relative w-full aspect-[4/3] max-h-[420px] rounded-2xl overflow-hidden shadow-xl bg-slate-200">
+          {/* Preload next image so it's ready when slide advances */}
+          <div className="absolute inset-0 opacity-0 pointer-events-none overflow-hidden" aria-hidden>
+            <Image
+              src={nextSrc}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 896px) 100vw, 896px"
+              priority={nextIndex <= 1}
+            />
+          </div>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={currentIndex}
@@ -80,7 +93,7 @@ export function SalaamMovement() {
                 fill
                 className="object-cover"
                 sizes="(max-width: 896px) 100vw, 896px"
-                priority={currentIndex === 0}
+                priority={currentIndex <= 1}
               />
             </motion.div>
           </AnimatePresence>
