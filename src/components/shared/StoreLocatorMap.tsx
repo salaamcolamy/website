@@ -8,6 +8,7 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 // Store locations with coordinates based on the SVG viewBox (50 40 200 280)
 // Kept in sync with Supporters.tsx (homepage) and contact page map
 const storeLocations = [
+  // Kuala Lumpur
   {
     id: 10,
     name: 'Fennel & Co',
@@ -16,15 +17,6 @@ const storeLocations = [
     state: 'MY14', // KL
     x: 128,
     y: 194,
-  },
-  {
-    id: 1,
-    name: 'Betawi',
-    address: 'TTDI, Kuala Lumpur',
-    contact: '+603-7728-3456',
-    state: 'MY14', // KL
-    x: 118,
-    y: 188,
   },
   {
     id: 2,
@@ -36,6 +28,15 @@ const storeLocations = [
     y: 195,
   },
   {
+    id: 1,
+    name: 'Betawi Indonesian Cuisine',
+    address: 'TTDI, Kuala Lumpur',
+    contact: '+603-7728-3456',
+    state: 'MY14', // KL
+    x: 118,
+    y: 188,
+  },
+  {
     id: 4,
     name: 'Tepuk Tepung',
     address: 'Hartamas Shopping Centre, Kuala Lumpur',
@@ -45,23 +46,42 @@ const storeLocations = [
     y: 190,
   },
   {
-    id: 11,
-    name: 'Sungei Wang Plaza',
-    address: 'Bukit Bintang, Kuala Lumpur',
-    contact: '+603-2144-9866',
-    state: 'MY14', // KL
-    x: 127,
-    y: 193,
+    id: 14,
+    name: 'Duwa Cafe',
+    address: 'Taman Melawati, Kuala Lumpur',
+    contact: '+603-4100-0001',
+    state: 'MY14',
+    x: 120,
+    y: 186,
   },
   {
-    id: 5,
-    name: 'Food Station Level 1',
-    address: 'KLIA Terminal 1, Sepang',
-    contact: '+603-8787-1234',
-    state: 'MY10', // Selangor
-    x: 135,
-    y: 220,
+    id: 18,
+    name: 'One Coffee @ VIOBA',
+    address: 'Bukit Bintang, Kuala Lumpur',
+    contact: '+603-2144-9867',
+    state: 'MY14', // KL
+    x: 128,
+    y: 194,
   },
+  {
+    id: 15,
+    name: 'Hadramawt Restaurant',
+    address: 'Tun Razak City, Kuala Lumpur',
+    contact: '+603-4100-0002',
+    state: 'MY14',
+    x: 126,
+    y: 198,
+  },
+  {
+    id: 17,
+    name: 'Sahra Savor',
+    address: 'Maxim Citylights Sentul, Kuala Lumpur',
+    contact: '+603-4100-0004',
+    state: 'MY14',
+    x: 124,
+    y: 192,
+  },
+  // Selangor
   {
     id: 6,
     name: 'Karya Kopi Roastery',
@@ -81,60 +101,6 @@ const storeLocations = [
     y: 208,
   },
   {
-    id: 7,
-    name: 'Lot 15 Cafe',
-    address: 'Nilai, Negeri Sembilan',
-    contact: '+606-601-0123',
-    state: 'MY05', // Negeri Sembilan
-    x: 158,
-    y: 224,
-  },
-  {
-    id: 8,
-    name: 'Tiga Tujuh Cafe',
-    address: 'Seremban, Negeri Sembilan',
-    contact: '+606-601-0124',
-    state: 'MY05', // Negeri Sembilan
-    x: 162,
-    y: 228,
-  },
-  {
-    id: 12,
-    name: 'Mujua Cafe',
-    address: 'Nilai, Negeri Sembilan',
-    contact: '+606-601-0125',
-    state: 'MY05', // Negeri Sembilan
-    x: 156,
-    y: 222,
-  },
-  {
-    id: 13,
-    name: 'Kopi dan Kita',
-    address: 'Nilai, Negeri Sembilan',
-    contact: '+606-601-0126',
-    state: 'MY05', // Negeri Sembilan
-    x: 160,
-    y: 226,
-  },
-  {
-    id: 14,
-    name: 'Duwa Cafe',
-    address: 'Taman Melawati, Kuala Lumpur',
-    contact: '+603-4100-0001',
-    state: 'MY14',
-    x: 120,
-    y: 186,
-  },
-  {
-    id: 15,
-    name: 'Hadramawt Restaurant',
-    address: 'Tun Razak City, Kuala Lumpur',
-    contact: '+603-4100-0002',
-    state: 'MY14',
-    x: 126,
-    y: 198,
-  },
-  {
     id: 16,
     name: 'Hadramawt Restaurant',
     address: 'Neo Damansara, Petaling Jaya, Selangor',
@@ -144,27 +110,75 @@ const storeLocations = [
     y: 200,
   },
   {
-    id: 17,
-    name: 'Sahra Savor',
-    address: 'Maxim Citylights Sentul, Kuala Lumpur',
-    contact: '+603-4100-0004',
-    state: 'MY14',
-    x: 124,
-    y: 192,
+    id: 5,
+    name: 'Food Station Level 1',
+    address: 'KLIA Terminal 1, Sepang',
+    contact: '+603-8787-1234',
+    state: 'MY10', // Selangor
+    x: 135,
+    y: 220,
+  },
+  // Negeri Sembilan
+  {
+    id: 7,
+    name: 'Lot 15 Cafe',
+    address: 'Nilai, Negeri Sembilan',
+    contact: '+606-601-0123',
+    state: 'MY05', // Negeri Sembilan
+    x: 158,
+    y: 224,
   },
   {
-    id: 18,
-    name: 'One Coffee @ VIOBA',
-    address: 'Bukit Bintang, Kuala Lumpur',
-    contact: '+603-2144-9867',
-    state: 'MY14', // KL
-    x: 128,
-    y: 194,
+    id: 12,
+    name: 'Mujua Cafe & Company',
+    address: 'Nilai, Negeri Sembilan',
+    contact: '+606-601-0125',
+    state: 'MY05', // Negeri Sembilan
+    x: 156,
+    y: 222,
+  },
+  {
+    id: 13,
+    name: 'Kopi dan Kita Kafe',
+    address: 'Nilai, Negeri Sembilan',
+    contact: '+606-601-0126',
+    state: 'MY05', // Negeri Sembilan
+    x: 160,
+    y: 226,
+  },
+  {
+    id: 8,
+    name: 'Tiga Tujuh Cafe',
+    address: 'Seremban, Negeri Sembilan',
+    contact: '+606-601-0124',
+    state: 'MY05', // Negeri Sembilan
+    x: 162,
+    y: 228,
+    comingSoon: true,
+  },
+  // Langkawi
+  {
+    id: 19,
+    name: 'Koperasi Kakitangan Tropical Charters Berhad',
+    address: 'Langkawi Boulevard Langkawi City, Langkawi',
+    contact: '+604-952-3641',
+    state: 'MY02', // Kedah (Langkawi)
+    x: 95,
+    y: 120,
+  },
+  {
+    id: 20,
+    name: 'RedSky Cafe @ Villa Molek',
+    address: 'Langkawi',
+    contact: '+604-952-3641',
+    state: 'MY02', // Kedah (Langkawi)
+    x: 97,
+    y: 122,
   },
 ]
 
 // States to highlight (where we have stores)
-const highlightedStates = ['MY10', 'MY14', 'MY05']
+const highlightedStates = ['MY10', 'MY14', 'MY05', 'MY02']
 
 // States to hide (East Malaysia)
 const hiddenStates = ['MY12', 'MY13']
@@ -411,25 +425,72 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
         </div>
 
         {showStoreList && (
-          <div>
+          <div className="space-y-6">
             <h3 className={`text-lg font-bold mb-4 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Our Locations</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 auto-rows-min">
-              {storeLocations.map((location) => (
-                <motion.div
-                  key={location.id}
-                  className={isHomepage
-                    ? 'bg-white/20 backdrop-blur-md rounded-lg p-3 shadow-sm border-2 border-white/50 hover:shadow-md hover:border-white/70 transition-all duration-300 cursor-pointer'
-                    : 'bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300 cursor-pointer'}
-                  onMouseEnter={() => handleMouseEnter(location)}
-                  onMouseLeave={() => setHoveredLocation(null)}
-                >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-salaam-red-500 flex-shrink-0" />
-                    <span className={`font-medium text-sm leading-tight ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{location.name}</span>
+            
+            {/* Group locations by state */}
+            {(() => {
+              const grouped = storeLocations.reduce((acc, loc) => {
+                const stateName = loc.state === 'MY14' ? 'Kuala Lumpur' 
+                  : loc.state === 'MY10' ? 'Selangor'
+                  : loc.state === 'MY05' ? 'Negeri Sembilan'
+                  : loc.state === 'MY02' ? 'Langkawi'
+                  : 'Other'
+                if (!acc[stateName]) acc[stateName] = []
+                acc[stateName].push(loc)
+                return acc
+              }, {} as Record<string, typeof storeLocations>)
+
+              const stateOrder = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi']
+              
+              return stateOrder.map((stateName) => {
+                const locations = grouped[stateName] || []
+                if (locations.length === 0) return null
+                
+                return (
+                  <div key={stateName} className="space-y-2">
+                    <h4 className={`font-bold text-sm ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{stateName}</h4>
+                    <ul className={`space-y-1 ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
+                      {locations.map((location) => (
+                        <motion.li
+                          key={location.id}
+                          className="flex items-start gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                          onMouseEnter={() => handleMouseEnter(location)}
+                          onMouseLeave={() => setHoveredLocation(null)}
+                        >
+                          <span className={`text-xs ${isHomepage ? 'text-white/70' : 'text-gray-500'}`}>•</span>
+                          <span className={`text-xs leading-relaxed ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
+                            {location.name}
+                            {location.address && `, ${location.address}`}
+                            {location.comingSoon && (
+                              <span className={`ml-1 text-xs ${isHomepage ? 'text-white/60' : 'text-gray-500'}`}>(AKAN DATANG)</span>
+                            )}
+                          </span>
+                        </motion.li>
+                      ))}
+                    </ul>
                   </div>
-                  <p className={`text-xs pl-5 mt-0.5 leading-tight ${isHomepage ? 'text-white/80' : 'text-gray-500'}`}>{location.address}</p>
-                </motion.div>
-              ))}
+                )
+              })
+            })()}
+
+            {/* PENGEDAR RASMI Section */}
+            <div className="pt-4 border-t border-white/20 mt-6">
+              <h4 className={`font-bold text-sm mb-3 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>PENGEDAR RASMI:</h4>
+              <ul className={`space-y-1.5 text-xs ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
+                <li>
+                  <span className={`font-medium ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Putrajaya:</span>{' '}
+                  <span>019 - 214 0880 / 011 - 6428 7723</span>
+                </li>
+                <li>
+                  <span className={`font-medium ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Negeri Sembilan:</span>{' '}
+                  <span>017 - 647 2960</span>
+                </li>
+                <li>
+                  <span className={`font-medium ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Langkawi:</span>{' '}
+                  <span>04-952 3641</span>
+                </li>
+              </ul>
             </div>
           </div>
         )}
