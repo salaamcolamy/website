@@ -429,53 +429,64 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
             <h3 className={`text-lg font-bold mb-4 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Our Locations</h3>
             
             {/* Group locations by state */}
-            {(() => {
-              const grouped = storeLocations.reduce((acc, loc) => {
-                const stateName = loc.state === 'MY14' ? 'Kuala Lumpur' 
-                  : loc.state === 'MY10' ? 'Selangor'
-                  : loc.state === 'MY05' ? 'Negeri Sembilan'
-                  : loc.state === 'MY02' ? 'Langkawi'
-                  : 'Other'
-                if (!acc[stateName]) acc[stateName] = []
-                acc[stateName].push(loc)
-                return acc
-              }, {} as Record<string, typeof storeLocations>)
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {(() => {
+                const grouped = storeLocations.reduce((acc, loc) => {
+                  const stateName = loc.state === 'MY14' ? 'Kuala Lumpur' 
+                    : loc.state === 'MY10' ? 'Selangor'
+                    : loc.state === 'MY05' ? 'Negeri Sembilan'
+                    : loc.state === 'MY02' ? 'Langkawi'
+                    : 'Other'
+                  if (!acc[stateName]) acc[stateName] = []
+                  acc[stateName].push(loc)
+                  return acc
+                }, {} as Record<string, typeof storeLocations>)
 
-              const stateOrder = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi']
-              
-              return stateOrder.map((stateName) => {
-                const locations = grouped[stateName] || []
-                if (locations.length === 0) return null
+                const stateOrder = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi']
                 
-                return (
-                  <div key={stateName} className="space-y-2">
-                    <h4 className={`font-bold text-sm ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{stateName}</h4>
-                    <ul className={`space-y-1 ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
-                      {locations.map((location) => (
-                        <motion.li
-                          key={location.id}
-                          className="flex items-start gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-                          onMouseEnter={() => handleMouseEnter(location)}
-                          onMouseLeave={() => setHoveredLocation(null)}
-                        >
-                          <span className={`text-xs ${isHomepage ? 'text-white/70' : 'text-gray-500'}`}>•</span>
-                          <span className={`text-xs leading-relaxed ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
-                            {location.name}
-                            {location.address && `, ${location.address}`}
-                            {location.comingSoon && (
-                              <span className={`ml-1 text-xs ${isHomepage ? 'text-white/60' : 'text-gray-500'}`}>(AKAN DATANG)</span>
-                            )}
-                          </span>
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-              })
-            })()}
+                return stateOrder.map((stateName) => {
+                  const locations = grouped[stateName] || []
+                  if (locations.length === 0) return null
+                  
+                  return (
+                    <motion.div
+                      key={stateName}
+                      className={isHomepage
+                        ? 'bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg border-2 border-white/50 hover:shadow-xl hover:border-white/70 transition-all duration-300'
+                        : 'bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300'}
+                    >
+                      <h4 className={`font-bold text-sm mb-3 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{stateName}</h4>
+                      <ul className={`space-y-1.5 ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
+                        {locations.map((location) => (
+                          <motion.li
+                            key={location.id}
+                            className="flex items-start gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                            onMouseEnter={() => handleMouseEnter(location)}
+                            onMouseLeave={() => setHoveredLocation(null)}
+                          >
+                            <span className={`text-xs ${isHomepage ? 'text-white/70' : 'text-gray-500'}`}>•</span>
+                            <span className={`text-xs leading-relaxed ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
+                              {location.name}
+                              {location.address && `, ${location.address}`}
+                              {location.comingSoon && (
+                                <span className={`ml-1 text-xs ${isHomepage ? 'text-white/60' : 'text-gray-500'}`}>(AKAN DATANG)</span>
+                              )}
+                            </span>
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )
+                })
+              })()}
+            </div>
 
             {/* PENGEDAR RASMI Section */}
-            <div className="pt-4 border-t border-white/20 mt-6">
+            <motion.div
+              className={isHomepage
+                ? 'bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg border-2 border-white/50 hover:shadow-xl hover:border-white/70 transition-all duration-300 mt-6'
+                : 'bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300 mt-6'}
+            >
               <h4 className={`font-bold text-sm mb-3 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>PENGEDAR RASMI:</h4>
               <ul className={`space-y-1.5 text-xs ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
                 <li>
@@ -491,7 +502,7 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
                   <span>04-952 3641</span>
                 </li>
               </ul>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>

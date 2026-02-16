@@ -459,7 +459,7 @@ export function Supporters() {
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <h3 className="text-lg font-bold text-white mb-4">Our Locations</h3>
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Group locations by state */}
               {(() => {
                 const grouped = storeLocations.reduce((acc, loc) => {
@@ -485,10 +485,10 @@ export function Supporters() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={isInView ? { opacity: 1, y: 0 } : {}}
                       transition={{ duration: 0.3, delay: 0.4 + stateIndex * 0.1 }}
-                      className="space-y-2"
+                      className="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg border-2 border-white/50 hover:shadow-xl hover:border-white/70 transition-all duration-300"
                     >
-                      <h4 className="font-bold text-sm text-white">{stateName}</h4>
-                      <ul className="space-y-1 text-white/90">
+                      <h4 className="font-bold text-sm mb-3 text-white">{stateName}</h4>
+                      <ul className="space-y-1.5 text-white/90">
                         {locations.map((location, locIndex) => (
                           <motion.li
                             key={location.id}
@@ -514,31 +514,31 @@ export function Supporters() {
                   )
                 })
               })()}
-
-              {/* PENGEDAR RASMI Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.3, delay: 0.8 }}
-                className="pt-4 border-t border-white/20 mt-6"
-              >
-                <h4 className="font-bold text-sm mb-3 text-white">PENGEDAR RASMI:</h4>
-                <ul className="space-y-1.5 text-xs text-white/90">
-                  <li>
-                    <span className="font-medium text-white">Putrajaya:</span>{' '}
-                    <span>019 - 214 0880 / 011 - 6428 7723</span>
-                  </li>
-                  <li>
-                    <span className="font-medium text-white">Negeri Sembilan:</span>{' '}
-                    <span>017 - 647 2960</span>
-                  </li>
-                  <li>
-                    <span className="font-medium text-white">Langkawi:</span>{' '}
-                    <span>04-952 3641</span>
-                  </li>
-                </ul>
-              </motion.div>
             </div>
+
+            {/* PENGEDAR RASMI Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.3, delay: 0.8 }}
+              className="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg border-2 border-white/50 hover:shadow-xl hover:border-white/70 transition-all duration-300 mt-6"
+            >
+              <h4 className="font-bold text-sm mb-3 text-white">PENGEDAR RASMI:</h4>
+              <ul className="space-y-1.5 text-xs text-white/90">
+                <li>
+                  <span className="font-medium text-white">Putrajaya:</span>{' '}
+                  <span>019 - 214 0880 / 011 - 6428 7723</span>
+                </li>
+                <li>
+                  <span className="font-medium text-white">Negeri Sembilan:</span>{' '}
+                  <span>017 - 647 2960</span>
+                </li>
+                <li>
+                  <span className="font-medium text-white">Langkawi:</span>{' '}
+                  <span>04-952 3641</span>
+                </li>
+              </ul>
+            </motion.div>
           </motion.div>
         </div>
       </div>
