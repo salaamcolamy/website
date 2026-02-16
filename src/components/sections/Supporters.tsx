@@ -153,6 +153,15 @@ const storeLocations = [
     x: 124,
     y: 192,
   },
+  {
+    id: 18,
+    name: 'One Coffee @ VIOBA',
+    address: 'Bukit Bintang, Kuala Lumpur',
+    contact: '+603-2144-9867',
+    state: 'MY14', // KL
+    x: 128,
+    y: 194,
+  },
 ]
 
 // States to highlight (where we have stores)
