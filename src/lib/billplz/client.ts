@@ -131,7 +131,9 @@ class BillplzClient {
       return response.data
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Billplz API Error: ${error.response?.data?.error || error.message}`)
+        const errData = error.response?.data
+        const errMsg = typeof errData?.error === 'string' ? errData.error : (typeof errData === 'string' ? errData : error.message)
+        throw new Error(`Billplz API Error: ${errMsg}`)
       }
       throw error
     }
