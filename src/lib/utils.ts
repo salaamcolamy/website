@@ -32,9 +32,9 @@ function is24Pack(handle: string, title: string): boolean {
 
 /** Tags to display for a product; includes Ramadhan/carton tags for 6-pack, carton and 24-pack products. */
 export function getDisplayTags(handle: string, title: string, tags: string[]): string[] {
-  const preOrderTag = 'Ramadhan Pre-Order Starts 18th Feb'
-  const orderStartsTag = 'Order Starts 16 Feb'
-  const orderStarts24PackTag = 'ORDER STARTS 18TH FEB'
+  const preOrderTag = 'Ramadhan Pre-Order Starts 19th Feb'
+  const orderStartsTag = 'Order Starts 19th Feb'
+  const orderStarts24PackTag = 'ORDER STARTS 19TH FEB'
   if (is6Pack(handle, title)) {
     return tags.includes(preOrderTag) ? tags : [preOrderTag, ...tags]
   }
