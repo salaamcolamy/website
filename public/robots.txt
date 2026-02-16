@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+
+Sitemap: https://salaamcola.com/sitemap.xml
+Sitemap: https://www.salaamcolamy.com/sitemap.xml
