@@ -164,8 +164,8 @@ const storeLocations = [
     address: 'Langkawi Boulevard Langkawi City, Langkawi',
     contact: '+604-952-3641',
     state: 'MY02', // Kedah (Langkawi)
-    x: 95,
-    y: 120,
+    x: 88,
+    y: 68,
   },
   {
     id: 20,
@@ -173,8 +173,8 @@ const storeLocations = [
     address: 'Langkawi',
     contact: '+604-952-3641',
     state: 'MY02', // Kedah (Langkawi)
-    x: 97,
-    y: 122,
+    x: 90,
+    y: 70,
   },
 ]
 
@@ -459,8 +459,8 @@ export function Supporters() {
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <h3 className="text-lg font-bold text-white mb-4">Our Locations</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Group locations by state */}
+            <div className="space-y-6">
+              {/* Group locations by state; each location = individual glass card */}
               {(() => {
                 const grouped = storeLocations.reduce((acc, loc) => {
                   const stateName = loc.state === 'MY14' ? 'Kuala Lumpur' 
@@ -485,31 +485,33 @@ export function Supporters() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={isInView ? { opacity: 1, y: 0 } : {}}
                       transition={{ duration: 0.3, delay: 0.4 + stateIndex * 0.1 }}
-                      className="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg border-2 border-white/50 hover:shadow-xl hover:border-white/70 transition-all duration-300"
+                      className="space-y-3"
                     >
-                      <h4 className="font-bold text-sm mb-3 text-white">{stateName}</h4>
-                      <ul className="space-y-1.5 text-white/90">
+                      <h4 className="font-bold text-sm text-white">{stateName}</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {locations.map((location, locIndex) => (
-                          <motion.li
+                          <motion.div
                             key={location.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={isInView ? { opacity: 1, x: 0 } : {}}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={isInView ? { opacity: 1, y: 0 } : {}}
                             transition={{ duration: 0.2, delay: 0.5 + stateIndex * 0.1 + locIndex * 0.05 }}
-                            className="flex items-start gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                            className="bg-white/20 backdrop-blur-md rounded-xl p-3 shadow-lg border-2 border-white/50 hover:shadow-xl hover:border-white/70 transition-all duration-300 cursor-pointer"
                             onMouseEnter={() => handleMouseEnter(location)}
                             onMouseLeave={() => setHoveredLocation(null)}
                           >
-                            <span className="text-xs text-white/70">•</span>
-                            <span className="text-xs leading-relaxed text-white/90">
-                              {location.name}
-                              {location.address && `, ${location.address}`}
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-salaam-red-400" />
+                              <span className="font-medium text-sm leading-tight text-white">{location.name}</span>
+                            </div>
+                            <p className="text-xs text-white/80 pl-5 mt-0.5 leading-tight">
+                              {location.address}
                               {location.comingSoon && (
-                                <span className="ml-1 text-xs text-white/60">(AKAN DATANG)</span>
+                                <span className="ml-1 text-white/60">(AKAN DATANG)</span>
                               )}
-                            </span>
-                          </motion.li>
+                            </p>
+                          </motion.div>
                         ))}
-                      </ul>
+                      </div>
                     </motion.div>
                   )
                 })

@@ -163,8 +163,8 @@ const storeLocations = [
     address: 'Langkawi Boulevard Langkawi City, Langkawi',
     contact: '+604-952-3641',
     state: 'MY02', // Kedah (Langkawi)
-    x: 95,
-    y: 120,
+    x: 88,
+    y: 68,
   },
   {
     id: 20,
@@ -172,8 +172,8 @@ const storeLocations = [
     address: 'Langkawi',
     contact: '+604-952-3641',
     state: 'MY02', // Kedah (Langkawi)
-    x: 97,
-    y: 122,
+    x: 90,
+    y: 70,
   },
 ]
 
@@ -428,8 +428,8 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
           <div className="space-y-6">
             <h3 className={`text-lg font-bold mb-4 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Our Locations</h3>
             
-            {/* Group locations by state */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Group locations by state; each location = individual glass card */}
+            <div className="space-y-6">
               {(() => {
                 const grouped = storeLocations.reduce((acc, loc) => {
                   const stateName = loc.state === 'MY14' ? 'Kuala Lumpur' 
@@ -449,33 +449,32 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
                   if (locations.length === 0) return null
                   
                   return (
-                    <motion.div
-                      key={stateName}
-                      className={isHomepage
-                        ? 'bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg border-2 border-white/50 hover:shadow-xl hover:border-white/70 transition-all duration-300'
-                        : 'bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300'}
-                    >
-                      <h4 className={`font-bold text-sm mb-3 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{stateName}</h4>
-                      <ul className={`space-y-1.5 ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
+                    <div key={stateName} className="space-y-3">
+                      <h4 className={`font-bold text-sm ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{stateName}</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {locations.map((location) => (
-                          <motion.li
+                          <motion.div
                             key={location.id}
-                            className="flex items-start gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                            className={isHomepage
+                              ? 'bg-white/20 backdrop-blur-md rounded-xl p-3 shadow-lg border-2 border-white/50 hover:shadow-xl hover:border-white/70 transition-all duration-300 cursor-pointer'
+                              : 'bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:shadow-md hover:border-salaam-red-200 transition-all duration-300 cursor-pointer'}
                             onMouseEnter={() => handleMouseEnter(location)}
                             onMouseLeave={() => setHoveredLocation(null)}
                           >
-                            <span className={`text-xs ${isHomepage ? 'text-white/70' : 'text-gray-500'}`}>•</span>
-                            <span className={`text-xs leading-relaxed ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
-                              {location.name}
-                              {location.address && `, ${location.address}`}
+                            <div className="flex items-center gap-2">
+                              <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${isHomepage ? 'text-salaam-red-400' : 'text-salaam-red-500'}`} />
+                              <span className={`font-medium text-sm leading-tight ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{location.name}</span>
+                            </div>
+                            <p className={`text-xs pl-5 mt-0.5 leading-tight ${isHomepage ? 'text-white/80' : 'text-gray-500'}`}>
+                              {location.address}
                               {location.comingSoon && (
-                                <span className={`ml-1 text-xs ${isHomepage ? 'text-white/60' : 'text-gray-500'}`}>(AKAN DATANG)</span>
+                                <span className={`ml-1 ${isHomepage ? 'text-white/60' : 'text-gray-500'}`}>(AKAN DATANG)</span>
                               )}
-                            </span>
-                          </motion.li>
+                            </p>
+                          </motion.div>
                         ))}
-                      </ul>
-                    </motion.div>
+                      </div>
+                    </div>
                   )
                 })
               })()}
