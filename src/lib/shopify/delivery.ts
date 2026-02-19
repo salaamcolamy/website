@@ -183,6 +183,7 @@ export async function getCartDeliveryRates(
     // Shopify automatically calculates shipping based on cart weight
     // When cartDeliveryAddressesReplace is called, Shopify uses the cart's current items
     // Each product variant has weight stored in Shopify, and Shopify sums them automatically
+    // For multiple products (e.g., 6-pack + 24-pack), Shopify sums: (6-pack weight × qty) + (24-pack weight × qty)
     // Advanced Shipping app receives the total weight and calculates rates accordingly
     console.log('[Shopify Delivery] Calculating shipping rates (automatic weight calculation):', {
       cartId: cartId.substring(0, 50) + '...',
@@ -190,7 +191,7 @@ export async function getCartDeliveryRates(
       state: address.province,
       city: address.city,
       zip: address.zip,
-      note: 'Shopify automatically sums product weights and calculates shipping - no delays needed'
+      note: 'Shopify automatically sums all product weights (6-pack + 24-pack) and calculates shipping'
     })
     
     // Shopify's provinceCode field can accept province names (e.g., "Selangor", "Johor")
@@ -234,17 +235,24 @@ export async function getCartDeliveryRates(
 
     const cart = payload.cart
     if (!cart?.deliveryGroups?.nodes?.length) {
-      console.warn('[Shopify Delivery] No delivery groups found for address:', {
+      console.error('[Shopify Delivery] ❌ No delivery groups found for address:', {
         province: address.province,
         provinceCode: provinceCode,
         city: address.city,
         zip: address.zip,
+        cartId: cartId.substring(0, 50) + '...',
+        possibleCauses: [
+          'Shipping zone not configured for this province',
+          'Cart might be empty or items not synced',
+          'Advanced Shipping app might not be configured for this zone',
+          'Province name mismatch between address and Shopify zones'
+        ]
       })
       return { 
         shippingCost: 0, 
         currencyCode: 'MYR', 
         options: [], 
-        error: `No delivery options available for ${address.province} (sent as "${provinceCode}"). Check Shopify Admin → Settings → Shipping → Shipping zones to verify province name matches.` 
+        error: `No delivery options available for ${address.province} (sent as "${provinceCode}"). Check Shopify Admin → Settings → Shipping → Shipping zones to verify province name matches. If you have multiple products (6-pack + 24-pack), ensure both are in the cart.` 
       }
     }
 

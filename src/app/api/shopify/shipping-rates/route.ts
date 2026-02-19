@@ -57,12 +57,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    console.log('[Shipping API] Calculating shipping for:', { 
-      cartId, 
+    // Log detailed information for debugging multiple products (6-pack + 24-pack)
+    console.log('[Shipping API] Calculating shipping for cart:', { 
+      cartId: cartId.substring(0, 50) + '...',
       province, 
       city, 
       zip,
-      advancedShippingConfigured: isAdvancedShippingConfigured()
+      advancedShippingConfigured: isAdvancedShippingConfigured(),
+      note: 'For multiple products (6-pack + 24-pack), Shopify will sum weights automatically'
     })
 
     const result = await getCartDeliveryRates(cartId, {

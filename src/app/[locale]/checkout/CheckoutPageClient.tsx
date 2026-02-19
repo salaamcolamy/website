@@ -371,27 +371,60 @@ export function CheckoutPageClient() {
         itemsCount: cart.items?.length || 0,
       })
       
-      // Reload cart from Shopify to get latest state (Shopify automatically calculates weight)
-      // No delays needed - Shopify has weight information immediately when items are added
+      // CRITICAL: Reload cart from Shopify to ensure ALL items are synced (especially when multiple products added)
+      // When 6-pack + 24-pack are added together, we need to ensure both are in Shopify cart
       const cartResponse = await fetch(`/api/cart?id=${encodeURIComponent(cart.id)}`)
       if (cartResponse.ok) {
         const refreshedCart = await cartResponse.json()
         if (refreshedCart && refreshedCart.id) {
+          // Verify cart has items before using it
+          if (!refreshedCart.items || refreshedCart.items.length === 0) {
+            console.error('[Checkout] Reloaded cart has no items!', {
+              originalCartItems: cart.items?.length || 0,
+              reloadedCartItems: 0,
+              cartId: refreshedCart.id
+            })
+            throw new Error('Cart reloaded but has no items. Please refresh the page and try again.')
+          }
+          
+          // Log detailed cart state for debugging multiple products
+          const itemsDetail = refreshedCart.items.map((item: any) => ({
+            title: item.title,
+            variantTitle: item.variantTitle,
+            quantity: item.quantity,
+            variantId: item.variantId?.substring(0, 50) + '...',
+            is6Pack: item.title?.toLowerCase().includes('6-pack') || item.title?.toLowerCase().includes('6 pack'),
+            is24Pack: item.title?.toLowerCase().includes('24-pack') || item.title?.toLowerCase().includes('24 pack'),
+          }))
+          
           currentCart = refreshedCart
           currentCartId = refreshedCart.id
-          console.log('[Checkout] Cart reloaded for shipping calculation:', {
+          console.log('[Checkout] ✓ Cart reloaded and verified for shipping calculation:', {
             cartId: currentCartId,
-            itemsCount: refreshedCart.items?.length || 0,
-            totalQuantity: refreshedCart.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
-            items: refreshedCart.items?.map((item: any) => `${item.title} x${item.quantity}`) || [],
-            note: 'Shopify will automatically use product weights to calculate shipping'
+            itemsCount: refreshedCart.items.length,
+            totalQuantity: refreshedCart.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
+            items: itemsDetail,
+            note: 'Shopify will automatically sum weights: 6-pack (~2.5kg) + 24-pack (~10kg) = total weight for shipping'
           })
+        } else {
+          throw new Error('Invalid cart returned from reload')
         }
       } else {
-        console.warn('[Checkout] Failed to reload cart, using current cart state')
+        const errorText = await cartResponse.text().catch(() => 'Unknown error')
+        console.error('[Checkout] Failed to reload cart:', {
+          status: cartResponse.status,
+          statusText: cartResponse.statusText,
+          error: errorText
+        })
+        throw new Error(`Failed to reload cart: ${cartResponse.status} ${cartResponse.statusText}`)
       }
     } catch (reloadError) {
-      console.warn('[Checkout] Error reloading cart, using current cart state:', reloadError)
+      const errorMsg = reloadError instanceof Error ? reloadError.message : 'Unknown error'
+      console.error('[Checkout] Error reloading cart:', reloadError)
+      setShippingError(`Failed to load cart: ${errorMsg}. Please refresh the page and try again.`)
+      setShopifyShippingCost(null)
+      setShippingLoading(false)
+      return
     }
     
     console.log('[Checkout] Fetching shipping rates for:', {
