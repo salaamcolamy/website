@@ -163,8 +163,8 @@ const storeLocations = [
     address: 'Langkawi Boulevard Langkawi City, Langkawi',
     contact: '+604-952-3641',
     state: 'MY02', // Langkawi (administered under Kedah but geographically on the island)
-    x: 72,
-    y: 54,
+    x: 66,
+    y: 48,
   },
   {
     id: 20,
@@ -172,8 +172,8 @@ const storeLocations = [
     address: 'Langkawi',
     contact: '+604-952-3641',
     state: 'MY02',
-    x: 74,
-    y: 56,
+    x: 68,
+    y: 50,
   },
 ]
 
