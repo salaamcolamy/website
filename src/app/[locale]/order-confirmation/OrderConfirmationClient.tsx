@@ -302,7 +302,9 @@ export function OrderConfirmationClient() {
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Shipping</span>
-                <span className="text-green-600">FREE</span>
+                <span className={order.shipping === 0 ? 'text-green-600' : ''}>
+                  {order.shipping === 0 ? 'FREE' : `RM${order.shipping.toFixed(2)}`}
+                </span>
               </div>
               <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-100">
                 <span>Total</span>

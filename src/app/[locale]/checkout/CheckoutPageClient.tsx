@@ -17,6 +17,7 @@ import {
   MapPin,
   Truck,
 } from 'lucide-react'
+import { getShippingForLocation } from '@/lib/shipping'
 
 type Step = 'information' | 'shipping' | 'payment'
 type PaymentMethod = 'card' | 'fpx'
@@ -127,6 +128,10 @@ export function CheckoutPageClient() {
     else if (currentStep === 'shipping') setCurrentStep('information')
   }
 
+  // Shipping cost based on customer state (and optional postcode)
+  const shippingCost = getShippingForLocation(customerInfo.state, customerInfo.postcode)
+  const orderTotal = (cart?.subtotal ?? 0) + shippingCost
+
   const handlePlaceOrder = async () => {
     setIsProcessing(true)
 
@@ -141,8 +146,8 @@ export function CheckoutPageClient() {
       id: orderId,
       items: cart?.items || [],
       subtotal: cart?.subtotal || 0,
-      shipping: 0,
-      total: cart?.total || 0,
+      shipping: shippingCost,
+      total: orderTotal,
       customerInfo,
       paymentMethod,
       selectedBank: paymentMethod === 'fpx' ? selectedBank : null,
@@ -494,7 +499,9 @@ export function CheckoutPageClient() {
                               <p className="text-sm text-gray-500">3-5 business days</p>
                             </div>
                           </div>
-                          <span className="font-bold text-salaam-red-500">FREE</span>
+                          <span className="font-bold text-salaam-red-500">
+                            {shippingCost === 0 ? 'FREE' : `RM${shippingCost.toFixed(2)}`}
+                          </span>
                         </div>
                       </label>
 
@@ -799,11 +806,13 @@ export function CheckoutPageClient() {
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
-                    <span className="text-green-600 font-medium">FREE</span>
+                    <span className={shippingCost === 0 ? 'text-green-600 font-medium' : ''}>
+                      {shippingCost === 0 ? 'FREE' : `RM${shippingCost.toFixed(2)}`}
+                    </span>
                   </div>
                   <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-100">
                     <span>Total</span>
-                    <span>RM{cart.total.toFixed(2)}</span>
+                    <span>RM{orderTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
