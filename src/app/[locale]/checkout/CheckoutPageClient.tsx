@@ -371,25 +371,53 @@ export function CheckoutPageClient() {
         itemsCount: cart.items?.length || 0,
       })
       
-      // Reload cart from Shopify to ensure we have latest state (including weights)
-      const cartResponse = await fetch(`/api/cart?id=${encodeURIComponent(cart.id)}`)
-      if (cartResponse.ok) {
-        const refreshedCart = await cartResponse.json()
-        if (refreshedCart && refreshedCart.id) {
-          currentCart = refreshedCart
-          currentCartId = refreshedCart.id
-          console.log('[Checkout] Cart reloaded:', {
-            cartId: currentCartId,
-            itemsCount: refreshedCart.items?.length || 0,
-            totalQuantity: refreshedCart.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
-          })
+      // CRITICAL: Reload cart from Shopify to ensure we have latest state (including weights)
+      // When multiple products are added, we need to ensure Shopify has processed all items
+      // Add retry logic to ensure cart is fully synced
+      let refreshedCart = null
+      let retries = 0
+      const maxRetries = 3
+      
+      while (retries < maxRetries && !refreshedCart) {
+        try {
+          // Wait a bit longer when multiple products might be syncing
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * retries)) // 1s, 2s delays
+          }
+          
+          const cartResponse = await fetch(`/api/cart?id=${encodeURIComponent(cart.id)}`)
+          if (cartResponse.ok) {
+            refreshedCart = await cartResponse.json()
+            if (refreshedCart && refreshedCart.id) {
+              currentCart = refreshedCart
+              currentCartId = refreshedCart.id
+              console.log('[Checkout] Cart reloaded (attempt ' + (retries + 1) + '):', {
+                cartId: currentCartId,
+                itemsCount: refreshedCart.items?.length || 0,
+                totalQuantity: refreshedCart.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
+                items: refreshedCart.items?.map((item: any) => `${item.title} x${item.quantity}`) || [],
+              })
+              break
+            }
+          } else {
+            console.warn(`[Checkout] Failed to reload cart (attempt ${retries + 1}/${maxRetries})`)
+          }
+        } catch (reloadError) {
+          console.warn(`[Checkout] Error reloading cart (attempt ${retries + 1}/${maxRetries}):`, reloadError)
         }
-      } else {
-        console.warn('[Checkout] Failed to reload cart, using current cart state')
+        retries++
+      }
+      
+      if (!refreshedCart) {
+        console.warn('[Checkout] Failed to reload cart after retries, using current cart state')
       }
     } catch (reloadError) {
       console.warn('[Checkout] Error reloading cart, using current cart state:', reloadError)
     }
+    
+    // CRITICAL: Additional delay to ensure Shopify has processed cart updates
+    // This is especially important when multiple products are added
+    await new Promise(resolve => setTimeout(resolve, 800)) // 800ms delay for Shopify to process
     
     console.log('[Checkout] Fetching shipping rates for:', {
       cartId: currentCartId,
@@ -565,11 +593,12 @@ export function CheckoutPageClient() {
         items: cart.items.map(item => `${item.title} x${item.quantity}`),
       })
       
-      // Add a small delay to ensure Shopify has processed cart updates before calculating shipping
-      // This is important for weight-based rates from Advanced Shipping app
+      // CRITICAL: Add delay to ensure Shopify has processed cart updates before calculating shipping
+      // When multiple products are added, Shopify needs time to calculate total weight
+      // This is especially important for weight-based rates from Advanced Shipping app
       const timeoutId = setTimeout(() => {
         fetchShopifyShippingRates()
-      }, 500) // 500ms delay to allow Shopify to process cart updates and recalculate weight
+      }, 1000) // 1000ms delay to allow Shopify to process cart updates and recalculate weight for multiple products
       
       return () => clearTimeout(timeoutId)
     } else {
@@ -609,10 +638,11 @@ export function CheckoutPageClient() {
         items: cart.items.map(item => `${item.title} x${item.quantity}`),
       })
       
-      // Add delay to ensure cart is synced with Shopify before calculating shipping
+      // CRITICAL: Add delay to ensure cart is synced with Shopify before calculating shipping
+      // When multiple products are added, Shopify needs time to calculate total weight
       const timeoutId = setTimeout(() => {
         fetchShopifyShippingRates()
-      }, 500) // 500ms delay for Shopify to process cart updates
+      }, 1000) // 1000ms delay for Shopify to process cart updates and calculate weight for multiple products
       
       return () => clearTimeout(timeoutId)
     }

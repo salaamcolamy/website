@@ -180,14 +180,20 @@ export async function getCartDeliveryRates(
     // to see what format your zones use (ISO codes like "10" or names like "Selangor")
     const provinceCode = mapStateToShopifyProvinceCode(address.province)
     
+    // Log cart details for debugging weight-based shipping
     console.log('[Shopify Delivery] Calculating shipping rates for cart:', {
       cartId: cartId.substring(0, 50) + '...',
       province: provinceCode,
       state: address.province,
       city: address.city,
       zip: address.zip,
-      note: 'Shopify will automatically use cart items and their weights to calculate rates'
+      note: 'Shopify will automatically use cart items and their weights to calculate rates',
+      important: 'For multiple products, ensure all items are synced before calculating shipping'
     })
+    
+    // CRITICAL: For weight-based shipping with multiple products, Shopify needs the cart to be fully synced
+    // The cartDeliveryAddressesReplace mutation will use the cart's current items and their weights
+    // Advanced Shipping app will calculate rates based on total cart weight
     
     // Shopify's provinceCode field can accept province names (e.g., "Selangor", "Johor")
     // Shipping zones in Shopify Admin are typically configured with province names, not ISO codes
