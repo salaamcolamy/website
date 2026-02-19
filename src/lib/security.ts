@@ -47,17 +47,35 @@ export function rateLimit(ip: string, maxRequests: number = RATE_LIMITS.general,
 export function validateOrigin(request: Request): boolean {
   const origin = request.headers.get('origin')
   const referer = request.headers.get('referer')
+  const host = request.headers.get('host')
 
   // Allow same-origin requests (server-side calls, non-browser clients)
   if (!origin && !referer) return true
 
-  const allowedDomains = process.env.ALLOWED_ORIGINS?.split(',').map(d => d.trim()).filter(Boolean) || []
   const url = origin || referer || ''
+  
+  // Allow same-origin requests (when origin matches the request host)
+  if (origin && host) {
+    try {
+      const originUrl = new URL(origin)
+      const requestHost = host.split(':')[0] // Remove port if present
+      const originHost = originUrl.hostname
+      
+      // Allow if origin hostname matches request hostname (same-origin)
+      if (originHost === requestHost) {
+        return true
+      }
+    } catch {
+      // If URL parsing fails, continue with other checks
+    }
+  }
 
   // Allow localhost in development
   if (process.env.NODE_ENV === 'development') {
     if (url.includes('localhost') || url.includes('127.0.0.1')) return true
   }
+
+  const allowedDomains = process.env.ALLOWED_ORIGINS?.split(',').map(d => d.trim()).filter(Boolean) || []
 
   // Check allowed domains with exact hostname matching
   if (allowedDomains.length > 0) {
@@ -77,12 +95,19 @@ export function validateOrigin(request: Request): boolean {
     }
   }
 
-  // In production, reject if ALLOWED_ORIGINS not configured
+  // In production, if no ALLOWED_ORIGINS configured, allow same-origin only
   if (process.env.NODE_ENV === 'production') {
-    console.error('ALLOWED_ORIGINS not configured in production - rejecting cross-origin request')
+    // If we got here and it's not same-origin, reject
+    // (same-origin was already checked above)
+    console.warn('ALLOWED_ORIGINS not configured in production - rejecting cross-origin request', {
+      origin,
+      referer,
+      host
+    })
     return false
   }
 
+  // In development, allow if no restrictions
   return true
 }
 
@@ -103,13 +128,27 @@ export function withSecurity(
   return async (req: Request) => {
     // Validate origin
     if (!validateOrigin(req)) {
-      return new Response('Forbidden', { status: 403 })
+      const origin = req.headers.get('origin')
+      const host = req.headers.get('host')
+      console.error('[Security] Origin validation failed:', {
+        origin,
+        host,
+        referer: req.headers.get('referer'),
+        url: req.url
+      })
+      return Response.json(
+        { error: 'Forbidden: Origin not allowed', origin, host },
+        { status: 403 }
+      )
     }
 
     // Rate limit with per-endpoint configuration
     const ip = getClientIP(req)
     if (!rateLimit(ip, options?.maxRequests, options?.endpoint)) {
-      return new Response('Too Many Requests', { status: 429 })
+      return Response.json(
+        { error: 'Too Many Requests' },
+        { status: 429 }
+      )
     }
 
     // Execute handler
