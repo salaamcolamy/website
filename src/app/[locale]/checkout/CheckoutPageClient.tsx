@@ -17,7 +17,6 @@ import {
   MapPin,
   Truck,
 } from 'lucide-react'
-import { getShippingForLocation } from '@/lib/shipping'
 import { generateOrderId, saveOrder, type OrderData } from '@/lib/orders/orderService'
 
 type Step = 'information' | 'shipping' | 'payment'
@@ -113,7 +112,14 @@ export function CheckoutPageClient() {
   )
 
   const fetchShopifyShippingRates = useCallback(async () => {
-    if (!cart?.id || !isShopifyCart || !hasMinAddress) return
+    if (!cart?.id || !hasMinAddress) {
+      // If no cart or incomplete address, reset shipping
+      setShopifyShippingCost(null)
+      setShippingError(null)
+      setShippingLoading(false)
+      return
+    }
+    
     setShippingLoading(true)
     setShippingError(null)
     try {
@@ -146,60 +152,84 @@ export function CheckoutPageClient() {
           // Use the shipping cost from Shopify
           setShopifyShippingCost(data.shippingCost ?? 0)
           setShippingError(null)
-          console.log('[Checkout] Shopify shipping cost:', data.shippingCost, 'Options:', data.options)
+          console.log('[Checkout] Shipping cost calculated:', data.shippingCost, 'Options:', data.options)
         } else {
           // No options returned - might be a zone mismatch
-          setShippingError('No shipping options found for this address. Using fallback rates.')
+          setShippingError(`No shipping options found for ${customerInfo.state}. Please verify your address or contact support.`)
           setShopifyShippingCost(null)
         }
       }
-    } catch {
-      setShippingError('Could not load shipping rates')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Could not load shipping rates'
+      setShippingError(`Failed to calculate shipping: ${errorMessage}. Please try again or contact support.`)
       setShopifyShippingCost(null)
+      console.error('[Checkout] Shipping calculation error:', error)
     } finally {
       setShippingLoading(false)
     }
-  }, [cart?.id, isShopifyCart, hasMinAddress, customerInfo.address, customerInfo.apartment, customerInfo.city, customerInfo.state, customerInfo.country, customerInfo.postcode, customerInfo.firstName, customerInfo.lastName, customerInfo.phone])
+  }, [cart?.id, hasMinAddress, customerInfo.address, customerInfo.apartment, customerInfo.city, customerInfo.state, customerInfo.country, customerInfo.postcode, customerInfo.firstName, customerInfo.lastName, customerInfo.phone])
 
-  // Fetch Shopify shipping rates when address is complete (even on information step)
+  // Fetch shipping rates when address is complete (even on information step)
+  // Always calculate shipping based on customer input - no fallback/demo rates
   useEffect(() => {
-    if (isShopifyCart && hasMinAddress) {
+    if (hasMinAddress && cart?.id) {
       // Fetch shipping rates when we have complete address, regardless of step
       // This ensures shipping updates as user fills in address on information step
       fetchShopifyShippingRates()
     } else {
-      // For demo carts or incomplete address, clear Shopify shipping
+      // If address is incomplete, clear shipping
       if (!hasMinAddress) {
         setShopifyShippingCost(null)
         setShippingError(null)
+        setShippingLoading(false)
       }
     }
-  }, [isShopifyCart, hasMinAddress, fetchShopifyShippingRates])
+  }, [hasMinAddress, cart?.id, fetchShopifyShippingRates])
 
   // Also fetch when explicitly on shipping step (in case it wasn't triggered before)
   useEffect(() => {
-    if (currentStep === 'shipping' && isShopifyCart && hasMinAddress) {
+    if (currentStep === 'shipping' && hasMinAddress && cart?.id) {
       fetchShopifyShippingRates()
     }
-  }, [currentStep, isShopifyCart, hasMinAddress, fetchShopifyShippingRates])
+  }, [currentStep, hasMinAddress, cart?.id, fetchShopifyShippingRates])
 
-  // Shipping: from Shopify zones when available, else local zone fallback
-  // This calculates immediately based on state, so it updates reactively
-  const fallbackShippingCost = getShippingForLocation(customerInfo.state, customerInfo.postcode)
-  
-  // Determine shipping cost:
-  // 1. If loading, use fallback
-  // 2. If Shopify cart and we got a valid shipping cost (including 0 for free shipping), use it
-  // 3. Otherwise use fallback
+  // Shipping cost: Always calculated from customer address input via Shopify API
+  // No fallback rates - shipping must be calculated based on actual address
   const shippingCost = shippingLoading
-    ? fallbackShippingCost
-    : (isShopifyCart && shopifyShippingCost !== null && !shippingError ? shopifyShippingCost : fallbackShippingCost)
+    ? null // Show loading state, don't show a cost yet
+    : (shopifyShippingCost !== null && !shippingError ? shopifyShippingCost : null)
   
-  const orderTotal = (cart?.subtotal ?? 0) + shippingCost
+  // Debug logging for shipping calculation
+  useEffect(() => {
+    if (customerInfo.state) {
+      console.log('[Checkout] Shipping calculation (customer input only):', {
+        state: customerInfo.state,
+        city: customerInfo.city,
+        postcode: customerInfo.postcode,
+        shopifyShippingCost,
+        shippingLoading,
+        shippingError,
+        finalShippingCost: shippingCost,
+      })
+    }
+  }, [customerInfo.state, customerInfo.city, customerInfo.postcode, shopifyShippingCost, shippingLoading, shippingError, shippingCost])
+  
+  const orderTotal = (cart?.subtotal ?? 0) + (shippingCost ?? 0)
 
   const handlePlaceOrder = async () => {
     if (!selectedBank) {
       alert('Please select a bank')
+      return
+    }
+
+    // Validate shipping is calculated before proceeding
+    if (shippingCost === null && !shippingLoading) {
+      alert('Please wait for shipping to be calculated, or verify your address is correct.')
+      return
+    }
+
+    if (shippingError) {
+      alert(`Cannot proceed: ${shippingError}\n\nPlease verify your address or contact support.`)
       return
     }
 
@@ -241,6 +271,8 @@ export function CheckoutPageClient() {
       saveOrder(orderData)
 
       // Create Billplz bill with bank code
+      console.log('[Checkout] Creating Billplz bill with bank code:', bankDetails.code, 'for bank:', bankDetails.name)
+      
       const response = await fetch('/api/billplz/create-bill', {
         method: 'POST',
         headers: {
@@ -263,26 +295,33 @@ export function CheckoutPageClient() {
         try {
           const errorData = await response.json()
           errorMessage = errorData.error || errorMessage
+          console.error('[Checkout] Billplz API error response:', errorData)
         } catch {
           // If response is not JSON, use status text
           const text = await response.text()
           errorMessage = text || errorMessage
+          console.error('[Checkout] Billplz API non-JSON error:', text)
         }
-        throw new Error(errorMessage)
+        throw new Error(`Billplz API Error: ${errorMessage}`)
       }
 
       const billData = await response.json()
+      console.log('[Checkout] Billplz bill created:', { billId: billData.billId, paymentUrl: billData.paymentUrl })
 
       // Check for success flag and required fields
       if (!billData.success) {
-        throw new Error(billData.error || 'Failed to create payment bill')
+        const errorMsg = billData.error || 'Failed to create payment bill'
+        console.error('[Checkout] Billplz bill creation failed:', errorMsg)
+        throw new Error(errorMsg)
       }
 
       if (!billData.billId) {
+        console.error('[Checkout] Missing billId in response:', billData)
         throw new Error('Bill ID not received from Billplz')
       }
 
       if (!billData.paymentUrl) {
+        console.error('[Checkout] Missing paymentUrl in response:', billData)
         throw new Error('Payment URL not received from Billplz')
       }
 
@@ -295,6 +334,8 @@ export function CheckoutPageClient() {
         ? `${billData.paymentUrl}&auto_submit=true`
         : `${billData.paymentUrl}?auto_submit=true`
 
+      console.log('[Checkout] Redirecting to payment URL:', paymentUrl)
+      
       // Redirect to Billplz payment page (which will auto-submit to selected bank)
       window.location.href = paymentUrl
     } catch (error) {
@@ -607,28 +648,41 @@ export function CheckoutPageClient() {
                             </div>
                           </div>
                           <span className="font-bold text-salaam-red-500">
-                            {shippingCost === 0 ? 'FREE' : `RM${shippingCost.toFixed(2)}`}
+                            {shippingCost === null 
+                              ? (shippingLoading ? 'Calculating...' : '—')
+                              : shippingCost === 0 
+                                ? 'FREE' 
+                                : `RM${shippingCost.toFixed(2)}`
+                            }
                           </span>
                         </div>
                       </div>
                       {shippingError && (
-                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-sm text-yellow-800">
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-800 font-medium">
+                            Unable to calculate shipping
+                          </p>
+                          <p className="text-xs text-red-700 mt-1">
                             {shippingError}
                           </p>
-                          <p className="text-xs text-yellow-700 mt-1">
-                            Using fallback shipping rate. Please verify your address.
+                          <p className="text-xs text-red-600 mt-2">
+                            Please verify your address details or contact support for assistance.
                           </p>
                         </div>
                       )}
                       {shippingLoading && (
                         <p className="text-sm text-gray-500 italic mt-2">
-                          Loading shipping rates...
+                          Calculating shipping based on your address...
                         </p>
                       )}
                       {!customerInfo.state && !shippingLoading && (
                         <p className="text-sm text-gray-500 italic">
                           Shipping cost will be calculated based on your delivery address
+                        </p>
+                      )}
+                      {customerInfo.state && shippingCost !== null && !shippingError && (
+                        <p className="text-sm text-green-600 italic mt-2">
+                          ✓ Shipping calculated for {customerInfo.city}, {customerInfo.state}
                         </p>
                       )}
                     </div>
@@ -799,6 +853,8 @@ export function CheckoutPageClient() {
                         <span className="text-gray-400 text-sm">Enter address</span>
                       ) : shippingLoading ? (
                         <span className="text-gray-400 text-sm">Calculating...</span>
+                      ) : shippingCost === null ? (
+                        <span className="text-gray-400 text-sm">—</span>
                       ) : shippingCost === 0 ? (
                         'FREE'
                       ) : (

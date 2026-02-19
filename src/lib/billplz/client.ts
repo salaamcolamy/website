@@ -131,6 +131,7 @@ class BillplzClient {
       if (params.bankCode) {
         formData.append('reference_1_label', 'Bank Code')
         formData.append('reference_1', params.bankCode)
+        logger.debug('Billplz: Using bank code for direct payment gateway', { bankCode: params.bankCode })
       } else {
         // Use existing reference fields if provided
         if (params.reference_1_label) formData.append('reference_1_label', params.reference_1_label)
