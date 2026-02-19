@@ -3,7 +3,7 @@
  * Uses Storefront API cartDeliveryAddressesReplace + cart.deliveryGroups.deliveryOptions.
  */
 
-import { shopifyFetch, isShopifyConfigured } from '../client'
+import { shopifyFetch, isShopifyConfigured } from './client'
 
 export interface DeliveryAddressInput {
   address1: string
