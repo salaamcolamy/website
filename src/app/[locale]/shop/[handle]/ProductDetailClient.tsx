@@ -25,8 +25,17 @@ export function ProductDetailClient({
   const { addItem, openCart, isLoading } = useCart()
   const [activeTab, setActiveTab] = useState<'description' | 'additional' | 'review'>('description')
   const [quantity, setQuantity] = useState(1)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
-  const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
+  // Get all product images (featured image + additional images)
+  const allImages = product.images && product.images.length > 0 
+    ? product.images 
+    : product.featuredImage 
+      ? [product.featuredImage] 
+      : []
+  
+  const selectedImage = allImages[selectedImageIndex] || product.featuredImage
+  const imageUrl = selectedImage?.url || '/images/products/placeholder.webp'
   const variantId = product.variants[0]?.id
   const availableForSale = product.availableForSale && variantId
 
@@ -63,19 +72,43 @@ export function ProductDetailClient({
           animate="visible"
           className="grid lg:grid-cols-2 gap-12 lg:gap-16"
         >
-          {/* Product image */}
+          {/* Product image gallery */}
           <motion.div variants={fadeInLeft} className="space-y-4">
             {/* Main image */}
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-gray-50">
               <Image
                 src={imageUrl}
-                alt={product.featuredImage?.altText || product.title}
+                alt={selectedImage?.altText || product.title}
                 fill
                 className="object-contain p-8"
-                priority
+                priority={selectedImageIndex === 0}
               />
-
             </div>
+
+            {/* Thumbnail gallery - only show if there are multiple images */}
+            {allImages.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {allImages.map((image, index) => (
+                  <button
+                    key={image.url}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      selectedImageIndex === index
+                        ? 'border-salaam-red-500 ring-2 ring-salaam-red-200'
+                        : 'border-gray-200 hover:border-salaam-red-300'
+                    }`}
+                    aria-label={`View image ${index + 1}`}
+                  >
+                    <Image
+                      src={image.url}
+                      alt={image.altText || `${product.title} - Image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           {/* Product info */}
