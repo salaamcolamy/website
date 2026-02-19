@@ -23,12 +23,14 @@ export const metadata: Metadata = {
 }
 
 // Font configurations with fallback handling
-// adjustFontFallback: false prevents build failures when fonts can't be fetched
+// preload: false prevents Next.js from fetching fonts during build
+// adjustFontFallback: false prevents font metric calculations
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
+  preload: false,
   adjustFontFallback: false,
 })
 
@@ -37,6 +39,7 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
   display: 'swap',
   fallback: ['monospace'],
+  preload: false,
   adjustFontFallback: false,
 })
 
@@ -46,6 +49,7 @@ const notoArabic = Noto_Sans_Arabic({
   weight: ['400', '500', '600', '700'],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
+  preload: false,
   adjustFontFallback: false,
 })
 
@@ -55,6 +59,7 @@ const poppins = Poppins({
   weight: ['400', '600', '700', '800', '900'],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
+  preload: false,
   adjustFontFallback: false,
 })
 
@@ -64,6 +69,7 @@ const anton = Anton({
   weight: ['400'],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
+  preload: false,
   adjustFontFallback: false,
 })
 

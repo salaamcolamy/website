@@ -56,6 +56,8 @@ const nextConfig: NextConfig = {
   experimental: {
     // Optimize font imports but ensure they're handled correctly
     optimizePackageImports: ['next/font'],
+    // Disable font optimization to prevent build failures when fonts can't be fetched
+    optimizeFonts: false,
   },
 }
 
