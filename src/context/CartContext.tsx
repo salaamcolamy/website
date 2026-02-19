@@ -122,6 +122,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const storedCartId = localStorage.getItem(CART_ID_KEY)
 
+        // Only use stored ID if it's a valid Shopify cart ID
+        if (storedCartId && !storedCartId.startsWith('gid://shopify/Cart')) {
+          console.warn('[Cart] Invalid stored cart ID, clearing:', storedCartId.substring(0, 40))
+          localStorage.removeItem(CART_ID_KEY)
+          localStorage.removeItem(DEMO_CART_KEY)
+        }
         if (storedCartId && storedCartId.startsWith('gid://shopify/Cart')) {
           try {
             const existingCart = await getCart(storedCartId)

@@ -468,6 +468,17 @@ export function CheckoutPageClient() {
     }
   }, [cart?.id, hasMinAddress, customerInfo.address, customerInfo.apartment, customerInfo.city, customerInfo.state, customerInfo.country, customerInfo.postcode, customerInfo.firstName, customerInfo.lastName, customerInfo.phone])
 
+  // On checkout mount: clear any invalid/demo cart IDs from localStorage so only Shopify carts are used
+  useEffect(() => {
+    if (typeof localStorage === 'undefined') return
+    const storedId = localStorage.getItem('salaamcola-cart-id')
+    if (storedId && !storedId.startsWith('gid://shopify/Cart')) {
+      console.warn('[Checkout] Clearing invalid cart ID from localStorage:', storedId.substring(0, 30))
+      localStorage.removeItem('salaamcola-cart-id')
+      localStorage.removeItem('salaamcola-demo-cart')
+    }
+  }, [])
+
   // Check Shopify configuration on mount
   useEffect(() => {
     async function checkShopifyConfig() {
@@ -738,7 +749,7 @@ export function CheckoutPageClient() {
               <ShoppingBag className="w-24 h-24 text-gray-300 mx-auto mb-6" />
             </motion.div>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
-            <p className="text-gray-600 mb-8">Add some products to your cart before checkout.</p>
+            <p className="text-gray-600 mb-8">Add products from the shop page. Shipping is calculated by delivery address and cart weight at checkout.</p>
             <Link
               href="/shop"
               className="inline-flex items-center gap-2 px-6 py-3 bg-salaam-red-500 text-white rounded-full font-semibold hover:bg-salaam-red-600 transition-colors"
