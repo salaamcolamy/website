@@ -65,6 +65,31 @@ This guide shows you how to configure weight-based shipping rates in Advanced Sh
 1. Set **Rate Type** to: `Weight Based` or `By Weight` or `Per Kilogram`
 2. Configure weight tiers:
 
+### ⚠️ IMPORTANT: "Each Rule Must Have Unique From Value"
+
+When creating weight tiers, **each tier must have a unique starting weight ("from" value)**. You cannot have overlapping ranges or duplicate starting points.
+
+**❌ WRONG - Duplicate "From" Values:**
+```
+Tier 1: 0.01 kg - 2.00 kg: RM 8.50
+Tier 2: 0.01 kg - 5.00 kg: RM 12.00  ← ERROR: Same "from" value (0.01)!
+Tier 3: 2.00 kg - 10.00 kg: RM 18.00 ← ERROR: Overlaps with Tier 1!
+```
+
+**✅ CORRECT - Unique "From" Values:**
+```
+Tier 1: 0.01 kg - 2.00 kg: RM 8.50      (from: 0.01)
+Tier 2: 2.01 kg - 5.00 kg: RM 12.00     (from: 2.01) ← Unique!
+Tier 3: 5.01 kg - 10.00 kg: RM 18.00    (from: 5.01) ← Unique!
+Tier 4: 10.01 kg - 15.00 kg: RM 25.00   (from: 10.01) ← Unique!
+```
+
+**Key Rules:**
+- Each tier's "from" weight must be **unique** (no duplicates)
+- Each tier's "from" weight should be **higher** than the previous tier's "to" weight
+- Typically: `Previous Tier "To" + 0.01` = `Next Tier "From"`
+- Example: If Tier 1 ends at 2.00 kg, Tier 2 should start at 2.01 kg
+
 ### Weight Tier Configuration:
 
 **Option 1: First 2kg Fixed, Then Per kg**
@@ -77,13 +102,15 @@ This guide shows you how to configure weight-based shipping rates in Advanced Sh
 
 **Option 2: Tiered Pricing (Recommended)**
 ```
-0.01 kg - 2.00 kg: RM 8.50
-2.01 kg - 5.00 kg: RM 12.00 (or your rate)
-5.01 kg - 10.00 kg: RM 18.00 (or your rate)
-10.01 kg - 15.00 kg: RM 25.00 (or your rate)
-15.01 kg - 20.00 kg: RM 32.00 (or your rate)
-20.01 kg and above: RM 40.00 (or your rate)
+Tier 1: 0.01 kg - 2.00 kg: RM 8.50      (from: 0.01, to: 2.00)
+Tier 2: 2.01 kg - 5.00 kg: RM 12.00     (from: 2.01, to: 5.00) ← Unique from!
+Tier 3: 5.01 kg - 10.00 kg: RM 18.00    (from: 5.01, to: 10.00) ← Unique from!
+Tier 4: 10.01 kg - 15.00 kg: RM 25.00   (from: 10.01, to: 15.00) ← Unique from!
+Tier 5: 15.01 kg - 20.00 kg: RM 32.00   (from: 15.01, to: 20.00) ← Unique from!
+Tier 6: 20.01 kg and above: RM 40.00    (from: 20.01, to: unlimited) ← Unique from!
 ```
+
+**Note**: Each tier has a unique "from" value (0.01, 2.01, 5.01, 10.01, 15.01, 20.01)
 
 **Option 3: First 2kg + Per kg After**
 If Advanced Shipping supports "first X kg + per kg":
@@ -100,15 +127,22 @@ Based on your products:
 - **6-pack**: 2.5 kg → Should charge RM 8.50 (first 2kg) + additional for 0.5kg
 - **24-pack**: ~10 kg → Should charge based on weight tier
 
-### Recommended Weight Tiers:
+### Recommended Weight Tiers (All with Unique "From" Values):
 ```
-0.01 kg - 2.00 kg: RM 8.50
-2.01 kg - 5.00 kg: RM 12.00
-5.01 kg - 10.00 kg: RM 18.00
-10.01 kg - 15.00 kg: RM 25.00
-15.01 kg - 20.00 kg: RM 32.00
-20.01 kg and above: RM 40.00
+Tier 1: From 0.01 kg to 2.00 kg: RM 8.50      ← Unique from: 0.01
+Tier 2: From 2.01 kg to 5.00 kg: RM 12.00     ← Unique from: 2.01
+Tier 3: From 5.01 kg to 10.00 kg: RM 18.00    ← Unique from: 5.01
+Tier 4: From 10.01 kg to 15.00 kg: RM 25.00   ← Unique from: 10.01
+Tier 5: From 15.01 kg to 20.00 kg: RM 32.00   ← Unique from: 15.01
+Tier 6: From 20.01 kg and above: RM 40.00     ← Unique from: 20.01
 ```
+
+**How to Set This Up:**
+1. Click "Add Tier" or "Add Rule" for each weight range
+2. Enter **From**: `0.01` (or `0` if app allows), **To**: `2.00`, **Rate**: `RM 8.50`
+3. Click "Add Tier" again
+4. Enter **From**: `2.01`, **To**: `5.00`, **Rate**: `RM 12.00`
+5. Continue for each tier, ensuring each "From" value is unique
 
 **For 6-pack (2.5kg)**: Falls into 2.01-5.00kg tier → **RM 12.00**
 
@@ -183,10 +217,24 @@ Before testing, ensure product weights are set in Shopify:
 2. **Verify zone linking**: Check Shopify Admin → Shipping zones → West Malaysia → Ensure Advanced Shipping app is selected
 3. **Check service status**: Ensure West Malaysia service is Active in Advanced Shipping app
 
+### Issue: "Each rule must have unique from value" Error
+
+**Cause**: You have duplicate "from" values in your weight tiers
+
+**Solutions**:
+1. **Check all tiers**: Ensure each tier has a unique starting weight ("from" value)
+2. **Fix overlapping ranges**: 
+   - If Tier 1: `0.01 - 2.00 kg`, then Tier 2 must start at `2.01 kg` (not `0.01` or `2.00`)
+   - Each tier's "from" should be: `Previous Tier "To" + 0.01`
+3. **Remove duplicate tiers**: Delete any tiers with the same "from" value
+4. **Example fix**:
+   - ❌ Wrong: `0.01-2.00` and `0.01-5.00` (duplicate from: 0.01)
+   - ✅ Correct: `0.01-2.00` and `2.01-5.00` (unique from values)
+
 ### Issue: Rate doesn't match first 2kg = RM 8.50
 
 **Solutions**:
-1. **Check weight tier configuration**: Ensure first tier is `0.01 kg - 2.00 kg: RM 8.50`
+1. **Check weight tier configuration**: Ensure first tier is `0.01 kg - 2.00 kg: RM 8.50` with unique "from" value
 2. **Verify cart weight**: Check browser console for total cart weight calculation
 3. **Check for multiple rules**: Ensure no conflicting rules in Advanced Shipping app
 4. **Test with single product**: Add only 6-pack (2.5kg) and check rate
