@@ -32,6 +32,13 @@ export default function middleware(request: NextRequest) {
     return NextResponse.rewrite(next)
   }
 
+  // Redirect /locate-us (no locale) to /en/locate-us so the page is reachable either way
+  if (url.pathname === '/locate-us') {
+    const next = url.clone()
+    next.pathname = `/${routing.defaultLocale}/locate-us`
+    return NextResponse.redirect(next, 308)
+  }
+
   return intlMiddleware(request)
 }
 
