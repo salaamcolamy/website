@@ -245,13 +245,15 @@ export async function getCartDeliveryRates(
     // Each product variant has weight stored in Shopify, and Shopify sums them automatically
     // For multiple products (e.g., 6-pack + 24-pack), Shopify sums: (6-pack weight × qty) + (24-pack weight × qty)
     // Advanced Shipping app receives the total weight and calculates rates accordingly
-    console.log('[Shopify Delivery] Calculating shipping rates (automatic weight calculation):', {
+    console.log('[Shopify Delivery] 📍 Address being sent to Shopify:', {
       cartId: cartId.substring(0, 50) + '...',
-      province: provinceCode,
-      state: address.province,
+      userSelectedProvince: address.province,
+      mappedProvinceCode: provinceCode,
       city: address.city,
       zip: address.zip,
-      note: 'Shopify automatically sums all product weights (6-pack + 24-pack) and calculates shipping'
+      countryCode: (address.countryCode?.trim().toUpperCase().slice(0, 2)) || 'MY',
+      note: 'Shopify automatically sums all product weights (6-pack + 24-pack) and calculates shipping',
+      important: 'We are sending provinceCode as "' + provinceCode + '" - ensure this exact name exists in Shopify Admin → Shipping → West Malaysia zone'
     })
     
     // Shopify's provinceCode field can accept province names (e.g., "Selangor", "Johor")
@@ -354,10 +356,13 @@ export async function getCartDeliveryRates(
         troubleshootingSteps = [
           'Go to Shopify Admin → Settings → Shipping → Shipping zones',
           'Open "West Malaysia" zone',
-          'Add "Kuala Lumpur" to the zone (this covers both "Kuala Lumpur" and "Wilayah Persekutuan" selections)',
+          'Click "Add country/region" or "Edit"',
+          'Search for and add "Kuala Lumpur" (exact spelling, case-sensitive)',
+          'Verify "Kuala Lumpur" appears in the zone\'s list of regions',
           'In Advanced Shipping app → West Malaysia service → Add rule: Province = Kuala Lumpur',
           'Verify Advanced Shipping app service is linked to the West Malaysia shipping zone',
-          'Save all changes and test again'
+          'Save all changes and test again',
+          'If still not working, check browser console for "Shopify recognized address" log to see what Shopify actually recognized'
         ]
       } else {
         troubleshootingSteps = [
