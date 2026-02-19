@@ -30,6 +30,13 @@ function is24Pack(handle: string, title: string): boolean {
   return /24[- ]?pack|24pack/.test(s)
 }
 
+/** Category for shop filter: 6-pack, 24-pack, or null (other). */
+export function getProductPackCategory(handle: string, title: string): '6-pack' | '24-pack' | null {
+  if (is6Pack(handle, title)) return '6-pack'
+  if (is24Pack(handle, title)) return '24-pack'
+  return null
+}
+
 /** Tags to display for a product; includes Ramadhan/carton tags for 6-pack, carton and 24-pack products. */
 export function getDisplayTags(handle: string, title: string, tags: string[]): string[] {
   const preOrderTag = 'Ramadhan Pre-Order Starts 19th Feb'

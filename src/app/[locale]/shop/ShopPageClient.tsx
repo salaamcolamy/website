@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
-import { formatPrice, getDisplayTags } from '@/lib/utils'
+import { formatPrice, getDisplayTags, getProductPackCategory } from '@/lib/utils'
 import { fadeInUp, staggerContainer, scaleIn } from '@/lib/animations'
 import { Grid, List, Star } from 'lucide-react'
 import Image from 'next/image'
@@ -14,9 +14,16 @@ interface ShopPageClientProps {
   products: Product[]
 }
 
+type CategoryFilter = 'all' | '6-pack' | '24-pack'
+
 export function ShopPageClient({ products }: ShopPageClientProps) {
   const t = useTranslations('shop')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
+
+  const filteredProducts = categoryFilter === 'all'
+    ? products
+    : products.filter((p) => getProductPackCategory(p.handle, p.title) === categoryFilter)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
@@ -37,6 +44,24 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
             </p>
           </motion.div>
 
+          {/* Category filter */}
+          <motion.div variants={fadeInUp} className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-gray-700 mr-1">Category:</span>
+            {(['all', '6-pack', '24-pack'] as const).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  categoryFilter === cat
+                    ? 'bg-salaam-red-500 text-white shadow-md'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-salaam-red-300 hover:text-salaam-red-500'
+                }`}
+              >
+                {cat === 'all' ? 'All' : cat === '6-pack' ? '6-Pack' : '24-Pack'}
+              </button>
+            ))}
+          </motion.div>
+
           {/* Filters and sort */}
           <motion.div
             variants={fadeInUp}
@@ -44,7 +69,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
           >
             {/* Product count */}
             <p className="text-gray-500">
-              {products.length} products
+              {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
             </p>
 
             {/* View mode toggle */}
@@ -75,7 +100,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
           </motion.div>
 
           {/* Products grid */}
-          {products.length > 0 ? (
+          {filteredProducts.length > 0 ? (
             <motion.div
               variants={staggerContainer}
               className={
@@ -84,7 +109,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                   : 'flex flex-col gap-4'
               }
             >
-              {products.map((product, index) => {
+              {filteredProducts.map((product, index) => {
                 const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
                 const tag = getDisplayTags(product.handle, product.title, product.tags)[0]
 
@@ -135,7 +160,9 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
               variants={fadeInUp}
               className="text-center py-20"
             >
-              <p className="text-gray-500">{t('noProducts')}</p>
+              <p className="text-gray-500">
+                {categoryFilter === 'all' ? t('noProducts') : `No ${categoryFilter === '6-pack' ? '6-pack' : '24-pack'} products found.`}
+              </p>
             </motion.div>
           )}
         </motion.div>
