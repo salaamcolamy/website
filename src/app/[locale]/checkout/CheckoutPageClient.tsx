@@ -609,11 +609,9 @@ export function CheckoutPageClient() {
       }
     })
     
-    // Calculate shipping immediately - Shopify automatically uses cart weight
-    // No delay needed - Shopify has weight information when items are in cart
-    fetchShopifyShippingRates()
-      
-      return () => clearTimeout(timeoutId)
+      // Calculate shipping immediately - Shopify automatically uses cart weight
+      // No delay needed - Shopify has weight information when items are in cart
+      fetchShopifyShippingRates()
     } else {
       // If address is incomplete or cart not ready, clear shipping
       if (!hasMinAddress) {
