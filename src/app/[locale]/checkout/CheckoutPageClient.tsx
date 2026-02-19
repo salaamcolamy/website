@@ -18,6 +18,8 @@ import {
   Truck,
 } from 'lucide-react'
 import { generateOrderId, saveOrder, type OrderData } from '@/lib/orders/orderService'
+import { createCart, addToCart as addToCartAPI, getCart } from '@/lib/shopify/queries/cart'
+import { isShopifyConfigured } from '@/lib/shopify/client'
 
 type Step = 'information' | 'shipping' | 'payment'
 type PaymentMethod = 'fpx'
@@ -62,6 +64,7 @@ const fpxBanks = [
 export function CheckoutPageClient() {
   const router = useRouter()
   const { cart, clearCart } = useCart()
+  const [isMigratingCart, setIsMigratingCart] = useState(false)
   const [currentStep, setCurrentStep] = useState<Step>('information')
   const [paymentMethod] = useState<PaymentMethod>('fpx')
   const [selectedBank, setSelectedBank] = useState<string>('')
@@ -120,22 +123,9 @@ export function CheckoutPageClient() {
       return
     }
 
-    // Check if we have a valid Shopify cart ID
-    const isShopifyCart = cart?.id?.startsWith('gid://shopify/Cart')
-    if (!isShopifyCart) {
-      console.warn('[Checkout] Cannot calculate shipping: Cart is not a Shopify cart', { 
-        cartId: cart?.id,
-        cartItems: cart?.items?.length || 0,
-      })
-      setShippingError('Cart is not ready for shipping calculation. Please ensure you have items in your cart and refresh the page.')
-      setShopifyShippingCost(null)
-      setShippingLoading(false)
-      return
-    }
-
     if (!cart?.id) {
       console.warn('[Checkout] Cannot calculate shipping: No cart ID')
-      setShippingError('Cart is not ready. Please refresh the page.')
+      setShippingError('Cart is not ready. Please add items to your cart and try again.')
       setShopifyShippingCost(null)
       setShippingLoading(false)
       return
@@ -145,6 +135,96 @@ export function CheckoutPageClient() {
     if (!cart.items || cart.items.length === 0) {
       console.warn('[Checkout] Cannot calculate shipping: Cart has no items')
       setShippingError('Your cart is empty. Please add items to your cart before calculating shipping.')
+      setShopifyShippingCost(null)
+      setShippingLoading(false)
+      return
+    }
+
+    // Check if we have a valid Shopify cart ID
+    const isShopifyCartId = cart.id.startsWith('gid://shopify/Cart')
+    if (!isShopifyCartId) {
+      console.warn('[Checkout] Cannot calculate shipping: Cart is not a Shopify cart', { 
+        cartId: cart.id,
+        cartItems: cart.items?.length || 0,
+        cartType: cart.id.includes('demo') || cart.id.includes('mock') ? 'demo/mock' : 'unknown',
+      })
+      
+      // Try to migrate demo cart to Shopify cart if Shopify is configured
+      if (isShopifyConfigured() && cart.items && cart.items.length > 0 && (cart.id.includes('demo') || cart.id.includes('mock'))) {
+        console.log('[Checkout] Attempting to migrate demo cart to Shopify cart...', { items: cart.items })
+        setIsMigratingCart(true)
+        setShippingLoading(true)
+        setShippingError(null)
+        
+        try {
+          // Create new Shopify cart
+          const newCart = await createCart()
+          if (!newCart.id || !newCart.id.startsWith('gid://shopify/Cart')) {
+            throw new Error('Failed to create valid Shopify cart')
+          }
+          
+          // Add all items from demo cart to Shopify cart
+          // Only add items that have valid Shopify variant IDs
+          let migratedCount = 0
+          for (const item of cart.items) {
+            if (item.variantId && item.variantId.startsWith('gid://shopify/ProductVariant')) {
+              try {
+                await addToCartAPI(newCart.id, item.variantId, item.quantity)
+                migratedCount++
+              } catch (itemError) {
+                console.warn('[Checkout] Failed to migrate item:', item.title, itemError)
+              }
+            } else {
+              console.warn('[Checkout] Item has invalid variant ID, skipping:', item.title, item.variantId)
+            }
+          }
+          
+          if (migratedCount === 0) {
+            throw new Error('No items could be migrated. Please add items through the shop page.')
+          }
+          
+          // Clear demo cart from localStorage and set new cart ID
+          if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem('salaamcola-demo-cart')
+            localStorage.setItem('salaamcola-cart-id', newCart.id)
+          }
+          
+          // Get the updated cart with all items
+          const updatedCart = await getCart(newCart.id)
+          if (updatedCart) {
+            // Update cart in context by dispatching through window event
+            // This will trigger cart context to reload
+            window.dispatchEvent(new CustomEvent('cart-migrated', { detail: { cartId: newCart.id } }))
+            
+            console.log('[Checkout] Cart migration successful, reloading cart...')
+            // Reload page to refresh cart context
+            window.location.reload()
+            return
+          } else {
+            throw new Error('Failed to retrieve migrated cart')
+          }
+        } catch (migrationError) {
+          console.error('[Checkout] Cart migration failed:', migrationError)
+          setIsMigratingCart(false)
+          const errorMsg = migrationError instanceof Error ? migrationError.message : 'Failed to migrate cart'
+          setShippingError(`Cart migration failed: ${errorMsg}. Please add items through the shop page to create a Shopify cart.`)
+          setShopifyShippingCost(null)
+          setShippingLoading(false)
+          return
+        }
+      }
+      
+      // Provide more helpful error message based on cart type
+      let errorMessage = 'Cart is not ready for shipping calculation.'
+      if (cart.id.includes('demo') || cart.id.includes('mock')) {
+        errorMessage = 'Demo cart detected. Shipping calculation requires a Shopify cart. Please add items through the shop page to create a real cart.'
+      } else if (cart.id === 'demo-cart') {
+        errorMessage = 'Please add items to your cart from the shop page. Shipping can only be calculated for Shopify carts.'
+      } else {
+        errorMessage = 'Cart format is invalid. Please refresh the page or add items through the shop page to create a new cart.'
+      }
+      
+      setShippingError(errorMessage)
       setShopifyShippingCost(null)
       setShippingLoading(false)
       return
@@ -238,29 +318,45 @@ export function CheckoutPageClient() {
   // Fetch shipping rates when address is complete (even on information step)
   // Always calculate shipping based on customer input - no fallback/demo rates
   useEffect(() => {
-    if (hasMinAddress && cart?.id) {
+    if (hasMinAddress && cart?.id && cart.items && cart.items.length > 0) {
       // Only fetch if cart is a Shopify cart (has valid Shopify cart ID)
-      const isShopifyCart = cart.id.startsWith('gid://shopify/Cart')
-      if (isShopifyCart) {
+      const isShopifyCartId = cart.id.startsWith('gid://shopify/Cart')
+      if (isShopifyCartId) {
         // Fetch shipping rates when we have complete address, regardless of step
         // This ensures shipping updates as user fills in address on information step
-        console.log('[Checkout] Address complete, fetching shipping rates...')
+        console.log('[Checkout] Address complete, fetching shipping rates...', {
+          cartId: cart.id,
+          itemsCount: cart.items.length,
+        })
         fetchShopifyShippingRates()
       } else {
-        console.warn('[Checkout] Cannot fetch shipping: Cart is not a Shopify cart', { cartId: cart.id })
-        setShippingError('Cart is not ready for shipping calculation. Please refresh the page or add items to cart again.')
+        // Don't set error here - let fetchShopifyShippingRates handle it with better messaging
+        console.warn('[Checkout] Cannot fetch shipping: Cart is not a Shopify cart', { 
+          cartId: cart.id,
+          itemsCount: cart.items.length,
+        })
+        // Clear any previous shipping data
         setShopifyShippingCost(null)
         setShippingLoading(false)
+        // Error will be set by fetchShopifyShippingRates
       }
     } else {
-      // If address is incomplete, clear shipping
+      // If address is incomplete or cart not ready, clear shipping
       if (!hasMinAddress) {
         setShopifyShippingCost(null)
         setShippingError(null)
         setShippingLoading(false)
+      } else if (!cart?.id) {
+        setShippingError('Cart is not ready. Please add items to your cart.')
+        setShopifyShippingCost(null)
+        setShippingLoading(false)
+      } else if (!cart.items || cart.items.length === 0) {
+        setShippingError('Your cart is empty. Please add items to your cart.')
+        setShopifyShippingCost(null)
+        setShippingLoading(false)
       }
     }
-  }, [hasMinAddress, cart?.id, fetchShopifyShippingRates])
+  }, [hasMinAddress, cart?.id, cart?.items, fetchShopifyShippingRates])
 
   // Also fetch when explicitly on shipping step (in case it wasn't triggered before)
   useEffect(() => {
@@ -746,7 +842,12 @@ export function CheckoutPageClient() {
                           </p>
                         </div>
                       )}
-                      {shippingLoading && (
+                      {isMigratingCart && (
+                        <p className="text-sm text-blue-600 italic mt-2">
+                          Migrating cart to Shopify... Please wait.
+                        </p>
+                      )}
+                      {shippingLoading && !isMigratingCart && (
                         <p className="text-sm text-gray-500 italic mt-2">
                           Calculating shipping based on your address...
                         </p>
