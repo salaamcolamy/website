@@ -48,14 +48,12 @@ export interface DeliveryAddressInput {
 function mapStateToShopifyProvinceCode(stateName: string): string {
   // Shopify shipping zones typically use province names, not ISO codes
   // Map state names to match exactly what's configured in Shopify Admin
-  // WILAYAH PERSEKUTUAN (Federal Territory): Kuala Lumpur, Putrajaya, and Wilayah Persekutuan
-  // are all in the same West Malaysia shipping zone. Include both "Kuala Lumpur" and
-  // "Wilayah Persekutuan" in the West Malaysia zone in Shopify Admin / Advanced Shipping.
+  // WILAYAH PERSEKUTUAN: Shopify often only lists "Kuala Lumpur" (not "Wilayah Persekutuan").
+  // Map both to "Kuala Lumpur" so the West Malaysia zone matches. Both count as West Malaysia.
   const stateToProvinceName: Record<string, string> = {
-    // Normalize variations to match Shopify's exact format
     // Labuan is EXCLUDED from shipping zones (no shipping available)
-    'Wilayah Persekutuan': 'Wilayah Persekutuan', // West Malaysia zone – include in zone with Kuala Lumpur
-    'Kuala Lumpur': 'Kuala Lumpur', // West Malaysia zone – same zone as Wilayah Persekutuan
+    'Wilayah Persekutuan': 'Kuala Lumpur', // Same zone as KL; Shopify usually has "Kuala Lumpur" only
+    'Kuala Lumpur': 'Kuala Lumpur',
     'Pulau Pinang': 'Penang', // Shopify typically uses "Penang"
     'Johor': 'Johor',
     'Kedah': 'Kedah',
@@ -344,19 +342,18 @@ export async function getCartDeliveryRates(
     }
     
     if (!cart?.deliveryGroups?.nodes?.length) {
-      // Kuala Lumpur and Wilayah Persekutuan: both in West Malaysia zone
-      const isWPKL = address.province === 'Wilayah Persekutuan' || address.province === 'Kuala Lumpur' || provinceCode === 'Wilayah Persekutuan' || provinceCode === 'Kuala Lumpur'
+      // Kuala Lumpur / Wilayah Persekutuan: we send "Kuala Lumpur" for both; both are West Malaysia
+      const isWPKL = address.province === 'Wilayah Persekutuan' || address.province === 'Kuala Lumpur' || provinceCode === 'Kuala Lumpur'
       
       let errorMessage = `No delivery options available for ${address.province}`
       let troubleshootingSteps: string[] = []
       
       if (isWPKL) {
-        errorMessage = `No shipping zone found for ${address.province}. Kuala Lumpur and Wilayah Persekutuan must both be included in the West Malaysia shipping zone.`
+        errorMessage = `No shipping zone found for ${address.province} (sent as "Kuala Lumpur"). Add "Kuala Lumpur" to the West Malaysia shipping zone.`
         troubleshootingSteps = [
           'Go to Shopify Admin → Settings → Shipping → Shipping zones',
-          'In "West Malaysia" zone, include both "Kuala Lumpur" and "Wilayah Persekutuan"',
-          'Verify Advanced Shipping app West Malaysia service has rules for both "Kuala Lumpur" and "Wilayah Persekutuan"',
-          'Ensure names are spelled exactly (case-sensitive)',
+          'In "West Malaysia" zone, add "Kuala Lumpur" (covers both Kuala Lumpur and Wilayah Persekutuan)',
+          'Verify Advanced Shipping app West Malaysia service has rule: Province = Kuala Lumpur',
           'Check that Advanced Shipping app service is linked to the shipping zone'
         ]
       } else {
