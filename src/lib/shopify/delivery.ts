@@ -27,6 +27,8 @@ import { getAdvancedShippingRates, isAdvancedShippingConfigured } from '../advan
 
 const ADVANCED_SHIPPING_APP_ID = process.env.ADVANCED_SHIPPING_APP_ID || ''
 const ADVANCED_SHIPPING_API_KEY = process.env.ADVANCED_SHIPPING_API_KEY || ''
+/** Optional: when no zone/Advanced Shipping rates, return one option with this amount (MYR) so checkout can proceed. e.g. FALLBACK_SHIPPING_MY_RATE=10 */
+const FALLBACK_SHIPPING_MY_RATE = process.env.FALLBACK_SHIPPING_MY_RATE != null ? parseFloat(process.env.FALLBACK_SHIPPING_MY_RATE) : NaN
 
 export interface DeliveryAddressInput {
   address1: string
@@ -112,6 +114,8 @@ export interface CartDeliveryRatesResult {
     userErrors?: Array<{ message: string }>
     warnings?: Array<{ message: string }>
     provinceTried?: string
+    usedAdvancedShippingFallback?: boolean
+    usedFallbackRate?: boolean
   }
 }
 
@@ -526,6 +530,49 @@ export async function getCartDeliveryRates(
     }
     
     if (!cart?.deliveryGroups?.nodes?.length) {
+      // Last resort: try Advanced Shipping API so checkout isn't blocked when Shopify zones don't match (e.g. Wilayah Persekutuan)
+      if (isAdvancedShippingConfigured() && ADVANCED_SHIPPING_APP_ID && ADVANCED_SHIPPING_API_KEY && cart?.lines?.edges?.length) {
+        try {
+          const items = cart.lines.edges
+            .filter((e) => e?.node?.merchandise)
+            .map((e) => {
+              const m = e!.node!.merchandise!
+              const w = m.weight != null ? Number(m.weight) : undefined
+              const wKg = w != null && (m.weightUnit === 'GRAMS' || String(m.weightUnit).toLowerCase().includes('gram')) ? w / 1000 : w
+              return { id: m.id, quantity: e!.node!.quantity || 0, weight: wKg }
+            })
+          const asResponse = await getAdvancedShippingRates(ADVANCED_SHIPPING_APP_ID, ADVANCED_SHIPPING_API_KEY, {
+            items,
+            destination: {
+              address1: address.address1 || '',
+              address2: address.address2,
+              city: address.city || '',
+              province: address.province || provinceCode || '',
+              country: address.countryCode === 'MY' ? 'Malaysia' : address.countryCode,
+              zip: address.zip || '',
+            },
+          })
+          if (asResponse.rates?.length) {
+            const optionsFromApp = asResponse.rates.map((r) => ({
+              handle: r.handle || r.title || 'advanced-shipping',
+              title: r.title,
+              estimatedCost: { amount: String(r.cost), currencyCode: r.currencyCode || 'MYR' },
+            }))
+            console.log('[Shopify Delivery] ✓ No zone match; using Advanced Shipping API rates:', optionsFromApp.length)
+            const selected = optionsFromApp[0]
+            const shippingCost = selected ? parseFloat(selected.estimatedCost.amount) || 0 : 0
+            return {
+              shippingCost,
+              currencyCode: selected?.estimatedCost?.currencyCode || 'MYR',
+              options: optionsFromApp,
+              debug: { cause: 'no_delivery_groups', usedAdvancedShippingFallback: true, provinceTried: provinceCode },
+            }
+          }
+        } catch (apiErr) {
+          console.warn('[Shopify Delivery] Advanced Shipping fallback (no zone) failed:', apiErr)
+        }
+      }
+
       // Kuala Lumpur / Wilayah Persekutuan: we send "Kuala Lumpur" for both; both are West Malaysia
       const isWPKL = address.province === 'Wilayah Persekutuan' || address.province === 'Kuala Lumpur' || provinceCode === 'Kuala Lumpur'
       
@@ -569,6 +616,18 @@ export async function getCartDeliveryRates(
         ],
         troubleshootingSteps
       })
+
+      // Optional: allow checkout to proceed with a single fallback rate when nothing else worked
+      const fallbackAmount = Number.isFinite(FALLBACK_SHIPPING_MY_RATE) && FALLBACK_SHIPPING_MY_RATE >= 0 ? FALLBACK_SHIPPING_MY_RATE : NaN
+      if (Number.isFinite(fallbackAmount)) {
+        console.warn('[Shopify Delivery] Using FALLBACK_SHIPPING_MY_RATE so checkout can proceed:', fallbackAmount)
+        return {
+          shippingCost: fallbackAmount,
+          currencyCode: 'MYR',
+          options: [{ handle: 'fallback-standard', title: 'Standard delivery', estimatedCost: { amount: String(fallbackAmount), currencyCode: 'MYR' } }],
+          debug: { cause: 'no_delivery_groups', usedFallbackRate: true, provinceTried: provinceCode },
+        }
+      }
       
       let fullErrorMessage = troubleshootingSteps.length > 0
         ? `${errorMessage}\n\nTo fix:\n${troubleshootingSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}`
