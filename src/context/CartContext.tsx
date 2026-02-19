@@ -127,6 +127,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Initialize cart on mount
   useEffect(() => {
     async function initializeCart() {
+      // Always clear demo cart if Shopify is configured
+      if (isShopifyConfigured() && typeof localStorage !== 'undefined') {
+        localStorage.removeItem(DEMO_CART_KEY)
+      }
+
       if (!isShopifyConfigured()) {
         // For demo mode, load cart from localStorage or create empty
         try {
@@ -171,32 +176,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         if (storedCartId && storedCartId.startsWith('gid://shopify/Cart')) {
           const existingCart = await getCart(storedCartId)
-          if (existingCart) {
+          if (existingCart && existingCart.id.startsWith('gid://shopify/Cart')) {
             dispatch({ type: 'SET_CART', payload: existingCart })
             setIsInitialized(true)
             return
           } else {
-            // Cart ID is invalid, clear it
+            // Cart ID is invalid or cart doesn't exist, clear it
+            console.warn('[Cart] Invalid cart ID, clearing:', storedCartId)
             localStorage.removeItem(CART_ID_KEY)
           }
         }
 
-        // Clear any demo cart if Shopify is configured
-        if (localStorage.getItem(DEMO_CART_KEY)) {
-          localStorage.removeItem(DEMO_CART_KEY)
-        }
-
         // Create new Shopify cart
+        console.log('[Cart] Creating new Shopify cart...')
         const newCart = await createCart()
         if (newCart.id && newCart.id.startsWith('gid://shopify/Cart')) {
           localStorage.setItem(CART_ID_KEY, newCart.id)
           dispatch({ type: 'SET_CART', payload: newCart })
+          console.log('[Cart] Shopify cart created:', newCart.id)
         } else {
-          console.error('Failed to create valid Shopify cart:', newCart)
+          console.error('[Cart] Failed to create valid Shopify cart:', newCart)
           throw new Error('Failed to create Shopify cart')
         }
       } catch (error) {
-        console.error('Failed to initialize cart:', error)
+        console.error('[Cart] Failed to initialize cart:', error)
         // On error, create empty cart state but don't set demo cart
         dispatch({
           type: 'SET_CART',
@@ -319,12 +322,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         // Shopify: ensure we have a valid Shopify cart (create if null or invalid)
         let cartId = state.cart?.id
+        
+        // Always clear demo cart when Shopify is configured
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(DEMO_CART_KEY)
+        }
+        
         if (!cartId || !cartId.startsWith('gid://shopify/Cart')) {
-          // Clear any demo cart
-          if (typeof localStorage !== 'undefined') {
-            localStorage.removeItem(DEMO_CART_KEY)
-          }
-          
+          console.log('[Cart] Creating new Shopify cart for addItem...')
           const newCart = await createCart()
           cartId = newCart.id
           if (cartId && cartId.startsWith('gid://shopify/Cart')) {
@@ -332,7 +337,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
               localStorage.setItem(CART_ID_KEY, newCart.id)
             }
             dispatch({ type: 'SET_CART', payload: newCart })
+            console.log('[Cart] New Shopify cart created:', cartId)
           } else {
+            console.error('[Cart] Failed to create valid Shopify cart:', newCart)
             throw new Error('Failed to create valid Shopify cart')
           }
         }

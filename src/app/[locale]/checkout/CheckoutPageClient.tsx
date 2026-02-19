@@ -151,7 +151,10 @@ export function CheckoutPageClient() {
       
       // Try to migrate demo cart to Shopify cart if Shopify is configured
       if (isShopifyConfigured() && cart.items && cart.items.length > 0 && (cart.id.includes('demo') || cart.id.includes('mock'))) {
-        console.log('[Checkout] Attempting to migrate demo cart to Shopify cart...', { items: cart.items })
+        console.log('[Checkout] Attempting to migrate demo cart to Shopify cart...', { 
+          items: cart.items,
+          itemVariantIds: cart.items.map(i => ({ title: i.title, variantId: i.variantId }))
+        })
         setIsMigratingCart(true)
         setShippingLoading(true)
         setShippingError(null)
@@ -160,27 +163,38 @@ export function CheckoutPageClient() {
           // Create new Shopify cart
           const newCart = await createCart()
           if (!newCart.id || !newCart.id.startsWith('gid://shopify/Cart')) {
-            throw new Error('Failed to create valid Shopify cart')
+            throw new Error('Failed to create valid Shopify cart. Please check Shopify configuration.')
           }
           
           // Add all items from demo cart to Shopify cart
           // Only add items that have valid Shopify variant IDs
           let migratedCount = 0
+          const migrationErrors: string[] = []
+          
           for (const item of cart.items) {
             if (item.variantId && item.variantId.startsWith('gid://shopify/ProductVariant')) {
               try {
                 await addToCartAPI(newCart.id, item.variantId, item.quantity)
                 migratedCount++
+                console.log('[Checkout] Migrated item:', item.title)
               } catch (itemError) {
-                console.warn('[Checkout] Failed to migrate item:', item.title, itemError)
+                const errorMsg = itemError instanceof Error ? itemError.message : 'Unknown error'
+                console.warn('[Checkout] Failed to migrate item:', item.title, errorMsg)
+                migrationErrors.push(`${item.title}: ${errorMsg}`)
               }
             } else {
-              console.warn('[Checkout] Item has invalid variant ID, skipping:', item.title, item.variantId)
+              console.warn('[Checkout] Item has invalid variant ID, cannot migrate:', {
+                title: item.title,
+                variantId: item.variantId,
+                productHandle: item.productHandle
+              })
+              migrationErrors.push(`${item.title}: Invalid variant ID`)
             }
           }
           
           if (migratedCount === 0) {
-            throw new Error('No items could be migrated. Please add items through the shop page.')
+            const errorDetails = migrationErrors.length > 0 ? ` Details: ${migrationErrors.join('; ')}` : ''
+            throw new Error(`No items could be migrated.${errorDetails} Please add items through the shop page.`)
           }
           
           // Clear demo cart from localStorage and set new cart ID
@@ -191,17 +205,18 @@ export function CheckoutPageClient() {
           
           // Get the updated cart with all items
           const updatedCart = await getCart(newCart.id)
-          if (updatedCart) {
-            // Update cart in context by dispatching through window event
-            // This will trigger cart context to reload
-            window.dispatchEvent(new CustomEvent('cart-migrated', { detail: { cartId: newCart.id } }))
+          if (updatedCart && updatedCart.items.length > 0) {
+            console.log('[Checkout] Cart migration successful:', {
+              cartId: updatedCart.id,
+              itemsCount: updatedCart.items.length,
+              migratedCount
+            })
             
-            console.log('[Checkout] Cart migration successful, reloading cart...')
-            // Reload page to refresh cart context
+            // Reload page to refresh cart context with migrated cart
             window.location.reload()
             return
           } else {
-            throw new Error('Failed to retrieve migrated cart')
+            throw new Error('Failed to retrieve migrated cart or cart is empty')
           }
         } catch (migrationError) {
           console.error('[Checkout] Cart migration failed:', migrationError)
@@ -317,29 +332,17 @@ export function CheckoutPageClient() {
 
   // Fetch shipping rates when address is complete (even on information step)
   // Always calculate shipping based on customer input - no fallback/demo rates
+  // Let fetchShopifyShippingRates handle cart migration internally
   useEffect(() => {
     if (hasMinAddress && cart?.id && cart.items && cart.items.length > 0) {
-      // Only fetch if cart is a Shopify cart (has valid Shopify cart ID)
-      const isShopifyCartId = cart.id.startsWith('gid://shopify/Cart')
-      if (isShopifyCartId) {
-        // Fetch shipping rates when we have complete address, regardless of step
-        // This ensures shipping updates as user fills in address on information step
-        console.log('[Checkout] Address complete, fetching shipping rates...', {
-          cartId: cart.id,
-          itemsCount: cart.items.length,
-        })
-        fetchShopifyShippingRates()
-      } else {
-        // Don't set error here - let fetchShopifyShippingRates handle it with better messaging
-        console.warn('[Checkout] Cannot fetch shipping: Cart is not a Shopify cart', { 
-          cartId: cart.id,
-          itemsCount: cart.items.length,
-        })
-        // Clear any previous shipping data
-        setShopifyShippingCost(null)
-        setShippingLoading(false)
-        // Error will be set by fetchShopifyShippingRates
-      }
+      // Always call fetchShopifyShippingRates - it will handle migration if needed
+      // This ensures shipping updates as user fills in address on information step
+      console.log('[Checkout] Address complete, attempting shipping calculation...', {
+        cartId: cart.id,
+        itemsCount: cart.items.length,
+        isShopifyCart: cart.id.startsWith('gid://shopify/Cart'),
+      })
+      fetchShopifyShippingRates()
     } else {
       // If address is incomplete or cart not ready, clear shipping
       if (!hasMinAddress) {
@@ -356,14 +359,15 @@ export function CheckoutPageClient() {
         setShippingLoading(false)
       }
     }
-  }, [hasMinAddress, cart?.id, cart?.items, fetchShopifyShippingRates])
+  }, [hasMinAddress, cart?.id, cart?.items?.length, fetchShopifyShippingRates])
 
   // Also fetch when explicitly on shipping step (in case it wasn't triggered before)
   useEffect(() => {
-    if (currentStep === 'shipping' && hasMinAddress && cart?.id) {
+    if (currentStep === 'shipping' && hasMinAddress && cart?.id && cart.items && cart.items.length > 0) {
+      console.log('[Checkout] On shipping step, fetching shipping rates...')
       fetchShopifyShippingRates()
     }
-  }, [currentStep, hasMinAddress, cart?.id, fetchShopifyShippingRates])
+  }, [currentStep, hasMinAddress, cart?.id, cart?.items?.length, fetchShopifyShippingRates])
 
   // Shipping cost: Always calculated from customer address input via Shopify API
   // No fallback rates - shipping must be calculated based on actual address
@@ -857,10 +861,19 @@ export function CheckoutPageClient() {
                           Shipping cost will be calculated based on your delivery address
                         </p>
                       )}
-                      {customerInfo.state && !isShopifyCart && (
+                      {customerInfo.state && !isShopifyCart && cart?.id && (
                         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-sm text-yellow-800">
-                            ⚠ Cart is not ready for shipping calculation. Please refresh the page or add items to cart again.
+                          <p className="text-sm text-yellow-800 font-medium mb-1">
+                            ⚠ Cart Status Issue
+                          </p>
+                          <p className="text-xs text-yellow-700">
+                            Cart ID: {cart.id.substring(0, 50)}...
+                            <br />
+                            Items: {cart.items?.length || 0}
+                            <br />
+                            {isShopifyConfigured() 
+                              ? 'Shopify is configured. Cart migration will be attempted automatically.'
+                              : 'Shopify is not configured. Please configure Shopify to calculate shipping.'}
                           </p>
                         </div>
                       )}
