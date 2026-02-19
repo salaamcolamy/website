@@ -9,7 +9,7 @@ import {
   useState,
   ReactNode,
 } from 'react'
-import type { Cart, CartItem } from '@/lib/shopify/types'
+import type { Cart, CartItem, Product } from '@/lib/shopify/types'
 import {
   createCart,
   getCart,
@@ -90,7 +90,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 
 interface CartContextValue extends CartState {
-  addItem: (variantId: string, quantity?: number) => Promise<void>
+  addItem: (variantId: string, quantity?: number, product?: Product) => Promise<void>
   addDemoItem: (productId: string, quantity?: number) => void
   updateItem: (lineId: string, quantity: number) => Promise<void>
   removeItem: (lineId: string) => Promise<void>
@@ -246,19 +246,63 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   const addItem = useCallback(
-    async (variantId: string, quantity: number = 1) => {
-      if (!state.cart) return
-
+    async (variantId: string, quantity: number = 1, product?: Product) => {
       dispatch({ type: 'SET_LOADING', payload: true })
 
       try {
         if (!isShopifyConfigured()) {
-          // Use demo item for non-Shopify mode
-          addDemoItem(variantId, quantity)
+          // Demo mode: when product is provided, add from product data (works with any displayed product)
+          if (product) {
+            const newItem: CartItem = {
+              id: `demo-${product.id}-${variantId}`,
+              variantId,
+              productId: product.id,
+              productHandle: product.handle,
+              title: product.title,
+              variantTitle: product.variants[0]?.title ?? 'Default Title',
+              quantity,
+              price: product.price,
+              currencyCode: product.currencyCode,
+              image: product.featuredImage,
+            }
+            let items: CartItem[] = state.cart?.items ?? []
+            const existing = items.find(
+              (i) => i.variantId === variantId || i.productHandle === product.handle
+            )
+            if (existing) {
+              items = items.map((i) =>
+                i.id === existing.id ? { ...i, quantity: i.quantity + quantity } : i
+              )
+            } else {
+              items = [...items, newItem]
+            }
+            const updatedCart = calculateCartTotals(items)
+            localStorage.setItem(DEMO_CART_KEY, JSON.stringify(updatedCart))
+            dispatch({ type: 'SET_CART', payload: updatedCart })
+            dispatch({ type: 'OPEN_CART' })
+            dispatch({ type: 'SET_LOADING', payload: false })
+            return
+          }
+          // Fallback: legacy demo product lookup by id
+          if (state.cart) {
+            addDemoItem(variantId, quantity)
+          }
+          dispatch({ type: 'SET_LOADING', payload: false })
           return
         }
 
-        const updatedCart = await addToCartAPI(state.cart.id, variantId, quantity)
+        // Shopify: ensure we have a cart (create if null)
+        let cartId = state.cart?.id
+        if (!cartId) {
+          const newCart = await createCart()
+          cartId = newCart.id
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(CART_ID_KEY, newCart.id)
+          }
+          dispatch({ type: 'SET_CART', payload: newCart })
+        }
+
+        const updatedCart = await addToCartAPI(cartId, variantId, quantity)
         dispatch({ type: 'SET_CART', payload: updatedCart })
         dispatch({ type: 'OPEN_CART' })
       } catch (error) {
@@ -267,7 +311,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [state.cart, addDemoItem]
+    [state.cart, addDemoItem, calculateCartTotals]
   )
 
   const updateItem = useCallback(

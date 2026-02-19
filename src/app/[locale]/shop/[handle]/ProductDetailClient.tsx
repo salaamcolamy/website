@@ -33,7 +33,7 @@ export function ProductDetailClient({
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
     if (!variantId) return
-    await addItem(variantId, quantity)
+    await addItem(variantId, quantity, product)
     openCart()
   }
   const displayTags = getDisplayTags(product.handle, product.title, product.tags)

@@ -24,10 +24,9 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
     e.preventDefault()
     e.stopPropagation()
 
-    // Get the first variant ID
     const variantId = product.variants[0]?.id
     if (variantId) {
-      addItem(variantId)
+      addItem(variantId, 1, product)
     }
   }
 
