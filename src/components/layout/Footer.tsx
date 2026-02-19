@@ -20,6 +20,7 @@ const helpLinks = [
 const aboutLinks = [
   { label: 'Our story', href: '/about' },
   { label: 'Contact us', href: '/contact' },
+  { label: 'Locate us', href: '/locate-us' },
 ]
 
 const socialLinks = [

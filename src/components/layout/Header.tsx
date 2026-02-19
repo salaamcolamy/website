@@ -30,6 +30,7 @@ const navItems: NavItem[] = [
   { href: '/about', key: 'about' },
   { href: '/join-us#career', key: 'career' },
   { href: '/contact', key: 'support' },
+  { href: '/locate-us', key: 'locateUs' },
 ]
 
 export function Header() {
