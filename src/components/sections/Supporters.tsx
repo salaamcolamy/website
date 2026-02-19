@@ -157,24 +157,24 @@ const storeLocations = [
     y: 228,
     comingSoon: true,
   },
-  // Langkawi
+  // Langkawi (island northwest of mainland Kedah – pin on the island, not inside Kedah)
   {
     id: 19,
     name: 'Koperasi Kakitangan Tropical Charters Berhad',
     address: 'Langkawi Boulevard Langkawi City, Langkawi',
     contact: '+604-952-3641',
-    state: 'MY02', // Kedah (Langkawi)
-    x: 88,
-    y: 68,
+    state: 'MY02', // Langkawi (administered under Kedah but geographically on the island)
+    x: 72,
+    y: 54,
   },
   {
     id: 20,
     name: 'RedSky Cafe @ Villa Molek',
     address: 'Langkawi',
     contact: '+604-952-3641',
-    state: 'MY02', // Kedah (Langkawi)
-    x: 90,
-    y: 70,
+    state: 'MY02',
+    x: 74,
+    y: 56,
   },
 ]
 
