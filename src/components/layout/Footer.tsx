@@ -11,10 +11,10 @@ const shopLinks = [
 ]
 
 const helpLinks = [
-  { label: 'Payment Policy', href: '/payment' },
-  { label: 'Returns & Refund SOP', href: '/returns' },
-  { label: 'Privacy Policy', href: '/privacy' },
-  { label: 'Terms & Conditions', href: '/terms' },
+  { label: 'Payment Policy', href: '/policies#payment-policy' },
+  { label: 'Returns & Refund SOP', href: '/policies#returns-refunds' },
+  { label: 'Privacy Policy', href: '/policies#privacy-policy' },
+  { label: 'Terms & Conditions', href: '/policies#terms-conditions' },
 ]
 
 const aboutLinks = [
