@@ -610,24 +610,8 @@ export function CheckoutPageClient() {
     })
     
       // Calculate shipping immediately - Shopify automatically uses cart weight
-      // No delay needed - Shopify has weight information when items are in cart
-      fetchShopifyShippingRates()
-    } else {
-      // If address is incomplete or cart not ready, clear shipping
-      if (!hasMinAddress) {
-        setShopifyShippingCost(null)
-        setShippingError(null)
-        setShippingLoading(false)
-      } else if (!cart?.id) {
-        setShippingError('Cart is not ready. Please add items to your cart.')
-        setShopifyShippingCost(null)
-        setShippingLoading(false)
-      } else if (!cart.items || cart.items.length === 0) {
-        setShippingError('Your cart is empty. Please add items to your cart.')
-        setShopifyShippingCost(null)
-        setShippingLoading(false)
-      }
-    }
+    // No delay needed - Shopify has weight information when items are in cart
+    fetchShopifyShippingRates()
   }, [
     hasMinAddress, 
     cart?.id, 
