@@ -366,12 +366,19 @@ export async function getCartDeliveryRates(
         match: recognizedProvince && (recognizedProvince === provinceCode || recognizedProvince.toLowerCase() === provinceCode.toLowerCase()) ? '✓ MATCH' : '⚠ CHECK - May need adjustment',
       })
       
-      // If Shopify normalized it differently, log a warning
+      // If Shopify normalized it differently, log a warning with matching instructions
       if (recognizedProvince && recognizedProvince !== provinceCode && recognizedProvince.toLowerCase() !== provinceCode.toLowerCase()) {
         console.warn(
-          `[Shopify Delivery] Province format difference detected! ` +
-          `Sent: "${provinceCode}" but Shopify recognized: "${recognizedProvince}". ` +
-          `If shipping shows FREE, update mapStateToShopifyProvinceCode() to use "${recognizedProvince}" format.`
+          `[Shopify Delivery] ⚠️ PROVINCE NAME MISMATCH DETECTED!`
+        )
+        console.warn(
+          `Website sent: "${provinceCode}" → Shopify recognized: "${recognizedProvince}"`
+        )
+        console.warn(
+          `💡 TO FIX: Update Shopify Admin shipping zone to use "${provinceCode}" OR update Advanced Shipping app rules to use "${recognizedProvince}"`
+        )
+        console.warn(
+          `See docs/SHIPPING-ZONE-MATCHING-GUIDE.md for detailed matching instructions`
         )
       }
     }
