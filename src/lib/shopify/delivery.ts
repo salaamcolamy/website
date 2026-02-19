@@ -101,8 +101,25 @@ export async function getCartDeliveryRates(
   address: DeliveryAddressInput
 ): Promise<CartDeliveryRatesResult> {
   if (!isShopifyConfigured()) {
-    return { shippingCost: 0, currencyCode: 'MYR', options: [] }
+    console.error('[Shopify Delivery] Shopify not configured')
+    return { shippingCost: 0, currencyCode: 'MYR', options: [], error: 'Shopify not configured' }
   }
+  
+  // Validate cart ID format
+  if (!cartId.startsWith('gid://shopify/Cart')) {
+    console.error('[Shopify Delivery] Invalid cart ID format:', cartId)
+    return { shippingCost: 0, currencyCode: 'MYR', options: [], error: 'Invalid cart ID format' }
+  }
+  
+  console.log('[Shopify Delivery] Starting shipping calculation...', {
+    cartId: cartId.substring(0, 50) + '...',
+    address: {
+      province: address.province,
+      city: address.city,
+      zip: address.zip,
+      countryCode: address.countryCode,
+    }
+  })
 
   const mutation = `
     mutation cartDeliveryAddressesReplace($cartId: ID!, $addresses: [CartSelectableAddressInput!]!) {
@@ -428,7 +445,17 @@ export async function getCartDeliveryRates(
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to get delivery rates'
-    console.error('[Shopify Delivery] Error calculating shipping:', err)
+    console.error('[Shopify Delivery] Error calculating shipping:', {
+      error: err,
+      message: message,
+      stack: err instanceof Error ? err.stack : undefined,
+      cartId: cartId.substring(0, 50) + '...',
+      address: {
+        province: address.province,
+        city: address.city,
+        zip: address.zip,
+      }
+    })
     
     // Provide more detailed error information
     let errorMessage = message
@@ -436,6 +463,10 @@ export async function getCartDeliveryRates(
       // Check if it's a GraphQL error
       if (err.message.includes('GraphQL') || err.message.includes('Shopify')) {
         errorMessage = `Shopify API error: ${err.message}. Please check your Shopify configuration and shipping zones.`
+      } else if (err.message.includes('not configured')) {
+        errorMessage = 'Shopify is not configured. Please check your environment variables.'
+      } else {
+        errorMessage = `Failed to calculate shipping: ${err.message}`
       }
     }
     

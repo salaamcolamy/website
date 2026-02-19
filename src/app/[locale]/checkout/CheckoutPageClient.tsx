@@ -360,12 +360,45 @@ export function CheckoutPageClient() {
     setShippingLoading(true)
     setShippingError(null)
     
+    // CRITICAL: Reload cart from Shopify before calculating shipping to ensure latest state
+    // This ensures cart weight is up-to-date for Advanced Shipping app calculations
+    let currentCartId = cart.id
+    let currentCart = cart
+    
+    try {
+      console.log('[Checkout] Reloading cart before calculating shipping...', {
+        cartId: cart.id,
+        itemsCount: cart.items?.length || 0,
+      })
+      
+      // Reload cart from Shopify to ensure we have latest state (including weights)
+      const cartResponse = await fetch(`/api/cart?id=${encodeURIComponent(cart.id)}`)
+      if (cartResponse.ok) {
+        const refreshedCart = await cartResponse.json()
+        if (refreshedCart && refreshedCart.id) {
+          currentCart = refreshedCart
+          currentCartId = refreshedCart.id
+          console.log('[Checkout] Cart reloaded:', {
+            cartId: currentCartId,
+            itemsCount: refreshedCart.items?.length || 0,
+            totalQuantity: refreshedCart.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
+          })
+        }
+      } else {
+        console.warn('[Checkout] Failed to reload cart, using current cart state')
+      }
+    } catch (reloadError) {
+      console.warn('[Checkout] Error reloading cart, using current cart state:', reloadError)
+    }
+    
     console.log('[Checkout] Fetching shipping rates for:', {
-      cartId: cart.id,
+      cartId: currentCartId,
       address: customerInfo.address,
       city: customerInfo.city,
       state: customerInfo.state,
       postcode: customerInfo.postcode,
+      itemsCount: currentCart.items?.length || 0,
+      totalQuantity: currentCart.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
     })
     
     try {
@@ -374,7 +407,7 @@ export function CheckoutPageClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cartId: cart.id,
+          cartId: currentCartId,
           address: {
             address1: customerInfo.address,
             address2: customerInfo.apartment || undefined,
@@ -396,14 +429,26 @@ export function CheckoutPageClient() {
         try {
           const errorData = JSON.parse(errorText)
           errorMessage = errorData.error || errorMessage
+          console.error('[Checkout] Shipping API error response:', errorData)
         } catch {
           errorMessage = errorText || errorMessage
+          console.error('[Checkout] Shipping API error (non-JSON):', errorText)
         }
         throw new Error(errorMessage)
       }
       
       const data = await res.json()
-      console.log('[Checkout] Shipping API response:', data)
+      console.log('[Checkout] Shipping API response:', {
+        shippingCost: data.shippingCost,
+        optionsCount: data.options?.length || 0,
+        options: data.options?.map((o: any) => ({
+          title: o.title,
+          handle: o.handle,
+          cost: o.estimatedCost?.amount,
+        })),
+        error: data.error,
+        currencyCode: data.currencyCode,
+      })
       
       if (data.error) {
         const errorMsg = data.error || 'Failed to calculate shipping rates'
