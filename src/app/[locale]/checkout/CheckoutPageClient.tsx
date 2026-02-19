@@ -129,8 +129,17 @@ export function CheckoutPageClient() {
         setShippingError(data.error)
         setShopifyShippingCost(null)
       } else {
-        setShopifyShippingCost(data.shippingCost ?? 0)
-        setShippingError(null)
+        // Check if we got valid shipping options
+        if (data.options && data.options.length > 0) {
+          // Use the shipping cost from Shopify
+          setShopifyShippingCost(data.shippingCost ?? 0)
+          setShippingError(null)
+          console.log('[Checkout] Shopify shipping cost:', data.shippingCost, 'Options:', data.options)
+        } else {
+          // No options returned - might be a zone mismatch
+          setShippingError('No shipping options found for this address. Using fallback rates.')
+          setShopifyShippingCost(null)
+        }
       }
     } catch {
       setShippingError('Could not load shipping rates')
@@ -152,9 +161,15 @@ export function CheckoutPageClient() {
 
   // Shipping: from Shopify zones when available, else local zone fallback
   const fallbackShippingCost = getShippingForLocation(customerInfo.state, customerInfo.postcode)
+  
+  // Determine shipping cost:
+  // 1. If loading, use fallback
+  // 2. If Shopify cart and we got a valid shipping cost (including 0 for free shipping), use it
+  // 3. Otherwise use fallback
   const shippingCost = shippingLoading
     ? fallbackShippingCost
-    : (isShopifyCart && shopifyShippingCost !== null ? shopifyShippingCost : fallbackShippingCost)
+    : (isShopifyCart && shopifyShippingCost !== null && !shippingError ? shopifyShippingCost : fallbackShippingCost)
+  
   const orderTotal = (cart?.subtotal ?? 0) + shippingCost
 
   const handlePlaceOrder = async () => {
@@ -210,10 +225,33 @@ export function CheckoutPageClient() {
         }),
       })
 
+      // Check if response is ok before parsing JSON
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          // If response is not JSON, use status text
+          const text = await response.text()
+          errorMessage = text || errorMessage
+        }
+        throw new Error(errorMessage)
+      }
+
       const billData = await response.json()
 
-      if (!response.ok || !billData.success) {
+      // Check for success flag and required fields
+      if (!billData.success) {
         throw new Error(billData.error || 'Failed to create payment bill')
+      }
+
+      if (!billData.billId) {
+        throw new Error('Bill ID not received from Billplz')
+      }
+
+      if (!billData.paymentUrl) {
+        throw new Error('Payment URL not received from Billplz')
       }
 
       // Update order with Billplz bill ID
@@ -221,14 +259,15 @@ export function CheckoutPageClient() {
       saveOrder(orderData)
 
       // Redirect to Billplz payment page
-      if (billData.paymentUrl) {
-        window.location.href = billData.paymentUrl
-      } else {
-        throw new Error('No payment URL received from Billplz')
-      }
+      window.location.href = billData.paymentUrl
     } catch (error) {
       console.error('Error creating payment:', error)
-      alert(error instanceof Error ? error.message : 'Failed to process payment. Please try again.')
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to process payment. Please try again.'
+      
+      // Show user-friendly error message
+      alert(`Payment Error: ${errorMessage}\n\nPlease check your connection and try again.`)
       setIsProcessing(false)
     }
   }

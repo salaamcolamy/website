@@ -53,13 +53,45 @@ async function handler(request: NextRequest) {
       }
     }
 
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ||
-      request.headers.get('origin') ||
-      request.headers.get('referer')?.split('/').slice(0, 3).join('/')
+    // Determine origin for callback URLs
+    let origin = process.env.NEXT_PUBLIC_SITE_URL
+    
+    if (!origin) {
+      // Try to get from request headers
+      origin = request.headers.get('origin') || 
+               request.headers.get('referer')?.split('/').slice(0, 3).join('/') ||
+               request.headers.get('host') ? `https://${request.headers.get('host')}` : null
+    }
 
     if (!origin) {
-      return createValidationError('Unable to determine site origin. Please configure NEXT_PUBLIC_SITE_URL')
+      logger.error('Unable to determine site origin for Billplz callback URLs', {
+        headers: {
+          origin: request.headers.get('origin'),
+          referer: request.headers.get('referer'),
+          host: request.headers.get('host'),
+        },
+      })
+      return createValidationError(
+        'Unable to determine site origin. Please configure NEXT_PUBLIC_SITE_URL in your environment variables.'
+      )
     }
+
+    // Ensure origin doesn't have trailing slash
+    origin = origin.replace(/\/$/, '')
+    
+    logger.debug('Using origin for Billplz callbacks', { origin })
+
+    const callbackUrl = `${origin}/api/billplz/callback`
+    const redirectUrl = `${origin}/api/billplz/callback`
+    
+    logger.debug('Creating Billplz bill', {
+      email,
+      name,
+      amount: Math.round(verifiedAmount * 100),
+      orderId,
+      callbackUrl,
+      redirectUrl,
+    })
 
     const billplz = getBillplzClient()
     const bill = await billplz.createBill({
@@ -67,12 +99,18 @@ async function handler(request: NextRequest) {
       name,
       amount: Math.round(verifiedAmount * 100),
       description,
-      callbackUrl: `${origin}/api/billplz/callback`,
-      redirectUrl: `${origin}/api/billplz/callback`,
+      callbackUrl,
+      redirectUrl,
       reference_1_label: 'Order ID',
       reference_1: orderId,
       reference_2_label: draftOrderId ? 'Draft Order ID' : 'Phone',
       reference_2: draftOrderId || phone || '',
+    })
+
+    logger.info('Billplz bill created successfully', {
+      billId: bill.id,
+      orderId,
+      paymentUrl: bill.url,
     })
 
     return NextResponse.json({

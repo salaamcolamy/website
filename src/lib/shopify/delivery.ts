@@ -38,48 +38,39 @@ export interface DeliveryAddressInput {
 
 /**
  * Maps Malaysian state names to Shopify's expected province codes/names.
- * Shopify shipping zones use ISO 3166-2 codes or exact province names.
+ * Shopify shipping zones typically use province names, not ISO codes.
  * This mapping ensures exact match with Shopify backend shipping zones.
  * 
- * IMPORTANT: Verify in Shopify Admin → Settings → Shipping → Shipping zones
- * what format your zones use (ISO codes like "01" or names like "Selangor")
+ * IMPORTANT: Shopify Admin shipping zones usually use province names like:
+ * "Selangor", "Johor", "Kuala Lumpur", etc. (not ISO codes like "10", "01")
  */
 function mapStateToShopifyProvinceCode(stateName: string): string {
-  // Option 1: Use ISO 3166-2 codes (2-digit numeric) - Shopify's standard format
-  const stateToIsoCode: Record<string, string> = {
-    // West Malaysia
-    'Johor': '01',
-    'Kedah': '02',
-    'Kelantan': '03',
-    'Melaka': '04',
-    'Negeri Sembilan': '05',
-    'Pahang': '06',
-    'Pulau Pinang': '07',
-    'Perak': '08',
-    'Perlis': '09',
-    'Selangor': '10',
-    'Terengganu': '11',
-    // East Malaysia
-    'Sabah': '12',
-    'Sarawak': '13',
-    // Federal Territories
-    'Wilayah Persekutuan': '14', // Maps to Kuala Lumpur ISO code
-    'Kuala Lumpur': '14',
-    'Labuan': '15',
-    'Putrajaya': '16',
-  }
-  
-  // Option 2: Normalize province names to match Shopify's exact format
-  // If your Shopify zones use province names, use this mapping instead
+  // Shopify shipping zones typically use province names, not ISO codes
+  // Map state names to match exactly what's configured in Shopify Admin
   const stateToProvinceName: Record<string, string> = {
-    'Wilayah Persekutuan': 'Kuala Lumpur', // Shopify typically uses "Kuala Lumpur"
-    'Pulau Pinang': 'Penang', // Some configs use "Penang" instead of "Pulau Pinang"
+    // Normalize variations to match Shopify's exact format
+    'Wilayah Persekutuan': 'Kuala Lumpur', // Shopify uses "Kuala Lumpur" not "Wilayah Persekutuan"
+    'Pulau Pinang': 'Penang', // Shopify typically uses "Penang"
     // All other states use their exact names as-is
+    'Johor': 'Johor',
+    'Kedah': 'Kedah',
+    'Kelantan': 'Kelantan',
+    'Melaka': 'Melaka',
+    'Negeri Sembilan': 'Negeri Sembilan',
+    'Pahang': 'Pahang',
+    'Perak': 'Perak',
+    'Perlis': 'Perlis',
+    'Sabah': 'Sabah',
+    'Sarawak': 'Sarawak',
+    'Selangor': 'Selangor',
+    'Terengganu': 'Terengganu',
+    'Kuala Lumpur': 'Kuala Lumpur',
+    'Labuan': 'Labuan',
+    'Putrajaya': 'Putrajaya',
   }
   
-  // Try ISO code first (Shopify's standard), fallback to normalized name
-  // If your Shopify zones use names, swap the order or use stateToProvinceName
-  return stateToIsoCode[stateName] || stateToProvinceName[stateName] || stateName
+  // Return normalized province name (Shopify zones use names, not codes)
+  return stateToProvinceName[stateName] || stateName
 }
 
 export interface DeliveryOption {
@@ -166,12 +157,11 @@ export async function getCartDeliveryRates(
     // to see what format your zones use (ISO codes like "10" or names like "Selangor")
     const provinceCode = mapStateToShopifyProvinceCode(address.province)
     
-    console.log('[Shopify Delivery] Sending province code:', provinceCode, 'for state:', address.province)
+    console.log('[Shopify Delivery] Sending province name:', provinceCode, 'for state:', address.province)
     
-    // Shopify's provinceCode field accepts either:
-    // 1. ISO 3166-2 codes (e.g., "10" for Selangor) - Shopify's standard format
-    // 2. Province names (e.g., "Selangor") - if zones are configured with names
-    // This ensures exact match with backend shipping zones configured in Shopify admin
+    // Shopify's provinceCode field can accept province names (e.g., "Selangor", "Johor")
+    // Shipping zones in Shopify Admin are typically configured with province names, not ISO codes
+    // Use normalized province name in provinceCode field
     const data = await shopifyFetch<ReplacePayload>({
       query: mutation,
       variables: {
@@ -185,8 +175,9 @@ export async function getCartDeliveryRates(
                 address1: address.address1,
                 address2: address.address2 || undefined,
                 city: address.city,
-                // Use mapped province code/name to match Shopify shipping zones exactly
-                provinceCode: provinceCode,
+                // Use normalized province name - Shopify zones use names like "Selangor", not codes like "10"
+                // The provinceCode field accepts province names for Malaysia
+                provinceCode: provinceCode, // This is now the normalized province name (e.g., "Selangor", "Kuala Lumpur")
                 countryCode: address.countryCode,
                 zip: address.zip,
                 firstName: address.firstName,
@@ -219,7 +210,7 @@ export async function getCartDeliveryRates(
         shippingCost: 0, 
         currencyCode: 'MYR', 
         options: [], 
-        error: `No delivery options available for ${address.province}. Check Shopify Admin shipping zones match province format "${provinceCode}"` 
+        error: `No delivery options available for ${address.province} (sent as "${provinceCode}"). Check Shopify Admin → Settings → Shipping → Shipping zones to verify province name matches.` 
       }
     }
 
@@ -229,21 +220,21 @@ export async function getCartDeliveryRates(
     // Log the delivery address that Shopify recognized for debugging
     // This helps verify if Shopify normalized our province code/name
     if (firstGroup.deliveryAddress) {
-      const recognizedProvince = firstGroup.deliveryAddress.provinceCode || firstGroup.deliveryAddress.province
+      const recognizedProvince = firstGroup.deliveryAddress.province || firstGroup.deliveryAddress.provinceCode
       console.log('[Shopify Delivery] Shopify recognized address:', {
-        sentProvinceCode: provinceCode,
+        sentProvince: provinceCode,
         recognizedProvinceCode: firstGroup.deliveryAddress.provinceCode,
         recognizedProvince: firstGroup.deliveryAddress.province,
         countryCode: firstGroup.deliveryAddress.countryCodeV2,
-        match: recognizedProvince === provinceCode ? '✓ MATCH' : '✗ MISMATCH - Check Shopify zone format',
+        match: recognizedProvince && (recognizedProvince === provinceCode || recognizedProvince.toLowerCase() === provinceCode.toLowerCase()) ? '✓ MATCH' : '⚠ CHECK - May need adjustment',
       })
       
       // If Shopify normalized it differently, log a warning
-      if (recognizedProvince && recognizedProvince !== provinceCode) {
+      if (recognizedProvince && recognizedProvince !== provinceCode && recognizedProvince.toLowerCase() !== provinceCode.toLowerCase()) {
         console.warn(
-          `[Shopify Delivery] Province format mismatch! ` +
+          `[Shopify Delivery] Province format difference detected! ` +
           `Sent: "${provinceCode}" but Shopify recognized: "${recognizedProvince}". ` +
-          `Update mapStateToShopifyProvinceCode() to use "${recognizedProvince}" format.`
+          `If shipping shows FREE, update mapStateToShopifyProvinceCode() to use "${recognizedProvince}" format.`
         )
       }
     }
@@ -264,8 +255,18 @@ export async function getCartDeliveryRates(
       : 0
     const currencyCode = selectedOption?.estimatedCost.currencyCode ?? 'MYR'
 
-    console.log('[Shopify Delivery] Found options:', options.map(o => ({ title: o.title, cost: o.estimatedCost.amount })))
-    console.log('[Shopify Delivery] Selected option:', selectedOption.title, 'Cost:', amount)
+    console.log('[Shopify Delivery] Found options:', options.map(o => ({ 
+      title: o.title, 
+      handle: o.handle,
+      cost: o.estimatedCost.amount,
+      currency: o.estimatedCost.currencyCode 
+    })))
+    console.log('[Shopify Delivery] Selected option:', selectedOption.title, 'Cost:', amount, currencyCode)
+
+    // If amount is 0, check if it's actually free shipping or if no zone matched
+    if (amount === 0 && options.length > 0) {
+      console.log('[Shopify Delivery] Shipping cost is 0 - this may be free shipping or check if zones match correctly')
+    }
 
     return {
       shippingCost: amount,

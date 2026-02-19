@@ -41,12 +41,39 @@ export function logError(
  */
 export function getSafeErrorMessage(error: unknown): string {
   if (error instanceof Error) {
+    const lowerMessage = error.message.toLowerCase()
+    
+    // Preserve user-friendly error messages (especially from Billplz)
+    if (lowerMessage.includes('billplz api error')) {
+      // Extract the actual error message after "Billplz API Error (XXX): "
+      const match = error.message.match(/Billplz API Error \([^)]+\): (.+)/i)
+      if (match && match[1]) {
+        return match[1]
+      }
+      // If it's a user-friendly message, return it
+      if (lowerMessage.includes('authentication failed') || 
+          lowerMessage.includes('collection not found') ||
+          lowerMessage.includes('validation error') ||
+          lowerMessage.includes('cannot connect') ||
+          lowerMessage.includes('timed out')) {
+        return error.message
+      }
+    }
+    
+    // Preserve validation errors and user-facing messages
+    if (lowerMessage.includes('validation error') ||
+        lowerMessage.includes('missing required') ||
+        lowerMessage.includes('invalid') ||
+        lowerMessage.includes('unable to determine')) {
+      return error.message
+    }
+    
+    // Hide technical details for other errors
     const technicalPhrases = [
       'graphql', 'query', 'mutation', 'fetch', 'axios',
-      'shopify', 'billplz', 'api error', 'http error',
+      'shopify', 'api error', 'http error',
       'network', 'timeout', 'econnrefused', 'enotfound',
     ]
-    const lowerMessage = error.message.toLowerCase()
     const isTechnical = technicalPhrases.some(phrase => lowerMessage.includes(phrase))
     if (isTechnical) {
       return 'An error occurred while processing your request. Please try again.'

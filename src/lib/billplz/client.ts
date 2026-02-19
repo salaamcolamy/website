@@ -7,6 +7,7 @@ import '@/lib/env-validator'
 
 import axios, { AxiosInstance } from 'axios'
 import crypto from 'crypto'
+import { logger } from '@/lib/logger'
 
 interface BillplzConfig {
   apiKey: string
@@ -82,6 +83,13 @@ class BillplzClient {
       ? 'https://www.billplz-sandbox.com/api/v3'
       : 'https://www.billplz.com/api/v3'
 
+    logger.debug('Initializing Billplz client', {
+      baseURL,
+      isSandbox: config.isSandbox,
+      collectionId: config.collectionId,
+      hasApiKey: !!config.apiKey,
+    })
+
     this.client = axios.create({
       baseURL,
       auth: {
@@ -91,6 +99,7 @@ class BillplzClient {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
+      timeout: 30000, // 30 second timeout
     })
 
     this.collectionId = config.collectionId
@@ -98,6 +107,15 @@ class BillplzClient {
 
   async createBill(params: CreateBillParams): Promise<CreateBillResponse> {
     try {
+      logger.debug('Creating Billplz bill', {
+        email: params.email,
+        name: params.name,
+        amount: params.amount,
+        collectionId: this.collectionId,
+        callbackUrl: params.callbackUrl,
+        redirectUrl: params.redirectUrl,
+      })
+
       const formData = new URLSearchParams({
         collection_id: this.collectionId,
         email: params.email,
@@ -114,13 +132,68 @@ class BillplzClient {
       if (params.reference_2) formData.append('reference_2', params.reference_2)
 
       const response = await this.client.post('/bills', formData.toString())
+      
+      logger.debug('Billplz API response received', {
+        status: response.status,
+        hasId: !!response.data?.id,
+        hasUrl: !!response.data?.url,
+      })
+      
+      // Validate response has required fields
+      if (!response.data?.id) {
+        logger.error('Invalid Billplz response: missing bill ID', { response: response.data })
+        throw new Error('Invalid response from Billplz: missing bill ID')
+      }
+      if (!response.data?.url) {
+        logger.error('Invalid Billplz response: missing payment URL', { response: response.data })
+        throw new Error('Invalid response from Billplz: missing payment URL')
+      }
+      
+      logger.info('Billplz bill created successfully', { billId: response.data.id })
       return response.data
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const statusCode = error.response?.status
-        const errorMessage = error.response?.data?.error || error.message
-        throw new Error(`Billplz API Error (${statusCode}): ${errorMessage}`)
+        const responseData = error.response?.data
+        
+        logger.error('Billplz API error', error, {
+          statusCode,
+          responseData,
+          url: error.config?.url,
+          method: error.config?.method,
+        })
+        
+        // Billplz API returns errors in different formats
+        let errorMessage = 'Unknown error'
+        if (typeof responseData === 'string') {
+          errorMessage = responseData
+        } else if (responseData?.error) {
+          errorMessage = typeof responseData.error === 'string' 
+            ? responseData.error 
+            : JSON.stringify(responseData.error)
+        } else if (responseData?.message) {
+          errorMessage = responseData.message
+        } else if (error.message) {
+          errorMessage = error.message
+        }
+        
+        // Provide more context for common errors
+        if (statusCode === 401) {
+          errorMessage = 'Authentication failed. Please check your Billplz API credentials.'
+        } else if (statusCode === 404) {
+          errorMessage = 'Collection not found. Please check your Billplz Collection ID.'
+        } else if (statusCode === 422) {
+          errorMessage = `Validation error: ${errorMessage}`
+        } else if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+          errorMessage = 'Cannot connect to Billplz API. Please check your internet connection.'
+        } else if (error.code === 'ETIMEDOUT') {
+          errorMessage = 'Request to Billplz API timed out. Please try again.'
+        }
+        
+        throw new Error(`Billplz API Error (${statusCode || 'Network'}): ${errorMessage}`)
       }
+      
+      logger.error('Unexpected error creating Billplz bill', error)
       throw error
     }
   }
@@ -169,11 +242,29 @@ export function getBillplzClient(): BillplzClient {
     const collectionId = process.env.BILLPLZ_COLLECTION_ID
     const isSandbox = process.env.BILLPLZ_SANDBOX === 'true'
 
-    if (!apiKey || !collectionId) {
-      throw new Error('Billplz API credentials not configured')
+    logger.debug('Initializing Billplz client', {
+      hasApiKey: !!apiKey,
+      hasCollectionId: !!collectionId,
+      isSandbox,
+    })
+
+    if (!apiKey) {
+      logger.error('BILLPLZ_API_KEY is not configured')
+      throw new Error('Billplz API key is not configured. Please set BILLPLZ_API_KEY in your environment variables.')
     }
 
-    billplzClient = new BillplzClient({ apiKey, collectionId, isSandbox })
+    if (!collectionId) {
+      logger.error('BILLPLZ_COLLECTION_ID is not configured')
+      throw new Error('Billplz Collection ID is not configured. Please set BILLPLZ_COLLECTION_ID in your environment variables.')
+    }
+
+    try {
+      billplzClient = new BillplzClient({ apiKey, collectionId, isSandbox })
+      logger.info('Billplz client initialized successfully')
+    } catch (error) {
+      logger.error('Failed to initialize Billplz client', error)
+      throw error
+    }
   }
   return billplzClient
 }
