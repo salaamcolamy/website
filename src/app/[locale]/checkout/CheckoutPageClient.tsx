@@ -1146,14 +1146,35 @@ export function CheckoutPageClient() {
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">
-                                {selectedShippingOption?.title || 'Standard Delivery'}
+                                {(() => {
+                                  // Determine if this is East or West Malaysia based on customer address
+                                  const isEastMalaysia = customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' || customerInfo.state === 'Labuan'
+                                  const regionLabel = isEastMalaysia ? 'East Malaysia' : 'West Malaysia'
+                                  
+                                  // Get the base title from Shopify
+                                  const baseTitle = selectedShippingOption?.title || 'Standard Delivery'
+                                  
+                                  // If title doesn't already indicate region, add it
+                                  const titleLower = baseTitle.toLowerCase()
+                                  const hasRegionInTitle = titleLower.includes('east') || titleLower.includes('west') || 
+                                                          titleLower.includes('peninsular') || titleLower.includes('sabah') || 
+                                                          titleLower.includes('sarawak')
+                                  
+                                  if (hasRegionInTitle) {
+                                    // Title already has region info, use as-is
+                                    return baseTitle
+                                  } else {
+                                    // Add region label to make it clear
+                                    return `${baseTitle} - ${regionLabel}`
+                                  }
+                                })()}
                                 {selectedShippingOption?.isAdvancedShipping && (
                                   <span className="ml-2 text-xs text-salaam-red-600 font-normal">(Advanced Shipping)</span>
                                 )}
                               </p>
                               <p className="text-sm text-gray-500">
                                 {customerInfo.state 
-                                  ? `3-5 business days${customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' ? ' (East Malaysia)' : ' (West Malaysia)'}`
+                                  ? `3-5 business days${customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' || customerInfo.state === 'Labuan' ? ' (East Malaysia)' : ' (West Malaysia)'}`
                                   : '3-5 business days'}
                               </p>
                             </div>
