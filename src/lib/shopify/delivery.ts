@@ -25,6 +25,9 @@
 import { shopifyFetch, isShopifyConfigured } from './client'
 import { getAdvancedShippingRates, isAdvancedShippingConfigured } from '../advanced-shipping/client'
 
+const ADVANCED_SHIPPING_APP_ID = process.env.ADVANCED_SHIPPING_APP_ID || ''
+const ADVANCED_SHIPPING_API_KEY = process.env.ADVANCED_SHIPPING_API_KEY || ''
+
 export interface DeliveryAddressInput {
   address1: string
   address2?: string
@@ -554,7 +557,7 @@ export async function getCartDeliveryRates(
     }
 
     const firstGroup = cart.deliveryGroups.nodes[0]
-    const options = firstGroup?.deliveryOptions ?? []
+    let options: Array<{ handle: string; title: string; estimatedCost: { amount: string; currencyCode: string } }> = firstGroup?.deliveryOptions ?? []
     
     // Log the delivery address that Shopify recognized for debugging
     // This helps verify if Shopify normalized our province code/name
@@ -585,18 +588,46 @@ export async function getCartDeliveryRates(
       }
     }
     
-    // If no options from Shopify, try Advanced Shipping API directly as fallback
-    if (options.length === 0 && isAdvancedShippingConfigured()) {
-      console.log('[Shopify Delivery] No Shopify options, trying Advanced Shipping API directly...')
+    // If no options from Shopify, try Advanced Shipping API directly so checkout stays linked to Advanced Shipping
+    if (options.length === 0 && isAdvancedShippingConfigured() && ADVANCED_SHIPPING_APP_ID && ADVANCED_SHIPPING_API_KEY && cart?.lines?.edges?.length) {
+      console.log('[Shopify Delivery] No Shopify options, fetching Advanced Shipping API directly...')
       try {
-        // Note: We'd need cart items to call Advanced Shipping API
-        // For now, return empty and let the caller handle it
-        console.warn('[Shopify Delivery] Advanced Shipping API fallback requires cart items - not implemented yet')
+        const items = cart.lines.edges
+          .filter((e) => e?.node?.merchandise)
+          .map((e) => {
+            const m = e!.node!.merchandise!
+            const w = m.weight != null ? Number(m.weight) : undefined
+            const wKg = w != null && (m.weightUnit === 'GRAMS' || String(m.weightUnit).toLowerCase().includes('gram')) ? w / 1000 : w
+            return {
+              id: m.id,
+              quantity: e!.node!.quantity || 0,
+              weight: wKg,
+            }
+          })
+        const asResponse = await getAdvancedShippingRates(ADVANCED_SHIPPING_APP_ID, ADVANCED_SHIPPING_API_KEY, {
+          items,
+          destination: {
+            address1: address.address1 || '',
+            address2: address.address2,
+            city: address.city || '',
+            province: address.province || '',
+            country: address.countryCode === 'MY' ? 'Malaysia' : address.countryCode,
+            zip: address.zip || '',
+          },
+        })
+        if (asResponse.rates?.length) {
+          options = asResponse.rates.map((r) => ({
+            handle: r.handle || r.title || 'advanced-shipping',
+            title: r.title,
+            estimatedCost: { amount: String(r.cost), currencyCode: r.currencyCode || 'MYR' },
+          }))
+          console.log('[Shopify Delivery] ✓ Advanced Shipping API fallback returned', options.length, 'rate(s)')
+        }
       } catch (apiError) {
         console.error('[Shopify Delivery] Advanced Shipping API fallback failed:', apiError)
       }
     }
-    
+
     if (options.length === 0) {
       console.warn('[Shopify Delivery] No delivery options found in delivery group')
       return {
