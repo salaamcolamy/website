@@ -753,7 +753,7 @@ export function CheckoutPageClient() {
                         ) : (
                           <>
                             <Lock className="w-4 h-4" />
-                            Place Order - RM{cart.total.toFixed(2)}
+                            Place Order - RM{orderTotal.toFixed(2)}
                           </>
                         )}
                       </button>

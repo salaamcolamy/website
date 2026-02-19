@@ -141,13 +141,25 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
         </div>
 
         {/* Product info */}
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-3">
           <h3 className="font-semibold text-gray-900 group-hover:text-salaam-red-500 transition-colors line-clamp-1">
             {product.title}
           </h3>
           <p className="text-salaam-red-500 font-semibold">
             {formatPrice(product.price, product.currencyCode)}
           </p>
+          {product.availableForSale && product.variants[0]?.id && (
+            <GlassButton
+              variant="primary"
+              size="sm"
+              className="w-full"
+              onClick={handleAddToCart}
+              isLoading={isLoading}
+              leftIcon={<ShoppingBag className="w-4 h-4" />}
+            >
+              {t('addToCart')}
+            </GlassButton>
+          )}
         </div>
       </GlassCard>
     </Link>

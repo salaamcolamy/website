@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { formatPrice, getDisplayTags } from '@/lib/utils'
 import { fadeInUp, fadeInLeft, fadeInRight, staggerContainer } from '@/lib/animations'
-import { ChevronLeft, Shield, RefreshCw, Star } from 'lucide-react'
+import { ChevronLeft, Shield, RefreshCw, Star, ShoppingBag, Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
+import { GlassButton } from '@/components/ui/GlassButton'
+import { useCart } from '@/context/CartContext'
 import type { Product } from '@/lib/shopify/types'
 
 interface ProductDetailClientProps {
@@ -18,9 +21,21 @@ export function ProductDetailClient({
   product,
   relatedProducts,
 }: ProductDetailClientProps) {
+  const t = useTranslations('products')
+  const { addItem, openCart, isLoading } = useCart()
   const [activeTab, setActiveTab] = useState<'description' | 'additional' | 'review'>('description')
+  const [quantity, setQuantity] = useState(1)
 
   const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
+  const variantId = product.variants[0]?.id
+  const availableForSale = product.availableForSale && variantId
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!variantId) return
+    await addItem(variantId, quantity)
+    openCart()
+  }
   const displayTags = getDisplayTags(product.handle, product.title, product.tags)
   const category = displayTags[0] || 'PRODUCT'
 
@@ -105,6 +120,44 @@ export function ProductDetailClient({
             <div className="prose prose-gray max-w-none">
               <p className="text-gray-600 leading-relaxed">{product.description}</p>
             </div>
+
+            {/* Add to Cart */}
+            {availableForSale && (
+              <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-gray-100">
+                <div className="flex items-center gap-2 border border-gray-200 rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    disabled={quantity <= 1}
+                    className="p-3 text-gray-600 hover:text-salaam-red-500 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-10 text-center font-medium text-gray-900">{quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => q + 1)}
+                    className="p-3 text-gray-600 hover:text-salaam-red-500 hover:bg-gray-50 transition-colors"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <GlassButton
+                  variant="primary"
+                  size="lg"
+                  onClick={handleAddToCart}
+                  isLoading={isLoading}
+                  leftIcon={<ShoppingBag className="w-5 h-5" />}
+                >
+                  {t('addToCart')}
+                </GlassButton>
+              </div>
+            )}
+            {!product.availableForSale && (
+              <p className="pt-6 border-t border-gray-100 text-gray-500 font-medium">{t('outOfStock')}</p>
+            )}
 
             {/* Features */}
             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-100">
