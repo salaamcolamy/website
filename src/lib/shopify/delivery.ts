@@ -185,6 +185,24 @@ export async function getCartDeliveryRates(
       userErrors: Array<{ message: string; code?: string; field?: string[] }>
       cart: {
         id: string
+        totalQuantity: number
+        lines: {
+          edges: Array<{
+            node: {
+              id: string
+              quantity: number
+              merchandise: {
+                id: string
+                title: string
+                weight: number | null
+                weightUnit: string
+                product: {
+                  title: string
+                }
+              } | null
+            }
+          }>
+        } | null
         deliveryGroups: {
           nodes: Array<{
             id: string
