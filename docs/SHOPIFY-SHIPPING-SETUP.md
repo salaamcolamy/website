@@ -126,32 +126,43 @@ You'll need to create separate shipping zones for different regions:
 
 ### Step 3: Set Up Weight-Based Rates
 
-**Method 1: Using "Calculate shipping rates" (Recommended)**
+**Correct Steps (Based on Current Shopify Admin):**
 
-1. In your shipping zone, click **Add rate**
-2. Select **"Calculate shipping rates"** or **"Use carrier or app to calculate rates"**
-3. If you see **"Shopify Shipping"** or **"Manual"**, choose **"Manual"**
-4. Then select **"Add weight-based shipping rate"** or **"Weight-based rate"**
+1. In your shipping zone, scroll down to find **"Weight based rates"** section
+   - This section appears below other rate types
+   - Look for a section header that says **"Weight based rates"** or **"Weight-based shipping"**
 
-**Method 2: Direct Manual Rate Setup**
+2. Click **"Add rate"** button within the **"Weight based rates"** section
 
-1. In your shipping zone, click **Add rate**
-2. Look for **"Manual"** or **"Set up your own rates"**
-3. Select **"Weight-based"** or **"By weight"**
-4. If you don't see weight-based option, use **"Price-based"** and set up conditional rates
+3. A form will appear where you can:
+   - **Name**: Enter rate name (e.g., "Standard Delivery")
+   - **Weight range**: Set minimum and maximum weight (e.g., 0.01 kg to 1.00 kg)
+   - **Rate**: Enter the shipping cost (e.g., RM 11.00)
+   - **Free shipping**: Check if this tier should be free
 
-**Method 3: If weight-based option is not available**
+4. Click **"Done"** to save the tier
 
-If Shopify doesn't show weight-based option directly:
-1. Use **"Price-based shipping rate"** instead
-2. Set up rates based on cart total (you'll need to calculate weight → price mapping)
-3. OR use a shipping app like "Advanced Shipping" or "Weight Based Shipping"
+5. Click **"Add rate"** again to add the next weight tier
 
-**Note**: The exact menu options may vary based on your Shopify plan and region. If you see different options, look for:
-- "Manual shipping rates"
-- "Set up your own rates"  
-- "Weight-based shipping"
-- "By weight"
+6. Repeat until all weight tiers are added
+
+7. Click **"Save"** at the bottom of the shipping zone page
+
+**If you don't see "Weight based rates" section:**
+
+**Option A: Check Sales Channel**
+- Make sure you're configuring rates for the correct sales channel
+- Go to: Settings → Shipping → Select **"Headless"** sales channel (or your active channel)
+- Then look for weight-based rates
+
+**Option B: Use Shipping App**
+- Install **"Advanced Shipping"** app from Shopify App Store
+- It definitely supports weight-based rates
+- Free plan available
+
+**Option C: Contact Shopify Support**
+- Your plan might not include weight-based shipping
+- Contact support to enable it or upgrade plan
 
 #### Example: Peninsular Malaysia Zone
 
