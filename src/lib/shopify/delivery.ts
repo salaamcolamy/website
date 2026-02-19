@@ -38,23 +38,14 @@ export interface DeliveryAddressInput {
 }
 
 /**
- * Maps Malaysian state names to Shopify's expected province codes/names.
- * Shopify shipping zones typically use province names, not ISO codes.
- * This mapping ensures exact match with Shopify backend shipping zones.
- * 
- * IMPORTANT: Shopify Admin shipping zones usually use province names like:
- * "Selangor", "Johor", "Kuala Lumpur", etc. (not ISO codes like "10", "01")
+ * Maps Malaysian state names to Shopify's expected province names.
+ * Use for stores that configure shipping zones by province name.
  */
-function mapStateToShopifyProvinceCode(stateName: string): string {
-  // Shopify shipping zones typically use province names, not ISO codes
-  // Map state names to match exactly what's configured in Shopify Admin
-  // WILAYAH PERSEKUTUAN: Shopify often only lists "Kuala Lumpur" (not "Wilayah Persekutuan").
-  // Map both to "Kuala Lumpur" so the West Malaysia zone matches. Both count as West Malaysia.
+function mapStateToShopifyProvinceName(stateName: string): string {
   const stateToProvinceName: Record<string, string> = {
-    // Labuan is EXCLUDED from shipping zones (no shipping available)
-    'Wilayah Persekutuan': 'Kuala Lumpur', // Same zone as KL; Shopify usually has "Kuala Lumpur" only
+    'Wilayah Persekutuan': 'Kuala Lumpur',
     'Kuala Lumpur': 'Kuala Lumpur',
-    'Pulau Pinang': 'Penang', // Shopify typically uses "Penang"
+    'Pulau Pinang': 'Penang',
     'Johor': 'Johor',
     'Kedah': 'Kedah',
     'Kelantan': 'Kelantan',
@@ -67,12 +58,37 @@ function mapStateToShopifyProvinceCode(stateName: string): string {
     'Sarawak': 'Sarawak',
     'Selangor': 'Selangor',
     'Terengganu': 'Terengganu',
-    'Labuan': 'Labuan', // EXCLUDED from shipping zones - no shipping available
-    'Putrajaya': 'Putrajaya', // Part of Wilayah Persekutuan, West Malaysia
+    'Labuan': 'Labuan',
+    'Putrajaya': 'Putrajaya',
   }
-  
-  // Return normalized province name (Shopify zones use names, not codes)
   return stateToProvinceName[stateName] || stateName
+}
+
+/**
+ * Malaysia ISO 3166-2 subdivision codes (used by Shopify for some shipping zones).
+ * Try this if province name returns no delivery options.
+ */
+function mapStateToMalaysiaIsoCode(stateName: string): string | null {
+  const stateToIso: Record<string, string> = {
+    'Johor': '01',
+    'Kedah': '02',
+    'Kelantan': '03',
+    'Melaka': '04',
+    'Negeri Sembilan': '05',
+    'Pahang': '06',
+    'Pulau Pinang': '07',
+    'Perak': '08',
+    'Perlis': '09',
+    'Selangor': '10',
+    'Terengganu': '11',
+    'Sabah': '12',
+    'Sarawak': '13',
+    'Kuala Lumpur': '14',
+    'Wilayah Persekutuan': '14', // Same as KL for zone purposes
+    'Labuan': '15',
+    'Putrajaya': '16',
+  }
+  return stateToIso[stateName] ?? null
 }
 
 export interface DeliveryOption {
@@ -235,60 +251,72 @@ export async function getCartDeliveryRates(
       }
     }
     
-    // Map state name to Shopify's expected province code
-    // IMPORTANT: Check your Shopify Admin → Settings → Shipping → Shipping zones
-    // to see what format your zones use (ISO codes like "10" or names like "Selangor")
-    const provinceCode = mapStateToShopifyProvinceCode(address.province)
-    
-    // Shopify automatically calculates shipping based on cart weight
-    // When cartDeliveryAddressesReplace is called, Shopify uses the cart's current items
-    // Each product variant has weight stored in Shopify, and Shopify sums them automatically
-    // For multiple products (e.g., 6-pack + 24-pack), Shopify sums: (6-pack weight × qty) + (24-pack weight × qty)
-    // Advanced Shipping app receives the total weight and calculates rates accordingly
-    console.log('[Shopify Delivery] 📍 Address being sent to Shopify:', {
-      cartId: cartId.substring(0, 50) + '...',
-      userSelectedProvince: address.province,
-      mappedProvinceCode: provinceCode,
-      city: address.city,
-      zip: address.zip,
-      countryCode: (address.countryCode?.trim().toUpperCase().slice(0, 2)) || 'MY',
-      note: 'Shopify automatically sums all product weights (6-pack + 24-pack) and calculates shipping',
-      important: 'We are sending provinceCode as "' + provinceCode + '" - ensure this exact name exists in Shopify Admin → Shipping → West Malaysia zone'
-    })
-    
-    // Shopify's provinceCode field can accept province names (e.g., "Selangor", "Johor")
-    // Shipping zones in Shopify Admin are typically configured with province names, not ISO codes
-    // Use normalized province name in provinceCode field
-    const data = await shopifyFetch<ReplacePayload>({
-      query: mutation,
-      variables: {
-        cartId,
-        addresses: [
-          {
-            selected: true,
-            oneTimeUse: true,
-            address: {
-              deliveryAddress: {
-                address1: address.address1?.trim() || '',
-                address2: address.address2?.trim() || undefined,
-                city: address.city?.trim() || '',
-                // Use normalized province name - Shopify zones use names like "Selangor", not codes like "10"
-                // The provinceCode field accepts province names for Malaysia
-                provinceCode: provinceCode,
-                countryCode: (address.countryCode?.trim().toUpperCase().slice(0, 2)) || 'MY',
-                zip: address.zip?.trim() || '',
-                firstName: address.firstName?.trim() || '',
-                lastName: address.lastName?.trim() || '',
-                phone: address.phone || undefined,
+    const countryCode = (address.countryCode?.trim().toUpperCase().slice(0, 2)) || 'MY'
+
+    /** Run cartDeliveryAddressesReplace with a given provinceCode (name or ISO code). */
+    async function replaceAddressAndGetRates(provinceCodeValue: string): Promise<ReplacePayload['cartDeliveryAddressesReplace']> {
+      const res = await shopifyFetch<ReplacePayload>({
+        query: mutation,
+        variables: {
+          cartId,
+          addresses: [
+            {
+              selected: true,
+              oneTimeUse: true,
+              address: {
+                deliveryAddress: {
+                  address1: address.address1?.trim() || '',
+                  address2: address.address2?.trim() || undefined,
+                  city: address.city?.trim() || '',
+                  provinceCode: provinceCodeValue,
+                  countryCode,
+                  zip: address.zip?.trim() || '',
+                  firstName: address.firstName?.trim() || '',
+                  lastName: address.lastName?.trim() || '',
+                  phone: address.phone || undefined,
+                },
               },
             },
-          },
-        ],
-      },
-      cache: 'no-store',
+          ],
+        },
+        cache: 'no-store',
+      })
+      return res.cartDeliveryAddressesReplace
+    }
+
+    // Try province NAME first (many stores use names in shipping zones)
+    const provinceName = mapStateToShopifyProvinceName(address.province)
+    let provinceCode = provinceName // for logging/errors: what we sent to Shopify
+    console.log('[Shopify Delivery] 📍 Trying province name:', {
+      userSelected: address.province,
+      sentAs: provinceName,
+      note: 'If no rates returned, we will retry with ISO code',
     })
 
-    const payload = data.cartDeliveryAddressesReplace
+    let payload = await replaceAddressAndGetRates(provinceName)
+
+    // If no delivery options, retry with Malaysia ISO 3166-2 code (some zones use codes)
+    const hasNoOptions =
+      !payload.cart?.deliveryGroups?.nodes?.length ||
+      payload.cart.deliveryGroups.nodes.every((g) => !g.deliveryOptions?.length)
+    if (hasNoOptions && !payload.userErrors?.length) {
+      const isoCode = mapStateToMalaysiaIsoCode(address.province)
+      if (isoCode) {
+        console.log('[Shopify Delivery] No options for province name, retrying with ISO code:', isoCode)
+        payload = await replaceAddressAndGetRates(isoCode)
+        provinceCode = isoCode
+      }
+    }
+
+    console.log('[Shopify Delivery] 📍 Address sent to Shopify:', {
+      cartId: cartId.substring(0, 50) + '...',
+      userSelectedProvince: address.province,
+      city: address.city,
+      zip: address.zip,
+      countryCode,
+      deliveryGroupsCount: payload.cart?.deliveryGroups?.nodes?.length ?? 0,
+      optionsCount: payload.cart?.deliveryGroups?.nodes?.[0]?.deliveryOptions?.length ?? 0,
+    })
     if (payload.userErrors?.length) {
       const msg = payload.userErrors.map((e) => e.message).join('; ')
       console.error('[Shopify Delivery] User errors:', payload.userErrors)
@@ -366,10 +394,10 @@ export async function getCartDeliveryRates(
         ]
       } else {
         troubleshootingSteps = [
-          `Verify "${provinceCode}" is included in a shipping zone`,
-          'Check Advanced Shipping app has rules for this province',
-          'Ensure province name matches exactly (case-sensitive)',
-          'Verify cart has items with weight set'
+          `We tried province as "${provinceCode}" (name or ISO). Add this region to a shipping zone in Shopify Admin.`,
+          'Settings → Shipping → Edit zone → Add country/region → select your state (or add by name/code to match).',
+          'Check Advanced Shipping app has rules for this province.',
+          'Verify cart items have weight set in Shopify (Products → Variant → Weight).',
         ]
       }
       

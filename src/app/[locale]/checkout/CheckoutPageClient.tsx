@@ -1117,6 +1117,16 @@ export function CheckoutPageClient() {
                           ✓ Shipping calculated for {customerInfo.city}, {customerInfo.state}
                         </p>
                       )}
+                      {customerInfo.state && hasMinAddress && isShopifyCart && (shippingError || (shippingCost === null && !shippingLoading)) && (
+                        <button
+                          type="button"
+                          onClick={() => fetchShopifyShippingRates()}
+                          disabled={shippingLoading}
+                          className="mt-3 text-sm font-medium text-salaam-red-500 hover:text-salaam-red-600 underline disabled:opacity-50"
+                        >
+                          {shippingLoading ? 'Calculating…' : 'Calculate shipping again'}
+                        </button>
+                      )}
                     </div>
 
                     {/* Shipping Address Summary */}
