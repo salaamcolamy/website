@@ -104,21 +104,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Helper to calculate cart totals (DEPRECATED - only used for demo mode which is being removed)
-  // This function should not be used anymore - all carts should be Shopify carts
-  const calculateCartTotals = (items: CartItem[]): Cart => {
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
-    return {
-      id: 'demo-cart', // DEPRECATED - should not be used
-      checkoutUrl: '/checkout',
-      totalQuantity,
-      subtotal,
-      total: subtotal,
-      currencyCode: 'MYR',
-      items,
-    }
-  }
+  // DEPRECATED: calculateCartTotals removed - all carts are Shopify carts now
 
   // Initialize cart on mount
   useEffect(() => {
@@ -297,7 +283,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         throw new Error('Invalid variant ID. Only Shopify product variants are supported.')
       }
     },
-    [state.cart, addDemoItem, calculateCartTotals]
+    [state.cart]
   )
 
   const updateItem = useCallback(
