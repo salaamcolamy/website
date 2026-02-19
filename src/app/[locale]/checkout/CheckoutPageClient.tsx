@@ -36,20 +36,6 @@ interface CustomerInfo {
   country: string
 }
 
-// Demo prefilled data
-const demoCustomerInfo: CustomerInfo = {
-  email: 'ahmad@example.com',
-  firstName: 'Ahmad',
-  lastName: 'Ibrahim',
-  phone: '+60123456789',
-  address: '123 Jalan Bukit Bintang',
-  apartment: 'Unit 15-3',
-  city: 'Kuala Lumpur',
-  state: 'Wilayah Persekutuan',
-  postcode: '50200',
-  country: 'Malaysia',
-}
-
 // Malaysian banks for FPX
 const fpxBanks = [
   { id: 'maybank', name: 'Maybank2u', logo: '/images/banks/maybank.png' },
@@ -69,7 +55,6 @@ export function CheckoutPageClient() {
   const [paymentMethod] = useState<PaymentMethod>('fpx')
   const [selectedBank, setSelectedBank] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [useDemoData, setUseDemoData] = useState(false)
   const [shopifyShippingCost, setShopifyShippingCost] = useState<number | null>(null)
   const [shippingLoading, setShippingLoading] = useState(false)
   const [shippingError, setShippingError] = useState<string | null>(null)
@@ -86,11 +71,6 @@ export function CheckoutPageClient() {
     postcode: '',
     country: 'Malaysia',
   })
-
-  const fillDemoData = () => {
-    setCustomerInfo(demoCustomerInfo)
-    setUseDemoData(true)
-  }
 
   const steps: { key: Step; label: string; icon: React.ReactNode }[] = [
     { key: 'information', label: 'Information', icon: <User className="w-4 h-4" /> },
@@ -320,28 +300,6 @@ export function CheckoutPageClient() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              {/* Demo Data Button */}
-              {!useDemoData && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-blue-900">Demo Mode</p>
-                      <p className="text-sm text-blue-700">Fill in sample data to test checkout</p>
-                    </div>
-                    <button
-                      onClick={fillDemoData}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                    >
-                      Use Demo Data
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-
               <AnimatePresence mode="wait">
                 {/* Information Step */}
                 {currentStep === 'information' && (
