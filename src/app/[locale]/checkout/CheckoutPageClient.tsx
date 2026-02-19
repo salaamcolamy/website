@@ -161,17 +161,30 @@ export function CheckoutPageClient() {
     }
   }, [cart?.id, isShopifyCart, hasMinAddress, customerInfo.address, customerInfo.apartment, customerInfo.city, customerInfo.state, customerInfo.country, customerInfo.postcode, customerInfo.firstName, customerInfo.lastName, customerInfo.phone])
 
+  // Fetch Shopify shipping rates when address is complete (even on information step)
   useEffect(() => {
-    if (currentStep !== 'shipping') return
     if (isShopifyCart && hasMinAddress) {
+      // Fetch shipping rates when we have complete address, regardless of step
+      // This ensures shipping updates as user fills in address on information step
       fetchShopifyShippingRates()
     } else {
-      setShopifyShippingCost(null)
-      setShippingError(null)
+      // For demo carts or incomplete address, clear Shopify shipping
+      if (!hasMinAddress) {
+        setShopifyShippingCost(null)
+        setShippingError(null)
+      }
+    }
+  }, [isShopifyCart, hasMinAddress, fetchShopifyShippingRates])
+
+  // Also fetch when explicitly on shipping step (in case it wasn't triggered before)
+  useEffect(() => {
+    if (currentStep === 'shipping' && isShopifyCart && hasMinAddress) {
+      fetchShopifyShippingRates()
     }
   }, [currentStep, isShopifyCart, hasMinAddress, fetchShopifyShippingRates])
 
   // Shipping: from Shopify zones when available, else local zone fallback
+  // This calculates immediately based on state, so it updates reactively
   const fallbackShippingCost = getShippingForLocation(customerInfo.state, customerInfo.postcode)
   
   // Determine shipping cost:
@@ -782,12 +795,26 @@ export function CheckoutPageClient() {
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
                     <span className={shippingCost === 0 ? 'text-green-600 font-medium' : ''}>
-                      {shippingCost === 0 ? 'FREE' : `RM${shippingCost.toFixed(2)}`}
+                      {!customerInfo.state ? (
+                        <span className="text-gray-400 text-sm">Enter address</span>
+                      ) : shippingLoading ? (
+                        <span className="text-gray-400 text-sm">Calculating...</span>
+                      ) : shippingCost === 0 ? (
+                        'FREE'
+                      ) : (
+                        `RM${shippingCost.toFixed(2)}`
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-100">
                     <span>Total</span>
-                    <span>RM{orderTotal.toFixed(2)}</span>
+                    <span>
+                      {!customerInfo.state ? (
+                        <span className="text-gray-400">RM{cart.subtotal.toFixed(2)}</span>
+                      ) : (
+                        `RM${orderTotal.toFixed(2)}`
+                      )}
+                    </span>
                   </div>
                 </div>
               </div>
