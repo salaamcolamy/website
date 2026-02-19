@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import { Link, useRouter } from '@/i18n/routing'
@@ -18,6 +18,7 @@ import {
   Truck,
 } from 'lucide-react'
 import { getShippingForLocation } from '@/lib/shipping'
+import { generateOrderId, saveOrder, type OrderData } from '@/lib/orders/orderService'
 
 type Step = 'information' | 'shipping' | 'payment'
 type PaymentMethod = 'fpx'
@@ -69,6 +70,9 @@ export function CheckoutPageClient() {
   const [selectedBank, setSelectedBank] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [useDemoData, setUseDemoData] = useState(false)
+  const [shopifyShippingCost, setShopifyShippingCost] = useState<number | null>(null)
+  const [shippingLoading, setShippingLoading] = useState(false)
+  const [shippingError, setShippingError] = useState<string | null>(null)
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     email: '',
@@ -106,40 +110,147 @@ export function CheckoutPageClient() {
     else if (currentStep === 'shipping') setCurrentStep('information')
   }
 
-  // Shipping cost based on customer state (and optional postcode)
-  const shippingCost = getShippingForLocation(customerInfo.state, customerInfo.postcode)
+  const isShopifyCart = cart?.id?.startsWith('gid://shopify/Cart')
+  const hasMinAddress = Boolean(
+    customerInfo.address?.trim() &&
+    customerInfo.city?.trim() &&
+    customerInfo.state?.trim() &&
+    customerInfo.postcode?.trim() &&
+    customerInfo.firstName?.trim() &&
+    customerInfo.lastName?.trim()
+  )
+
+  const fetchShopifyShippingRates = useCallback(async () => {
+    if (!cart?.id || !isShopifyCart || !hasMinAddress) return
+    setShippingLoading(true)
+    setShippingError(null)
+    try {
+      const countryCode = customerInfo.country === 'Malaysia' ? 'MY' : customerInfo.country?.slice(0, 2).toUpperCase() || 'MY'
+      const res = await fetch('/api/shopify/shipping-rates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cartId: cart.id,
+          address: {
+            address1: customerInfo.address,
+            address2: customerInfo.apartment || undefined,
+            city: customerInfo.city,
+            province: customerInfo.state,
+            countryCode,
+            zip: customerInfo.postcode,
+            firstName: customerInfo.firstName,
+            lastName: customerInfo.lastName,
+            phone: customerInfo.phone || undefined,
+          },
+        }),
+      })
+      const data = await res.json()
+      if (data.error) {
+        setShippingError(data.error)
+        setShopifyShippingCost(null)
+      } else {
+        setShopifyShippingCost(data.shippingCost ?? 0)
+        setShippingError(null)
+      }
+    } catch {
+      setShippingError('Could not load shipping rates')
+      setShopifyShippingCost(null)
+    } finally {
+      setShippingLoading(false)
+    }
+  }, [cart?.id, isShopifyCart, hasMinAddress, customerInfo.address, customerInfo.apartment, customerInfo.city, customerInfo.state, customerInfo.country, customerInfo.postcode, customerInfo.firstName, customerInfo.lastName, customerInfo.phone])
+
+  useEffect(() => {
+    if (currentStep !== 'shipping') return
+    if (isShopifyCart && hasMinAddress) {
+      fetchShopifyShippingRates()
+    } else {
+      setShopifyShippingCost(null)
+      setShippingError(null)
+    }
+  }, [currentStep, isShopifyCart, hasMinAddress, fetchShopifyShippingRates])
+
+  // Shipping: from Shopify zones when available, else local zone fallback
+  const fallbackShippingCost = getShippingForLocation(customerInfo.state, customerInfo.postcode)
+  const shippingCost = shippingLoading
+    ? fallbackShippingCost
+    : (isShopifyCart && shopifyShippingCost !== null ? shopifyShippingCost : fallbackShippingCost)
   const orderTotal = (cart?.subtotal ?? 0) + shippingCost
 
   const handlePlaceOrder = async () => {
-    setIsProcessing(true)
-
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    // Generate order ID
-    const orderId = `SC${Date.now().toString().slice(-8)}`
-
-    // Store order in localStorage for the confirmation page
-    const orderData = {
-      id: orderId,
-      items: cart?.items || [],
-      subtotal: cart?.subtotal || 0,
-      shipping: shippingCost,
-      total: orderTotal,
-      customerInfo,
-      paymentMethod,
-      selectedBank: paymentMethod === 'fpx' ? selectedBank : null,
-      createdAt: new Date().toISOString(),
-      status: 'confirmed',
+    if (!selectedBank) {
+      alert('Please select a bank')
+      return
     }
 
-    localStorage.setItem('salaamcola-last-order', JSON.stringify(orderData))
+    setIsProcessing(true)
 
-    // Clear cart
-    clearCart()
+    try {
+      // Generate order ID
+      const orderId = generateOrderId()
 
-    // Redirect to confirmation page
-    router.push(`/order-confirmation?orderId=${orderId}`)
+      // Create order data
+      const orderData: OrderData = {
+        id: orderId,
+        items: cart?.items.map(item => ({
+          id: item.id,
+          variantId: item.variantId || '',
+          title: item.title,
+          variantTitle: item.variantTitle || '',
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+        })) || [],
+        subtotal: cart?.subtotal || 0,
+        shipping: shippingCost,
+        total: orderTotal,
+        customerInfo,
+        paymentMethod: 'billplz',
+        paymentStatus: 'pending',
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      }
+
+      // Save order before creating bill
+      saveOrder(orderData)
+
+      // Create Billplz bill
+      const response = await fetch('/api/billplz/create-bill', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: customerInfo.email,
+          name: `${customerInfo.firstName} ${customerInfo.lastName}`,
+          amount: orderTotal,
+          description: `Order ${orderId} - ${cart?.items.length || 0} item(s)`,
+          orderId,
+          phone: customerInfo.phone,
+        }),
+      })
+
+      const billData = await response.json()
+
+      if (!response.ok || !billData.success) {
+        throw new Error(billData.error || 'Failed to create payment bill')
+      }
+
+      // Update order with Billplz bill ID
+      orderData.billplzBillId = billData.billId
+      saveOrder(orderData)
+
+      // Redirect to Billplz payment page
+      if (billData.paymentUrl) {
+        window.location.href = billData.paymentUrl
+      } else {
+        throw new Error('No payment URL received from Billplz')
+      }
+    } catch (error) {
+      console.error('Error creating payment:', error)
+      alert(error instanceof Error ? error.message : 'Failed to process payment. Please try again.')
+      setIsProcessing(false)
+    }
   }
 
 
