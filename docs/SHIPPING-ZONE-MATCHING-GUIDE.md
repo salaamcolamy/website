@@ -207,7 +207,35 @@ If you see `⚠ CHECK - May need adjustment`, the province name doesn't match:
 
 ## Step 5: Common Mismatch Issues
 
-### Issue: "No delivery options available"
+### Issue: "No delivery options available for Wilayah Persekutuan (sent as 'Kuala Lumpur')"
+
+**Cause**: Shopify Admin shipping zone or Advanced Shipping app doesn't have "Kuala Lumpur" configured
+
+**Fix**:
+1. **In Shopify Admin**:
+   - Go to **Settings** → **Shipping** → **Shipping zones**
+   - Open **"West Malaysia"** zone
+   - Verify **"Kuala Lumpur"** is listed in Countries/Regions
+   - If missing, click **"Add country/region"** → Search for **"Kuala Lumpur"** → Add it
+   - Save the zone
+
+2. **In Advanced Shipping App**:
+   - Open **"West Malaysia"** service
+   - Verify rules include: `Province = Kuala Lumpur`
+   - If missing, add rule: `Province is Kuala Lumpur`
+   - Save the service
+
+3. **Verify Linking**:
+   - In Shopify Admin → Shipping zones → West Malaysia
+   - Under Rates, ensure Advanced Shipping app is selected
+   - Ensure it's linked to **"West Malaysia"** service
+
+4. **Test Again**:
+   - Enter address with state: **"Kuala Lumpur"** or **"Wilayah Persekutuan"**
+   - Check browser console for shipping calculation logs
+   - Should now show shipping rates
+
+### Issue: "No delivery options available" (General)
 
 **Cause**: Province name mismatch between website → Shopify → Advanced Shipping
 

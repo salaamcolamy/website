@@ -343,24 +343,55 @@ export async function getCartDeliveryRates(
     }
     
     if (!cart?.deliveryGroups?.nodes?.length) {
+      // Special handling for Wilayah Persekutuan / Kuala Lumpur
+      const isKualaLumpur = address.province === 'Wilayah Persekutuan' || address.province === 'Kuala Lumpur' || provinceCode === 'Kuala Lumpur'
+      
+      let errorMessage = `No delivery options available for ${address.province}`
+      let troubleshootingSteps: string[] = []
+      
+      if (isKualaLumpur) {
+        errorMessage = `No shipping zone found for ${address.province === 'Wilayah Persekutuan' ? 'Wilayah Persekutuan' : 'Kuala Lumpur'} (sent as "Kuala Lumpur").`
+        troubleshootingSteps = [
+          'Go to Shopify Admin → Settings → Shipping → Shipping zones',
+          'Check if "West Malaysia" zone includes "Kuala Lumpur"',
+          'Verify Advanced Shipping app has rules for "Kuala Lumpur"',
+          'Ensure "Kuala Lumpur" is spelled exactly as shown (not "Wilayah Persekutuan" or "KL")',
+          'Check that Advanced Shipping app service is linked to the shipping zone'
+        ]
+      } else {
+        troubleshootingSteps = [
+          `Verify "${provinceCode}" is included in a shipping zone`,
+          'Check Advanced Shipping app has rules for this province',
+          'Ensure province name matches exactly (case-sensitive)',
+          'Verify cart has items with weight set'
+        ]
+      }
+      
       console.error('[Shopify Delivery] ❌ No delivery groups found for address:', {
         province: address.province,
         provinceCode: provinceCode,
         city: address.city,
         zip: address.zip,
         cartId: cartId.substring(0, 50) + '...',
+        isKualaLumpur: isKualaLumpur,
         possibleCauses: [
           'Shipping zone not configured for this province',
           'Cart might be empty or items not synced',
           'Advanced Shipping app might not be configured for this zone',
           'Province name mismatch between address and Shopify zones'
-        ]
+        ],
+        troubleshootingSteps
       })
+      
+      const fullErrorMessage = troubleshootingSteps.length > 0
+        ? `${errorMessage}\n\nTo fix:\n${troubleshootingSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}`
+        : errorMessage
+      
       return { 
         shippingCost: 0, 
         currencyCode: 'MYR', 
         options: [], 
-        error: `No delivery options available for ${address.province} (sent as "${provinceCode}"). Check Shopify Admin → Settings → Shipping → Shipping zones to verify province name matches. If you have multiple products (6-pack + 24-pack), ensure both are in the cart.` 
+        error: fullErrorMessage
       }
     }
 
