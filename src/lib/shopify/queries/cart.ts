@@ -86,37 +86,71 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
 }
 
 export async function createCart(): Promise<Cart> {
-  if (!isShopifyConfigured()) {
-    return {
-      id: 'mock-cart',
-      checkoutUrl: '#',
-      totalQuantity: 0,
-      subtotal: 0,
-      total: 0,
-      currencyCode: 'MYR',
-      items: [],
-    }
-  }
-
+  // Always attempt to create cart via API - let shopifyFetch handle configuration errors
+  // This allows the function to work from both client and server components
   const query = `
     mutation createCart {
       cartCreate {
         cart {
           ...CartFragment
         }
+        userErrors {
+          field
+          message
+        }
       }
     }
     ${CART_FRAGMENT}
   `
 
-  const data = await shopifyFetch<{
-    cartCreate: { cart: ShopifyCart }
-  }>({
-    query,
-    cache: 'no-store',
-  })
+  try {
+    const data = await shopifyFetch<{
+      cartCreate: { 
+        cart: ShopifyCart | null
+        userErrors: Array<{ field: string[]; message: string }>
+      }
+    }>({
+      query,
+      cache: 'no-store',
+    })
 
-  return transformCart(data.cartCreate.cart)
+    // Check for user errors from Shopify
+    if (data.cartCreate.userErrors && data.cartCreate.userErrors.length > 0) {
+      const errorMessages = data.cartCreate.userErrors.map(e => e.message).join('; ')
+      const error = new Error(`Shopify cart creation failed: ${errorMessages}`)
+      console.error('[Cart] createCart user errors:', data.cartCreate.userErrors)
+      throw error
+    }
+
+    if (!data.cartCreate.cart) {
+      const error = new Error('Shopify cart creation returned null. Please check Shopify configuration (SHOPIFY_STORE_DOMAIN and SHOPIFY_STOREFRONT_ACCESS_TOKEN).')
+      console.error('[Cart] createCart returned null cart')
+      throw error
+    }
+
+    const transformedCart = transformCart(data.cartCreate.cart)
+    
+    // Validate the cart ID format
+    if (!transformedCart.id || !transformedCart.id.startsWith('gid://shopify/Cart')) {
+      const error = new Error(`Invalid cart ID format: ${transformedCart.id}. Expected gid://shopify/Cart format. Please check Shopify configuration.`)
+      console.error('[Cart] Invalid cart ID:', transformedCart.id)
+      throw error
+    }
+
+    console.log('[Cart] Successfully created Shopify cart:', transformedCart.id)
+    return transformedCart
+  } catch (error) {
+    console.error('[Cart] createCart API error:', error)
+    // Re-throw with more context if it's not already an Error
+    if (error instanceof Error) {
+      // Enhance error message if it's a configuration issue
+      if (error.message.includes('Shopify') || error.message.includes('fetch')) {
+        throw new Error(`${error.message} Please verify SHOPIFY_STORE_DOMAIN and SHOPIFY_STOREFRONT_ACCESS_TOKEN are set correctly.`)
+      }
+      throw error
+    }
+    throw new Error(`Failed to create Shopify cart: ${String(error)}. Please check Shopify configuration.`)
+  }
 }
 
 export async function getCart(cartId: string): Promise<Cart | null> {

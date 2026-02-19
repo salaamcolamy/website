@@ -18,7 +18,7 @@ import {
   Truck,
 } from 'lucide-react'
 import { generateOrderId, saveOrder, type OrderData } from '@/lib/orders/orderService'
-import { createCart, addToCart as addToCartAPI, getCart } from '@/lib/shopify/queries/cart'
+import { getCart } from '@/lib/shopify/queries/cart'
 
 type Step = 'information' | 'shipping' | 'payment'
 type PaymentMethod = 'fpx'
@@ -161,11 +161,33 @@ export function CheckoutPageClient() {
         setShippingError(null)
         
         try {
-          // Create new Shopify cart
-          const newCart = await createCart()
-          if (!newCart.id || !newCart.id.startsWith('gid://shopify/Cart')) {
-            throw new Error('Failed to create valid Shopify cart. Please check Shopify configuration.')
+          // Create new Shopify cart via API route (server-side has access to env vars)
+          console.log('[Checkout] Attempting to create Shopify cart for migration via API...')
+          let newCart
+          try {
+            const createResponse = await fetch('/api/cart?action=create', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+            })
+            
+            if (!createResponse.ok) {
+              const errorData = await createResponse.json().catch(() => ({}))
+              throw new Error(errorData.error || `HTTP ${createResponse.status}: ${createResponse.statusText}`)
+            }
+            
+            newCart = await createResponse.json()
+          } catch (createError) {
+            const errorMsg = createError instanceof Error ? createError.message : String(createError)
+            console.error('[Checkout] Failed to create Shopify cart via API:', createError)
+            throw new Error(`Failed to create Shopify cart: ${errorMsg}. Please verify SHOPIFY_STORE_DOMAIN and SHOPIFY_STOREFRONT_ACCESS_TOKEN are set correctly.`)
           }
+          
+          if (!newCart || !newCart.id || !newCart.id.startsWith('gid://shopify/Cart')) {
+            console.error('[Checkout] Invalid cart ID returned:', newCart?.id)
+            throw new Error(`Invalid cart ID format: ${newCart?.id || 'null'}. Expected gid://shopify/Cart format. Please check Shopify configuration.`)
+          }
+          
+          console.log('[Checkout] Shopify cart created successfully:', newCart.id)
           
           // Add all items from demo cart to Shopify cart
           // Only add items that have valid Shopify variant IDs
@@ -175,7 +197,22 @@ export function CheckoutPageClient() {
           for (const item of cart.items) {
             if (item.variantId && item.variantId.startsWith('gid://shopify/ProductVariant')) {
               try {
-                await addToCartAPI(newCart.id, item.variantId, item.quantity)
+                // Use API route for adding items (server-side has access to env vars)
+                const addResponse = await fetch('/api/cart?action=add', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    cartId: newCart.id,
+                    variantId: item.variantId,
+                    quantity: item.quantity,
+                  }),
+                })
+                
+                if (!addResponse.ok) {
+                  const errorData = await addResponse.json().catch(() => ({}))
+                  throw new Error(errorData.error || `HTTP ${addResponse.status}`)
+                }
+                
                 migratedCount++
                 console.log('[Checkout] Migrated item:', item.title)
               } catch (itemError) {
@@ -204,9 +241,13 @@ export function CheckoutPageClient() {
             localStorage.setItem('salaamcola-cart-id', newCart.id)
           }
           
-          // Get the updated cart with all items
-          const updatedCart = await getCart(newCart.id)
-          if (updatedCart && updatedCart.items.length > 0) {
+          // Get the updated cart with all items via API route
+          const getCartResponse = await fetch(`/api/cart?id=${encodeURIComponent(newCart.id)}`)
+          if (!getCartResponse.ok) {
+            throw new Error(`Failed to retrieve cart: HTTP ${getCartResponse.status}`)
+          }
+          const updatedCart = await getCartResponse.json()
+          if (updatedCart && updatedCart.items && updatedCart.items.length > 0) {
             console.log('[Checkout] Cart migration successful:', {
               cartId: updatedCart.id,
               itemsCount: updatedCart.items.length,
