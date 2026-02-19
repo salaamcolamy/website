@@ -48,13 +48,13 @@ export function LocateUsPageClient() {
             <motion.article
               key={num}
               variants={fadeInUp}
-              className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 shadow-lg"
+              className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 shadow-lg flex items-center justify-center"
             >
               <Image
                 src={`${IMAGE_BASE}/${num}.png`}
                 alt={`Location ${num}`}
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
             </motion.article>
