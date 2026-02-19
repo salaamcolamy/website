@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { withSecurity } from '@/lib/security'
+import { withSecurity, RATE_LIMITS } from '@/lib/security'
 import {
   createCart,
   getCart,
@@ -13,18 +13,27 @@ async function handler(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const action = searchParams.get('action')
 
+    console.log('[API Cart] Request:', { method: req.method, action, url: req.url })
+
     let cart
 
     if (req.method === 'POST' && action === 'create') {
+      console.log('[API Cart] Creating cart...')
       cart = await createCart()
+      console.log('[API Cart] Cart created:', cart?.id)
     } else if (req.method === 'GET') {
       const cartId = searchParams.get('id')
       if (!cartId) return Response.json({ error: 'Cart ID required' }, { status: 400 })
+      console.log('[API Cart] Getting cart:', cartId)
       cart = await getCart(cartId)
+      console.log('[API Cart] Cart retrieved:', cart?.id)
     } else if (req.method === 'POST' && action === 'add') {
-      const { cartId, variantId, quantity } = await req.json()
-      if (!cartId || !variantId) return Response.json({ error: 'Missing required fields' }, { status: 400 })
+      const body = await req.json()
+      const { cartId, variantId, quantity } = body
+      console.log('[API Cart] Adding to cart:', { cartId, variantId, quantity })
+      if (!cartId || !variantId) return Response.json({ error: 'Missing required fields', received: { cartId: !!cartId, variantId: !!variantId } }, { status: 400 })
       cart = await addToCart(cartId, variantId, quantity || 1)
+      console.log('[API Cart] Item added, cart now has', cart?.items?.length, 'items')
     } else if (req.method === 'POST' && action === 'update') {
       const { cartId, lineId, quantity } = await req.json()
       if (!cartId || !lineId || quantity === undefined) return Response.json({ error: 'Missing required fields' }, { status: 400 })
@@ -34,22 +43,33 @@ async function handler(req: NextRequest) {
       if (!cartId || !lineIds) return Response.json({ error: 'Missing required fields' }, { status: 400 })
       cart = await removeFromCart(cartId, lineIds)
     } else {
-      return Response.json({ error: 'Invalid action' }, { status: 400 })
+      return Response.json({ error: 'Invalid action', method: req.method, action }, { status: 400 })
     }
 
-    return new Response(JSON.stringify(cart), {
+    if (!cart) {
+      console.error('[API Cart] No cart returned from operation')
+      return Response.json({ error: 'Cart operation returned null' }, { status: 500 })
+    }
+
+    return Response.json(cart, {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'private, no-cache, no-store, must-revalidate',
       },
     })
   } catch (error) {
+    console.error('[API Cart] Error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Internal error'
+    const errorStack = error instanceof Error ? error.stack : undefined
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Internal error' },
+      { 
+        error: errorMessage,
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      },
       { status: 500 }
     )
   }
 }
 
-export const POST = withSecurity(handler)
-export const GET = withSecurity(handler)
+export const POST = withSecurity(handler, { maxRequests: RATE_LIMITS.cart, endpoint: 'cart' })
+export const GET = withSecurity(handler, { maxRequests: RATE_LIMITS.cart, endpoint: 'cart' })

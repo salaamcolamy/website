@@ -194,9 +194,16 @@ export function CheckoutPageClient() {
           let migratedCount = 0
           const migrationErrors: string[] = []
           
+          console.log('[Checkout] Items to migrate:', cart.items.map(i => ({
+            title: i.title,
+            variantId: i.variantId,
+            hasValidVariantId: i.variantId?.startsWith('gid://shopify/ProductVariant')
+          })))
+          
           for (const item of cart.items) {
             if (item.variantId && item.variantId.startsWith('gid://shopify/ProductVariant')) {
               try {
+                console.log('[Checkout] Migrating item:', item.title, 'variantId:', item.variantId)
                 // Use API route for adding items (server-side has access to env vars)
                 const addResponse = await fetch('/api/cart?action=add', {
                   method: 'POST',
@@ -210,29 +217,43 @@ export function CheckoutPageClient() {
                 
                 if (!addResponse.ok) {
                   const errorData = await addResponse.json().catch(() => ({}))
-                  throw new Error(errorData.error || `HTTP ${addResponse.status}`)
+                  const errorText = await addResponse.text().catch(() => '')
+                  console.error('[Checkout] Add item failed:', {
+                    status: addResponse.status,
+                    statusText: addResponse.statusText,
+                    errorData,
+                    errorText
+                  })
+                  throw new Error(errorData.error || errorText || `HTTP ${addResponse.status}: ${addResponse.statusText}`)
                 }
                 
+                const addedCart = await addResponse.json()
+                console.log('[Checkout] Item added successfully:', item.title, 'Cart now has', addedCart.items?.length, 'items')
                 migratedCount++
-                console.log('[Checkout] Migrated item:', item.title)
               } catch (itemError) {
                 const errorMsg = itemError instanceof Error ? itemError.message : 'Unknown error'
-                console.warn('[Checkout] Failed to migrate item:', item.title, errorMsg)
+                console.error('[Checkout] Failed to migrate item:', item.title, errorMsg, itemError)
                 migrationErrors.push(`${item.title}: ${errorMsg}`)
               }
             } else {
               console.warn('[Checkout] Item has invalid variant ID, cannot migrate:', {
                 title: item.title,
                 variantId: item.variantId,
-                productHandle: item.productHandle
+                productHandle: item.productHandle,
+                hasVariantId: !!item.variantId,
+                variantIdType: typeof item.variantId
               })
-              migrationErrors.push(`${item.title}: Invalid variant ID`)
+              migrationErrors.push(`${item.title}: Invalid variant ID (${item.variantId || 'missing'})`)
             }
           }
           
           if (migratedCount === 0) {
             const errorDetails = migrationErrors.length > 0 ? ` Details: ${migrationErrors.join('; ')}` : ''
-            throw new Error(`No items could be migrated.${errorDetails} Please add items through the shop page.`)
+            const hasInvalidVariants = migrationErrors.some(e => e.includes('Invalid variant ID'))
+            const suggestion = hasInvalidVariants 
+              ? ' The items in your cart were added before Shopify integration. Please clear your cart and add items fresh through the shop page to get valid Shopify products.'
+              : ' Please add items through the shop page to create a Shopify cart.'
+            throw new Error(`No items could be migrated.${errorDetails}${suggestion}`)
           }
           
           // Clear demo cart from localStorage and set new cart ID
@@ -242,11 +263,25 @@ export function CheckoutPageClient() {
           }
           
           // Get the updated cart with all items via API route
+          console.log('[Checkout] Retrieving updated cart:', newCart.id)
           const getCartResponse = await fetch(`/api/cart?id=${encodeURIComponent(newCart.id)}`)
           if (!getCartResponse.ok) {
-            throw new Error(`Failed to retrieve cart: HTTP ${getCartResponse.status}`)
+            const errorData = await getCartResponse.json().catch(() => ({}))
+            const errorText = await getCartResponse.text().catch(() => '')
+            console.error('[Checkout] Failed to retrieve cart:', {
+              status: getCartResponse.status,
+              statusText: getCartResponse.statusText,
+              errorData,
+              errorText
+            })
+            throw new Error(errorData.error || errorText || `Failed to retrieve cart: HTTP ${getCartResponse.status}`)
           }
           const updatedCart = await getCartResponse.json()
+          console.log('[Checkout] Retrieved cart:', {
+            cartId: updatedCart?.id,
+            itemsCount: updatedCart?.items?.length,
+            items: updatedCart?.items?.map((i: any) => ({ title: i.title, variantId: i.variantId }))
+          })
           if (updatedCart && updatedCart.items && updatedCart.items.length > 0) {
             console.log('[Checkout] Cart migration successful:', {
               cartId: updatedCart.id,
@@ -264,7 +299,18 @@ export function CheckoutPageClient() {
           console.error('[Checkout] Cart migration failed:', migrationError)
           setIsMigratingCart(false)
           const errorMsg = migrationError instanceof Error ? migrationError.message : 'Failed to migrate cart'
-          setShippingError(`Cart migration failed: ${errorMsg}. Please add items through the shop page to create a Shopify cart.`)
+          
+          // Provide more helpful error message
+          let userMessage = `Cart migration failed: ${errorMsg}`
+          if (errorMsg.includes('Invalid variant ID') || errorMsg.includes('No items could be migrated')) {
+            userMessage += ' Your cart contains items that were added before Shopify integration. Please clear your cart and add items fresh through the shop page.'
+          } else if (errorMsg.includes('SHOPIFY_STORE_DOMAIN') || errorMsg.includes('SHOPIFY_STOREFRONT_ACCESS_TOKEN')) {
+            userMessage += ' Please check that Shopify environment variables are configured correctly.'
+          } else {
+            userMessage += ' Please try adding items through the shop page to create a Shopify cart.'
+          }
+          
+          setShippingError(userMessage)
           setShopifyShippingCost(null)
           setShippingLoading(false)
           return
