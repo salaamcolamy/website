@@ -102,6 +102,14 @@ export interface CartDeliveryRatesResult {
   currencyCode: string
   options: DeliveryOption[]
   error?: string
+  /** Set when error is set; helps identify root cause of failed shipping calculation */
+  debug?: {
+    cause: 'shopify_not_configured' | 'invalid_cart_id' | 'labuan' | 'mutation_user_errors' | 'no_delivery_groups' | 'no_delivery_options' | 'exception'
+    deliveryGroupsCount?: number
+    userErrors?: Array<{ message: string }>
+    warnings?: Array<{ message: string }>
+    provinceTried?: string
+  }
 }
 
 /**
@@ -119,13 +127,37 @@ export async function getCartDeliveryRates(
 ): Promise<CartDeliveryRatesResult> {
   if (!isShopifyConfigured()) {
     console.error('[Shopify Delivery] Shopify not configured')
-    return { shippingCost: 0, currencyCode: 'MYR', options: [], error: 'Shopify not configured' }
+    return {
+      shippingCost: 0,
+      currencyCode: 'MYR',
+      options: [],
+      error: 'Shopify not configured',
+      debug: { cause: 'shopify_not_configured' },
+    }
   }
-  
+
+  // Cart ID must include the secret key or Shopify mutations will fail (e.g. "Cart not found")
+  if (!cartId.includes('key=')) {
+    console.error('[Shopify Delivery] Cart ID missing secret key (key=). Mutations will fail.')
+    return {
+      shippingCost: 0,
+      currencyCode: 'MYR',
+      options: [],
+      error: 'Cart session invalid. Please refresh the page, add items again from the shop, then try checkout.',
+      debug: { cause: 'invalid_cart_id' },
+    }
+  }
+
   // Validate cart ID format
   if (!cartId.startsWith('gid://shopify/Cart')) {
     console.error('[Shopify Delivery] Invalid cart ID format:', cartId)
-    return { shippingCost: 0, currencyCode: 'MYR', options: [], error: 'Invalid cart ID format' }
+    return {
+      shippingCost: 0,
+      currencyCode: 'MYR',
+      options: [],
+      error: 'Invalid cart ID format',
+      debug: { cause: 'invalid_cart_id' },
+    }
   }
   
   // Determine if this is East Malaysia for logging
@@ -152,6 +184,7 @@ export async function getCartDeliveryRates(
     mutation cartDeliveryAddressesReplace($cartId: ID!, $addresses: [CartSelectableAddressInput!]!) {
       cartDeliveryAddressesReplace(cartId: $cartId, addresses: $addresses) {
         userErrors { message code field }
+        warnings { message code }
         cart {
           id
           totalQuantity
@@ -200,6 +233,7 @@ export async function getCartDeliveryRates(
   type ReplacePayload = {
     cartDeliveryAddressesReplace: {
       userErrors: Array<{ message: string; code?: string; field?: string[] }>
+      warnings?: Array<{ message: string; code?: string }>
       cart: {
         id: string
         totalQuantity: number
@@ -248,10 +282,33 @@ export async function getCartDeliveryRates(
         currencyCode: 'MYR',
         options: [],
         error: 'Shipping is not available to Labuan. Please contact support for alternative arrangements.',
+        debug: { cause: 'labuan' },
       }
     }
     
     const countryCode = (address.countryCode?.trim().toUpperCase().slice(0, 2)) || 'MY'
+
+    // Set buyer country on the cart so Shopify can compute delivery groups for the right region.
+    // Without this, some stores return no delivery options.
+    try {
+      await shopifyFetch({
+        query: `
+          mutation cartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+            cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+              userErrors { message code }
+              cart { id }
+            }
+          }
+        `,
+        variables: {
+          cartId,
+          buyerIdentity: { countryCode },
+        },
+        cache: 'no-store',
+      })
+    } catch (buyerErr) {
+      console.warn('[Shopify Delivery] cartBuyerIdentityUpdate failed (continuing with address replace):', buyerErr)
+    }
 
     /** Run cartDeliveryAddressesReplace with a given provinceCode (name or ISO code). */
     async function replaceAddressAndGetRates(provinceCodeValue: string): Promise<ReplacePayload['cartDeliveryAddressesReplace']> {
@@ -263,6 +320,7 @@ export async function getCartDeliveryRates(
             {
               selected: true,
               oneTimeUse: true,
+              validationStrategy: 'COUNTRY_CODE_ONLY',
               address: {
                 deliveryAddress: {
                   address1: address.address1?.trim() || '',
@@ -286,25 +344,68 @@ export async function getCartDeliveryRates(
 
     // Try province NAME first (many stores use names in shipping zones)
     const provinceName = mapStateToShopifyProvinceName(address.province)
-    let provinceCode = provinceName // for logging/errors: what we sent to Shopify
-    console.log('[Shopify Delivery] 📍 Trying province name:', {
-      userSelected: address.province,
-      sentAs: provinceName,
-      note: 'If no rates returned, we will retry with ISO code',
-    })
-
+    let provinceCode = provinceName
     let payload = await replaceAddressAndGetRates(provinceName)
 
-    // If no delivery options, retry with Malaysia ISO 3166-2 code (some zones use codes)
-    const hasNoOptions =
+    const hasNoOptions = () =>
       !payload.cart?.deliveryGroups?.nodes?.length ||
       payload.cart.deliveryGroups.nodes.every((g) => !g.deliveryOptions?.length)
-    if (hasNoOptions && !payload.userErrors?.length) {
+
+    // Retry with Malaysia ISO code if name returned nothing
+    if (hasNoOptions() && !payload.userErrors?.length) {
       const isoCode = mapStateToMalaysiaIsoCode(address.province)
       if (isoCode) {
-        console.log('[Shopify Delivery] No options for province name, retrying with ISO code:', isoCode)
         payload = await replaceAddressAndGetRates(isoCode)
         provinceCode = isoCode
+      }
+    }
+
+    // Retry with raw province (exact user selection) if still nothing
+    if (hasNoOptions() && !payload.userErrors?.length && address.province !== provinceName && address.province !== mapStateToMalaysiaIsoCode(address.province)) {
+      payload = await replaceAddressAndGetRates(address.province.trim())
+      provinceCode = address.province.trim()
+    }
+
+    // Sometimes mutation response has empty deliveryOptions; fetch cart again to get rates
+    if (hasNoOptions() && !payload.userErrors?.length) {
+      try {
+        const cartData = await shopifyFetch<{
+          cart: ReplacePayload['cartDeliveryAddressesReplace']['cart']
+        }>({
+          query: `
+            query getCartDeliveryGroups($cartId: ID!) {
+              cart(id: $cartId) {
+                deliveryGroups(first: 5) {
+                  nodes {
+                    id
+                    deliveryAddress { provinceCode province countryCodeV2 }
+                    deliveryOptions {
+                      handle
+                      title
+                      estimatedCost { amount currencyCode }
+                    }
+                  }
+                }
+              }
+            }
+          `,
+          variables: { cartId },
+          cache: 'no-store',
+        })
+        if (cartData.cart?.deliveryGroups?.nodes?.length && payload.cart) {
+          const withOptions = cartData.cart.deliveryGroups.nodes.filter((n) => n.deliveryOptions?.length)
+          if (withOptions.length > 0) {
+            payload = {
+              ...payload,
+              cart: {
+                ...payload.cart,
+                deliveryGroups: cartData.cart.deliveryGroups,
+              },
+            }
+          }
+        }
+      } catch (_) {
+        // ignore
       }
     }
 
@@ -317,10 +418,24 @@ export async function getCartDeliveryRates(
       deliveryGroupsCount: payload.cart?.deliveryGroups?.nodes?.length ?? 0,
       optionsCount: payload.cart?.deliveryGroups?.nodes?.[0]?.deliveryOptions?.length ?? 0,
     })
+    if (payload.warnings?.length) {
+      console.warn('[Shopify Delivery] Mutation warnings:', payload.warnings.map((w) => w.message).join('; '), payload.warnings)
+    }
     if (payload.userErrors?.length) {
       const msg = payload.userErrors.map((e) => e.message).join('; ')
       console.error('[Shopify Delivery] User errors:', payload.userErrors)
-      return { shippingCost: 0, currencyCode: 'MYR', options: [], error: msg }
+      return {
+        shippingCost: 0,
+        currencyCode: 'MYR',
+        options: [],
+        error: msg,
+        debug: {
+          cause: 'mutation_user_errors',
+          userErrors: payload.userErrors.map((e) => ({ message: e.message })),
+          warnings: payload.warnings?.map((w) => ({ message: w.message })),
+          provinceTried: provinceCode,
+        },
+      }
     }
 
     const cart = payload.cart
@@ -417,15 +532,24 @@ export async function getCartDeliveryRates(
         troubleshootingSteps
       })
       
-      const fullErrorMessage = troubleshootingSteps.length > 0
+      let fullErrorMessage = troubleshootingSteps.length > 0
         ? `${errorMessage}\n\nTo fix:\n${troubleshootingSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}`
         : errorMessage
-      
-      return { 
-        shippingCost: 0, 
-        currencyCode: 'MYR', 
-        options: [], 
-        error: fullErrorMessage
+      if (payload.warnings?.length) {
+        fullErrorMessage += `\n\nShopify warnings: ${payload.warnings.map((w) => w.message).join('; ')}`
+      }
+
+      return {
+        shippingCost: 0,
+        currencyCode: 'MYR',
+        options: [],
+        error: fullErrorMessage,
+        debug: {
+          cause: 'no_delivery_groups',
+          deliveryGroupsCount: 0,
+          warnings: payload.warnings?.map((w) => ({ message: w.message })),
+          provinceTried: provinceCode,
+        },
       }
     }
 
@@ -475,7 +599,17 @@ export async function getCartDeliveryRates(
     
     if (options.length === 0) {
       console.warn('[Shopify Delivery] No delivery options found in delivery group')
-      return { shippingCost: 0, currencyCode: 'MYR', options: [], error: 'No shipping methods available' }
+      return {
+        shippingCost: 0,
+        currencyCode: 'MYR',
+        options: [],
+        error: 'No shipping methods available',
+        debug: {
+          cause: 'no_delivery_options',
+          deliveryGroupsCount: cart?.deliveryGroups?.nodes?.length ?? 0,
+          provinceTried: provinceCode,
+        },
+      }
     }
     
     // PRIORITIZE ADVANCED SHIPPING APP RATES (especially weight-based rates)
@@ -673,6 +807,12 @@ export async function getCartDeliveryRates(
       }
     }
     
-    return { shippingCost: 0, currencyCode: 'MYR', options: [], error: errorMessage }
+    return {
+      shippingCost: 0,
+      currencyCode: 'MYR',
+      options: [],
+      error: errorMessage,
+      debug: { cause: 'exception' },
+    }
   }
 }

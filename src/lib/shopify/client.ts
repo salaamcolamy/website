@@ -40,13 +40,15 @@ export async function shopifyFetch<T>({
 
     const body: ShopifyResponse<T> = await response.json()
 
-    if (body.errors) {
-      throw new Error(body.errors[0]?.message || 'Shopify API error')
+    if (body.errors?.length) {
+      const first = body.errors[0]?.message || 'Shopify API error'
+      console.error('[Shopify] GraphQL errors:', JSON.stringify(body.errors, null, 2))
+      throw new Error(first)
     }
 
     return body.data
   } catch (error) {
-    console.error('Shopify fetch error:', error)
+    console.error('[Shopify] fetch error:', error)
     throw error
   }
 }

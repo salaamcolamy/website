@@ -84,7 +84,7 @@ export function CheckoutPageClient() {
     city: '',
     state: '',
     postcode: '',
-    country: 'Malaysia',
+    country: 'Malaysia', // Fixed for Malaysia-only; countryCode MY is sent to Shopify for shipping
   })
 
   const steps: { key: Step; label: string; icon: React.ReactNode }[] = [
@@ -348,7 +348,10 @@ export function CheckoutPageClient() {
       })
       
       if (data.error) {
-        console.error('❌ ERROR:', data.error)
+        console.error('❌ SHIPPING CALCULATION FAILED:', data.error)
+        if (data.debug) {
+          console.error('[Checkout] Failure cause (data.debug):', data.debug)
+        }
         console.log('💡 TROUBLESHOOTING:')
         console.log('1. Check if products have weight set in Shopify Admin')
         console.log('2. Verify Advanced Shipping app is configured for this region')
@@ -359,7 +362,7 @@ export function CheckoutPageClient() {
         setShippingError(errorMsg)
         setShopifyShippingCost(null)
         setSelectedShippingOption(null)
-        console.error('[Checkout] Shipping API error:', data.error, 'Full response:', data)
+        console.error('[Checkout] Shipping API error. Full response:', data)
       } else {
         // Check if we got valid shipping options
         if (data.options && data.options.length > 0) {
@@ -462,7 +465,7 @@ export function CheckoutPageClient() {
       setShippingError(`Unable to calculate shipping. ${errorMessage} Check your address and try again, or contact support.`)
       setShopifyShippingCost(null)
       setSelectedShippingOption(null)
-      console.error('[Checkout] Shipping calculation error:', error)
+      console.error('[Checkout] Shipping calculation error (network or server exception):', error)
     } finally {
       setShippingLoading(false)
     }
@@ -472,8 +475,12 @@ export function CheckoutPageClient() {
   useEffect(() => {
     if (typeof localStorage === 'undefined') return
     const storedId = localStorage.getItem('salaamcola-cart-id')
-    if (storedId && !storedId.startsWith('gid://shopify/Cart')) {
-      console.warn('[Checkout] Clearing invalid cart ID from localStorage:', storedId.substring(0, 30))
+    const invalid =
+      !storedId ||
+      !storedId.startsWith('gid://shopify/Cart') ||
+      !storedId.includes('key=')
+    if (storedId && invalid) {
+      console.warn('[Checkout] Clearing invalid or keyless cart ID from localStorage:', storedId.substring(0, 50))
       localStorage.removeItem('salaamcola-cart-id')
       localStorage.removeItem('salaamcola-demo-cart')
     }

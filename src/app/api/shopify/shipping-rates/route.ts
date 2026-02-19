@@ -43,8 +43,23 @@ export async function POST(req: NextRequest) {
     if (!cartId.startsWith('gid://shopify/Cart')) {
       console.error('[Shipping API] Invalid cart ID format', { cartId })
       return Response.json(
-        { error: 'Invalid cart. Please refresh the page and try again.' },
+        { error: 'Invalid cart. Please refresh the page and try again.', debug: { cause: 'invalid_cart_id' } },
         { status: 400 }
+      )
+    }
+
+    // Cart ID must include secret key or Shopify will reject mutations (e.g. "Cart not found")
+    if (!cartId.includes('key=')) {
+      console.error('[Shipping API] Cart ID missing secret key (key=)')
+      return Response.json(
+        {
+          shippingCost: 0,
+          currencyCode: 'MYR',
+          options: [],
+          error: 'Cart session invalid. Please refresh the page, add items from the shop again, then try checkout.',
+          debug: { cause: 'invalid_cart_id' },
+        },
+        { status: 200 }
       )
     }
 
