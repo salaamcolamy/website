@@ -262,23 +262,72 @@ export async function getCartDeliveryRates(
       return { shippingCost: 0, currencyCode: 'MYR', options: [], error: 'No shipping methods available' }
     }
     
-    // Prioritize Advanced Shipping app rates if available, then Standard Delivery, then first available
-    // Advanced Shipping app rates typically have "weight" or "advanced" in handle/title
+    // Prioritize Advanced Shipping app rates if available
+    // Advanced Shipping app rates can be identified by:
+    // 1. Keywords: "advanced", "weight", "weight-based" in handle/title
+    // 2. Non-free shipping options (Advanced Shipping typically charges based on weight)
+    // 3. Options that are NOT "Free Shipping" or "Standard" (if Advanced Shipping is configured)
+    
+    // First, try to find explicit Advanced Shipping app rates by keywords
     const advancedShippingOption = options.find(
-      (opt) => opt.handle.includes('advanced') || 
-               opt.title.toLowerCase().includes('advanced') ||
-               (opt.handle.includes('weight') && !opt.title.toLowerCase().includes('free'))
+      (opt) => {
+        const handleLower = opt.handle.toLowerCase()
+        const titleLower = opt.title.toLowerCase()
+        return handleLower.includes('advanced') || 
+               titleLower.includes('advanced') ||
+               (handleLower.includes('weight') && !titleLower.includes('free')) ||
+               titleLower.includes('weight-based') ||
+               handleLower.includes('advanced-shipping') ||
+               handleLower.includes('advancedshipping')
+      }
     )
     
+    // If no explicit match, look for non-free options (Advanced Shipping typically charges)
+    // Prioritize options with actual costs over free shipping
+    const nonFreeOptions = options.filter(
+      (opt) => {
+        const cost = parseFloat(opt.estimatedCost.amount) || 0
+        return cost > 0
+      }
+    )
+    
+    // If Advanced Shipping app is likely installed (we have non-free options),
+    // prioritize non-free options over free shipping
     const standardDeliveryOption = options.find(
-      (opt) => opt.title.toLowerCase().includes('standard') || opt.handle.toLowerCase().includes('standard')
+      (opt) => {
+        const titleLower = opt.title.toLowerCase()
+        const handleLower = opt.handle.toLowerCase()
+        return (titleLower.includes('standard') || handleLower.includes('standard')) &&
+               parseFloat(opt.estimatedCost.amount) > 0
+      }
     )
     
-    // Priority: Advanced Shipping > Standard Delivery > First available
-    const selectedOption = advancedShippingOption || standardDeliveryOption || options[0]
+    // Selection priority:
+    // 1. Explicit Advanced Shipping option (by keywords)
+    // 2. Non-free options (likely Advanced Shipping if app is installed)
+    // 3. Standard Delivery (non-free)
+    // 4. First available option
+    let selectedOption: typeof options[0] | undefined
     
     if (advancedShippingOption) {
-      console.log('[Shopify Delivery] Using Advanced Shipping app rate:', advancedShippingOption.title)
+      selectedOption = advancedShippingOption
+      console.log('[Shopify Delivery] ✓ Using Advanced Shipping app rate (keyword match):', advancedShippingOption.title)
+    } else if (nonFreeOptions.length > 0) {
+      // If we have non-free options and Advanced Shipping app is likely installed,
+      // use the first non-free option (most likely from Advanced Shipping)
+      selectedOption = nonFreeOptions[0]
+      console.log('[Shopify Delivery] ✓ Using non-free shipping option (likely Advanced Shipping):', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount)
+    } else if (standardDeliveryOption) {
+      selectedOption = standardDeliveryOption
+      console.log('[Shopify Delivery] Using Standard Delivery:', standardDeliveryOption.title)
+    } else {
+      selectedOption = options[0]
+      console.log('[Shopify Delivery] Using first available option:', selectedOption.title)
+    }
+    
+    if (!selectedOption) {
+      console.error('[Shopify Delivery] No option selected! Available options:', options)
+      selectedOption = options[0] // Fallback
     }
     
     const amount = selectedOption
@@ -286,25 +335,46 @@ export async function getCartDeliveryRates(
       : 0
     const currencyCode = selectedOption?.estimatedCost.currencyCode ?? 'MYR'
 
-    // Log all available options (includes Advanced Shipping app rates if installed)
-    console.log('[Shopify Delivery] Found options:', options.map(o => ({ 
-      title: o.title, 
-      handle: o.handle,
-      cost: o.estimatedCost.amount,
-      currency: o.estimatedCost.currencyCode,
-      source: o.handle.includes('advanced') || o.title.toLowerCase().includes('advanced') ? 'Advanced Shipping App' : 'Shopify Native'
-    })))
+    // Log all available options with detailed information
+    console.log('[Shopify Delivery] All available shipping options:', options.map(o => {
+      const cost = parseFloat(o.estimatedCost.amount) || 0
+      const titleLower = o.title.toLowerCase()
+      const handleLower = o.handle.toLowerCase()
+      const isAdvancedShipping = handleLower.includes('advanced') || 
+                                 titleLower.includes('advanced') ||
+                                 handleLower.includes('weight') ||
+                                 titleLower.includes('weight-based')
+      return { 
+        title: o.title, 
+        handle: o.handle,
+        cost: o.estimatedCost.amount,
+        costNumber: cost,
+        currency: o.estimatedCost.currencyCode,
+        isFree: cost === 0,
+        likelyAdvancedShipping: isAdvancedShipping,
+        source: isAdvancedShipping ? 'Advanced Shipping App (detected)' : 'Shopify Native'
+      }
+    }))
     
-    // Check if Advanced Shipping app rates are present
+    // Check if Advanced Shipping app rates are present (by keywords)
     const advancedShippingOptions = options.filter(
-      opt => opt.handle.includes('advanced') || 
-             opt.title.toLowerCase().includes('advanced') ||
-             opt.handle.includes('weight') ||
-             opt.title.toLowerCase().includes('weight')
+      opt => {
+        const handleLower = opt.handle.toLowerCase()
+        const titleLower = opt.title.toLowerCase()
+        return handleLower.includes('advanced') || 
+               titleLower.includes('advanced') ||
+               handleLower.includes('weight') ||
+               titleLower.includes('weight-based') ||
+               handleLower.includes('advanced-shipping') ||
+               handleLower.includes('advancedshipping')
+      }
     )
     
     if (advancedShippingOptions.length > 0) {
-      console.log('[Shopify Delivery] Advanced Shipping app rates detected:', advancedShippingOptions.map(o => o.title))
+      console.log('[Shopify Delivery] ✓ Advanced Shipping app rates detected (by keywords):', advancedShippingOptions.map(o => `${o.title} (${o.estimatedCost.amount} ${o.estimatedCost.currencyCode})`))
+    } else if (nonFreeOptions.length > 0) {
+      console.log('[Shopify Delivery] ⚠ No explicit Advanced Shipping keywords found, but non-free options detected:', nonFreeOptions.map(o => `${o.title} (${o.estimatedCost.amount} ${o.estimatedCost.currencyCode})`))
+      console.log('[Shopify Delivery] 💡 If Advanced Shipping app is installed, these rates may be from the app')
     }
     
     console.log('[Shopify Delivery] Selected option:', selectedOption.title, 'Cost:', amount, currencyCode)

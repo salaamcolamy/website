@@ -72,7 +72,7 @@ export function CheckoutPageClient() {
   const [shippingLoading, setShippingLoading] = useState(false)
   const [shippingError, setShippingError] = useState<string | null>(null)
   const [shopifyConfigured, setShopifyConfigured] = useState<boolean | null>(null)
-  const [selectedShippingOption, setSelectedShippingOption] = useState<{ title: string; cost: number } | null>(null)
+  const [selectedShippingOption, setSelectedShippingOption] = useState<{ title: string; cost: number; isAdvancedShipping?: boolean } | null>(null)
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     email: '',
@@ -414,36 +414,51 @@ export function CheckoutPageClient() {
       } else {
         // Check if we got valid shipping options
         if (data.options && data.options.length > 0) {
-          // Check for Advanced Shipping app rates (prioritize them)
-          const advancedShippingOption = data.options.find(
-            (opt: any) => opt.handle?.includes('advanced') || 
-                         opt.title?.toLowerCase().includes('advanced') ||
-                         (opt.handle?.includes('weight') && !opt.title?.toLowerCase().includes('free'))
-          )
+          // The backend (delivery.ts) already prioritizes Advanced Shipping app rates
+          // Use the shippingCost from the backend response, which uses the selected option
+          const calculatedCost = data.shippingCost || 0
           
-          // Use Advanced Shipping app rate if available, otherwise use the first option
-          const selectedOption = advancedShippingOption || data.options[0]
-          const calculatedCost = parseFloat(selectedOption.estimatedCost?.amount || '0') || data.shippingCost || 0
+          // Find the option that matches the selected cost (from backend selection)
+          const selectedOption = data.options.find(
+            (opt: any) => parseFloat(opt.estimatedCost?.amount || '0') === calculatedCost
+          ) || data.options[0] // Fallback to first option if no match
+          
+          // Check if this is an Advanced Shipping app rate
+          const isAdvancedShipping = selectedOption?.handle?.toLowerCase().includes('advanced') ||
+                                     selectedOption?.title?.toLowerCase().includes('advanced') ||
+                                     selectedOption?.handle?.toLowerCase().includes('weight') ||
+                                     selectedOption?.title?.toLowerCase().includes('weight-based') ||
+                                     (calculatedCost > 0 && data.options.length > 1) // Non-free option when multiple options exist
           
           setShopifyShippingCost(calculatedCost)
           setSelectedShippingOption({
-            title: selectedOption.title || 'Standard Delivery',
-            cost: calculatedCost
+            title: selectedOption?.title || 'Standard Delivery',
+            cost: calculatedCost,
+            isAdvancedShipping: isAdvancedShipping
           })
           setShippingError(null)
           
           // Log which option is being used
-          if (advancedShippingOption) {
+          if (isAdvancedShipping) {
             console.log('[Checkout] ✓ Using Advanced Shipping app rate:', {
-              title: advancedShippingOption.title,
+              title: selectedOption?.title,
               cost: calculatedCost,
-              handle: advancedShippingOption.handle
+              handle: selectedOption?.handle,
+              allOptions: data.options.map((o: any) => ({ 
+                title: o.title, 
+                cost: parseFloat(o.estimatedCost?.amount || '0'),
+                handle: o.handle 
+              }))
             })
           } else {
-            console.log('[Checkout] Using Shopify native rate:', {
-              title: selectedOption.title,
+            console.log('[Checkout] Using shipping rate:', {
+              title: selectedOption?.title,
               cost: calculatedCost,
-              allOptions: data.options.map((o: any) => ({ title: o.title, cost: o.estimatedCost?.amount }))
+              allOptions: data.options.map((o: any) => ({ 
+                title: o.title, 
+                cost: parseFloat(o.estimatedCost?.amount || '0'),
+                handle: o.handle 
+              }))
             })
           }
         } else {
@@ -973,7 +988,7 @@ export function CheckoutPageClient() {
                             <div>
                               <p className="font-medium text-gray-900">
                                 {selectedShippingOption?.title || 'Standard Delivery'}
-                                {selectedShippingOption && selectedShippingOption.title.toLowerCase().includes('advanced') && (
+                                {selectedShippingOption?.isAdvancedShipping && (
                                   <span className="ml-2 text-xs text-salaam-red-600 font-normal">(Advanced Shipping)</span>
                                 )}
                               </p>
