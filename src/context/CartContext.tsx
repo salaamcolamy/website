@@ -268,10 +268,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           
           const updatedCart = await addResponse.json()
-          dispatch({ type: 'SET_CART', payload: updatedCart })
-          dispatch({ type: 'OPEN_CART' })
-          dispatch({ type: 'SET_LOADING', payload: false })
-          return
+          
+          // CRITICAL: Ensure cart is properly updated with latest state
+          if (updatedCart && updatedCart.id && updatedCart.id.startsWith('gid://shopify/Cart')) {
+            // Update localStorage with latest cart ID
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem(CART_ID_KEY, updatedCart.id)
+              localStorage.removeItem(DEMO_CART_KEY)
+            }
+            
+            console.log('[Cart] Item added successfully:', {
+              cartId: updatedCart.id,
+              itemsCount: updatedCart.items?.length || 0,
+              totalQuantity: updatedCart.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
+              items: updatedCart.items?.map((item: any) => `${item.title} x${item.quantity}`) || [],
+            })
+            
+            dispatch({ type: 'SET_CART', payload: updatedCart })
+            dispatch({ type: 'OPEN_CART' })
+            dispatch({ type: 'SET_LOADING', payload: false })
+            return
+          } else {
+            console.error('[Cart] Invalid cart returned after adding item:', updatedCart)
+            throw new Error('Invalid cart returned from Shopify')
+          }
         } catch (error) {
           console.error('[Cart] Failed to add item via Shopify:', error)
           // Don't fall back to demo mode - throw error instead

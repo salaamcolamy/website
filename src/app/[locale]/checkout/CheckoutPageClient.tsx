@@ -441,16 +441,18 @@ export function CheckoutPageClient() {
       }
       
       const data = await res.json()
-      console.log('[Checkout] Shipping API response:', {
+      console.log('[Checkout] ✓ Shipping API response received:', {
         shippingCost: data.shippingCost,
         optionsCount: data.options?.length || 0,
         options: data.options?.map((o: any) => ({
           title: o.title,
           handle: o.handle,
           cost: o.estimatedCost?.amount,
+          currency: o.estimatedCost?.currencyCode,
         })),
         error: data.error,
         currencyCode: data.currencyCode,
+        hasOptions: !!(data.options && data.options.length > 0),
       })
       
       if (data.error) {
@@ -478,6 +480,13 @@ export function CheckoutPageClient() {
                                      selectedOption?.title?.toLowerCase().includes('weight-based') ||
                                      (calculatedCost > 0 && data.options.length > 1) // Non-free option when multiple options exist
           
+          console.log('[Checkout] ✓ Setting shipping cost:', {
+            cost: calculatedCost,
+            title: selectedOption?.title,
+            isAdvancedShipping: isAdvancedShipping,
+            willDisplay: calculatedCost > 0 ? `RM${calculatedCost.toFixed(2)}` : 'FREE'
+          })
+          
           setShopifyShippingCost(calculatedCost)
           setSelectedShippingOption({
             title: selectedOption?.title || 'Standard Delivery',
@@ -485,6 +494,11 @@ export function CheckoutPageClient() {
             isAdvancedShipping: isAdvancedShipping
           })
           setShippingError(null)
+          
+          // Force a small delay to ensure state updates are reflected in UI
+          setTimeout(() => {
+            console.log('[Checkout] Shipping cost should now be displayed:', calculatedCost)
+          }, 100)
           
           // Log which option is being used
           if (isAdvancedShipping) {
@@ -554,23 +568,50 @@ export function CheckoutPageClient() {
   // Always calculate shipping based on customer input - no fallback/demo rates
   // Let fetchShopifyShippingRates handle cart migration internally
   useEffect(() => {
-    if (hasMinAddress && cart?.id && cart.items && cart.items.length > 0) {
-      // Calculate total quantity to detect quantity changes (not just item count)
-      const totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0)
-      
-      // Always call fetchShopifyShippingRates - it will handle migration if needed
-      // This ensures shipping updates as user fills in address OR when cart quantities change
-      console.log('[Checkout] Cart or address changed, recalculating shipping...', {
-        cartId: cart.id,
-        itemsCount: cart.items.length,
-        totalQuantity: totalQuantity,
-        isShopifyCart: cart.id.startsWith('gid://shopify/Cart'),
-        items: cart.items.map(item => `${item.title} x${item.quantity}`),
-      })
-      
-      // Calculate shipping immediately - Shopify automatically uses cart weight
-      // No delay needed - Shopify has weight information when items are in cart
-      fetchShopifyShippingRates()
+    // Only calculate if we have minimum address AND valid cart
+    if (!hasMinAddress) {
+      console.log('[Checkout] Address incomplete, skipping shipping calculation')
+      return
+    }
+    
+    if (!cart?.id) {
+      console.log('[Checkout] No cart ID, skipping shipping calculation')
+      return
+    }
+    
+    if (!cart.items || cart.items.length === 0) {
+      console.log('[Checkout] Cart has no items, skipping shipping calculation')
+      return
+    }
+    
+    // Check if cart is Shopify cart
+    const isShopifyCart = cart.id.startsWith('gid://shopify/Cart')
+    if (!isShopifyCart) {
+      console.warn('[Checkout] Cart is not a Shopify cart, cannot calculate shipping:', cart.id)
+      return
+    }
+    
+    // Calculate total quantity to detect quantity changes (not just item count)
+    const totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0)
+    
+    // Always call fetchShopifyShippingRates - it will handle migration if needed
+    // This ensures shipping updates as user fills in address OR when cart quantities change
+    console.log('[Checkout] ✓ Conditions met, calculating shipping...', {
+      cartId: cart.id,
+      itemsCount: cart.items.length,
+      totalQuantity: totalQuantity,
+      isShopifyCart: true,
+      items: cart.items.map(item => `${item.title} x${item.quantity}`),
+      address: {
+        state: customerInfo.state,
+        city: customerInfo.city,
+        postcode: customerInfo.postcode,
+      }
+    })
+    
+    // Calculate shipping immediately - Shopify automatically uses cart weight
+    // No delay needed - Shopify has weight information when items are in cart
+    fetchShopifyShippingRates()
       
       return () => clearTimeout(timeoutId)
     } else {
