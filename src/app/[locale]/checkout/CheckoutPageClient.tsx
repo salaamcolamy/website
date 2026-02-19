@@ -112,16 +112,43 @@ export function CheckoutPageClient() {
   )
 
   const fetchShopifyShippingRates = useCallback(async () => {
-    if (!cart?.id || !hasMinAddress) {
-      // If no cart or incomplete address, reset shipping
+    if (!hasMinAddress) {
+      // If incomplete address, reset shipping
       setShopifyShippingCost(null)
       setShippingError(null)
+      setShippingLoading(false)
+      return
+    }
+
+    // Check if we have a valid Shopify cart ID
+    const isShopifyCart = cart?.id?.startsWith('gid://shopify/Cart')
+    if (!isShopifyCart) {
+      console.warn('[Checkout] Cannot calculate shipping: Cart is not a Shopify cart', { cartId: cart?.id })
+      setShippingError('Cart is not ready for shipping calculation. Please refresh the page.')
+      setShopifyShippingCost(null)
+      setShippingLoading(false)
+      return
+    }
+
+    if (!cart?.id) {
+      console.warn('[Checkout] Cannot calculate shipping: No cart ID')
+      setShippingError('Cart is not ready. Please refresh the page.')
+      setShopifyShippingCost(null)
       setShippingLoading(false)
       return
     }
     
     setShippingLoading(true)
     setShippingError(null)
+    
+    console.log('[Checkout] Fetching shipping rates for:', {
+      cartId: cart.id,
+      address: customerInfo.address,
+      city: customerInfo.city,
+      state: customerInfo.state,
+      postcode: customerInfo.postcode,
+    })
+    
     try {
       const countryCode = customerInfo.country === 'Malaysia' ? 'MY' : customerInfo.country?.slice(0, 2).toUpperCase() || 'MY'
       const res = await fetch('/api/shopify/shipping-rates', {
@@ -142,21 +169,27 @@ export function CheckoutPageClient() {
           },
         }),
       })
+      
       const data = await res.json()
+      console.log('[Checkout] Shipping API response:', data)
+      
       if (data.error) {
         setShippingError(data.error)
         setShopifyShippingCost(null)
+        console.error('[Checkout] Shipping API error:', data.error)
       } else {
         // Check if we got valid shipping options
         if (data.options && data.options.length > 0) {
           // Use the shipping cost from Shopify
           setShopifyShippingCost(data.shippingCost ?? 0)
           setShippingError(null)
-          console.log('[Checkout] Shipping cost calculated:', data.shippingCost, 'Options:', data.options)
+          console.log('[Checkout] Shipping cost calculated successfully:', data.shippingCost, 'Options:', data.options)
         } else {
           // No options returned - might be a zone mismatch
-          setShippingError(`No shipping options found for ${customerInfo.state}. Please verify your address or contact support.`)
+          const errorMsg = `No shipping options found for ${customerInfo.state}. Please verify your address or contact support.`
+          setShippingError(errorMsg)
           setShopifyShippingCost(null)
+          console.warn('[Checkout] No shipping options returned:', data)
         }
       }
     } catch (error) {
@@ -173,9 +206,19 @@ export function CheckoutPageClient() {
   // Always calculate shipping based on customer input - no fallback/demo rates
   useEffect(() => {
     if (hasMinAddress && cart?.id) {
-      // Fetch shipping rates when we have complete address, regardless of step
-      // This ensures shipping updates as user fills in address on information step
-      fetchShopifyShippingRates()
+      // Only fetch if cart is a Shopify cart (has valid Shopify cart ID)
+      const isShopifyCart = cart.id.startsWith('gid://shopify/Cart')
+      if (isShopifyCart) {
+        // Fetch shipping rates when we have complete address, regardless of step
+        // This ensures shipping updates as user fills in address on information step
+        console.log('[Checkout] Address complete, fetching shipping rates...')
+        fetchShopifyShippingRates()
+      } else {
+        console.warn('[Checkout] Cannot fetch shipping: Cart is not a Shopify cart', { cartId: cart.id })
+        setShippingError('Cart is not ready for shipping calculation. Please refresh the page or add items to cart again.')
+        setShopifyShippingCost(null)
+        setShippingLoading(false)
+      }
     } else {
       // If address is incomplete, clear shipping
       if (!hasMinAddress) {
@@ -680,7 +723,14 @@ export function CheckoutPageClient() {
                           Shipping cost will be calculated based on your delivery address
                         </p>
                       )}
-                      {customerInfo.state && shippingCost !== null && !shippingError && (
+                      {customerInfo.state && !isShopifyCart && (
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-sm text-yellow-800">
+                            ⚠ Cart is not ready for shipping calculation. Please refresh the page or add items to cart again.
+                          </p>
+                        </div>
+                      )}
+                      {customerInfo.state && isShopifyCart && shippingCost !== null && !shippingError && (
                         <p className="text-sm text-green-600 italic mt-2">
                           ✓ Shipping calculated for {customerInfo.city}, {customerInfo.state}
                         </p>
