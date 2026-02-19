@@ -22,7 +22,7 @@
  *    - Remove ISO code mapping, use stateToProvinceName mapping instead
  */
 
-import { shopifyFetch, isShopifyConfigured } from './client'
+import { shopifyFetch, isShopifyConfigured, cartQueryWithCarrierRates } from './client'
 import { getAdvancedShippingRates, isAdvancedShippingConfigured } from '../advanced-shipping/client'
 
 const ADVANCED_SHIPPING_APP_ID = process.env.ADVANCED_SHIPPING_APP_ID || ''
@@ -369,6 +369,17 @@ export async function getCartDeliveryRates(
       provinceCode = address.province.trim()
     }
 
+    // Kuala Lumpur / Wilayah Persekutuan: try alternate names Shopify might use in zones
+    const klAlternates = ['W.P. Kuala Lumpur', 'WP Kuala Lumpur', 'Federal Territory of Kuala Lumpur', 'Wilayah Persekutuan Kuala Lumpur']
+    if (hasNoOptions() && !payload.userErrors?.length && (address.province === 'Kuala Lumpur' || address.province === 'Wilayah Persekutuan')) {
+      for (const alt of klAlternates) {
+        if (hasNoOptions() && !payload.userErrors?.length) {
+          payload = await replaceAddressAndGetRates(alt)
+          if (!hasNoOptions()) provinceCode = alt
+        }
+      }
+    }
+
     // Sometimes mutation response has empty deliveryOptions; fetch cart again to get rates
     if (hasNoOptions() && !payload.userErrors?.length) {
       try {
@@ -405,6 +416,31 @@ export async function getCartDeliveryRates(
                 deliveryGroups: cartData.cart.deliveryGroups,
               },
             }
+          }
+        }
+      } catch (_) {
+        // ignore
+      }
+    }
+
+    // If still no options, try cart query with @defer + withCarrierRates for carrier-calculated rates
+    if (hasNoOptions() && !payload.userErrors?.length) {
+      try {
+        const carrierCart = await cartQueryWithCarrierRates(cartId)
+        const edges = carrierCart?.deliveryGroups?.edges
+        if (edges?.length && payload.cart) {
+          const nodes = edges
+            .map((e) => e.node)
+            .filter((n) => n.deliveryOptions?.length)
+          if (nodes.length > 0) {
+            payload = {
+              ...payload,
+              cart: {
+                ...payload.cart,
+                deliveryGroups: { nodes },
+              },
+            }
+            console.log('[Shopify Delivery] Used carrier rates from @defer query:', nodes[0].deliveryOptions?.length, 'options')
           }
         }
       } catch (_) {
@@ -498,17 +534,16 @@ export async function getCartDeliveryRates(
       
       if (isWPKL) {
         const userSelected = address.province === 'Wilayah Persekutuan' ? 'Wilayah Persekutuan' : 'Kuala Lumpur'
-        errorMessage = `No shipping zone found for ${userSelected}. When customers select "Kuala Lumpur" or "Wilayah Persekutuan", we send "Kuala Lumpur" to Shopify. Add "Kuala Lumpur" to the West Malaysia shipping zone (this covers both selections).`
+        errorMessage = `No shipping zone found for ${userSelected}. Add "Kuala Lumpur" or "Wilayah Persekutuan" to your West Malaysia shipping zone.`
         troubleshootingSteps = [
-          'Go to Shopify Admin → Settings → Shipping → Shipping zones',
-          'Open "West Malaysia" zone',
-          'Click "Add country/region" or "Edit"',
-          'Search for and add "Kuala Lumpur" (exact spelling, case-sensitive)',
-          'Verify "Kuala Lumpur" appears in the zone\'s list of regions',
-          'In Advanced Shipping app → West Malaysia service → Add rule: Province = Kuala Lumpur',
-          'Verify Advanced Shipping app service is linked to the West Malaysia shipping zone',
-          'Save all changes and test again',
-          'If still not working, check browser console for "Shopify recognized address" log to see what Shopify actually recognized'
+          'Go to Shopify Admin → Settings → Shipping and delivery',
+          'Open your West Malaysia zone (or create one)',
+          'Click "Add country/region" or "Edit" on the zone',
+          'Under Malaysia, add BOTH "Kuala Lumpur" AND "Wilayah Persekutuan" if they appear in the list (exact spelling)',
+          'If you only see "Malaysia" with no states: click "Add region" / "Limit to specific states" and add Kuala Lumpur',
+          'Under Rates, click "Add rate" → "Use carrier or app" → choose "Advanced Shipping Rules"',
+          'Save. Then in Apps → Advanced Shipping Rules → West Malaysia service, add a rule: Province = Kuala Lumpur (or Wilayah Persekutuan)',
+          'Test again. If it still fails, run GET /api/shopify/validate-setup to see what Shopify recognizes'
         ]
       } else {
         troubleshootingSteps = [
