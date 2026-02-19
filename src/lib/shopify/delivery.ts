@@ -23,6 +23,7 @@
  */
 
 import { shopifyFetch, isShopifyConfigured } from './client'
+import { getAdvancedShippingRates, isAdvancedShippingConfigured } from '../advanced-shipping/client'
 
 export interface DeliveryAddressInput {
   address1: string
@@ -241,6 +242,18 @@ export async function getCartDeliveryRates(
           `Sent: "${provinceCode}" but Shopify recognized: "${recognizedProvince}". ` +
           `If shipping shows FREE, update mapStateToShopifyProvinceCode() to use "${recognizedProvince}" format.`
         )
+      }
+    }
+    
+    // If no options from Shopify, try Advanced Shipping API directly as fallback
+    if (options.length === 0 && isAdvancedShippingConfigured()) {
+      console.log('[Shopify Delivery] No Shopify options, trying Advanced Shipping API directly...')
+      try {
+        // Note: We'd need cart items to call Advanced Shipping API
+        // For now, return empty and let the caller handle it
+        console.warn('[Shopify Delivery] Advanced Shipping API fallback requires cart items - not implemented yet')
+      } catch (apiError) {
+        console.error('[Shopify Delivery] Advanced Shipping API fallback failed:', apiError)
       }
     }
     

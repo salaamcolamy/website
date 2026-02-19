@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getCartDeliveryRates } from '@/lib/shopify/delivery'
 import { isShopifyConfigured } from '@/lib/shopify/client'
+import { isAdvancedShippingConfigured } from '@/lib/advanced-shipping/client'
 
 export interface ShippingRatesBody {
   cartId: string
@@ -56,7 +57,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    console.log('[Shipping API] Calculating shipping for:', { cartId, province, city, zip })
+    console.log('[Shipping API] Calculating shipping for:', { 
+      cartId, 
+      province, 
+      city, 
+      zip,
+      advancedShippingConfigured: isAdvancedShippingConfigured()
+    })
 
     const result = await getCartDeliveryRates(cartId, {
       address1: address1.trim(),
