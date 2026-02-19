@@ -111,6 +111,10 @@ export async function getCartDeliveryRates(
     return { shippingCost: 0, currencyCode: 'MYR', options: [], error: 'Invalid cart ID format' }
   }
   
+  // Determine if this is East Malaysia for logging
+  const isEastMalaysia = address.province === 'Sabah' || address.province === 'Sarawak'
+  const regionLabel = isEastMalaysia ? 'East Malaysia' : 'West Malaysia'
+  
   console.log('[Shopify Delivery] Starting shipping calculation...', {
     cartId: cartId.substring(0, 50) + '...',
     address: {
@@ -118,7 +122,11 @@ export async function getCartDeliveryRates(
       city: address.city,
       zip: address.zip,
       countryCode: address.countryCode,
-    }
+    },
+    region: regionLabel,
+    note: isEastMalaysia 
+      ? '⚠️ East Malaysia address - ensure Advanced Shipping app has East Malaysia service configured'
+      : 'West Malaysia address'
   })
 
   const mutation = `
@@ -388,6 +396,17 @@ export async function getCartDeliveryRates(
       : 0
     const currencyCode = selectedOption?.estimatedCost.currencyCode ?? 'MYR'
 
+    // Log region information for Advanced Shipping app debugging
+    const isEastMalaysiaAddress = address.province === 'Sabah' || address.province === 'Sarawak'
+    console.log('[Shopify Delivery] 🌍 Address Region:', {
+      province: address.province,
+      provinceCode: provinceCode,
+      region: isEastMalaysiaAddress ? 'East Malaysia' : 'West Malaysia',
+      note: isEastMalaysiaAddress 
+        ? '⚠️ If only West Malaysia rates appear, configure East Malaysia service in Advanced Shipping app'
+        : 'West Malaysia - rates should be available'
+    })
+    
     // Log all available options with detailed information
     console.log('[Shopify Delivery] 📦 All available shipping options:', options.map(o => {
       const cost = parseFloat(o.estimatedCost.amount) || 0
