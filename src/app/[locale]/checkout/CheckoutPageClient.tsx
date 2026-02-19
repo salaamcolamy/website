@@ -36,16 +36,28 @@ interface CustomerInfo {
   country: string
 }
 
-// Malaysian banks for FPX
+// Malaysian banks for FPX with Billplz bank codes
+// Bank codes are used in reference_1 field when creating Billplz bills
 const fpxBanks = [
-  { id: 'maybank', name: 'Maybank2u', logo: '/images/banks/maybank.png' },
-  { id: 'cimb', name: 'CIMB Clicks', logo: '/images/banks/cimb.png' },
-  { id: 'publicbank', name: 'PBe', logo: '/images/banks/publicbank.png' },
-  { id: 'rhb', name: 'RHB Now', logo: '/images/banks/rhb.png' },
-  { id: 'hongLeong', name: 'Hong Leong Connect', logo: '/images/banks/hongleong.png' },
-  { id: 'ambank', name: 'AmOnline', logo: '/images/banks/ambank.png' },
-  { id: 'bankIslam', name: 'Bank Islam', logo: '/images/banks/bankislam.png' },
-  { id: 'bsn', name: 'myBSN', logo: '/images/banks/bsn.png' },
+  { id: 'MB2U0227', name: 'Maybank2u', code: 'MB2U0227', logo: '/images/banks/maybank.png' },
+  { id: 'BCBB0235', name: 'CIMB Clicks', code: 'BCBB0235', logo: '/images/banks/cimb.png' },
+  { id: 'PBB0233', name: 'PBe (Public Bank)', code: 'PBB0233', logo: '/images/banks/publicbank.png' },
+  { id: 'RHB0218', name: 'RHB Now', code: 'RHB0218', logo: '/images/banks/rhb.png' },
+  { id: 'HLB0224', name: 'Hong Leong Connect', code: 'HLB0224', logo: '/images/banks/hongleong.png' },
+  { id: 'AMBB0209', name: 'AmOnline', code: 'AMBB0209', logo: '/images/banks/ambank.png' },
+  { id: 'BIMB0340', name: 'Bank Islam Internet Banking', code: 'BIMB0340', logo: '/images/banks/bankislam.png' },
+  { id: 'BSN0601', name: 'myBSN', code: 'BSN0601', logo: '/images/banks/bsn.png' },
+  { id: 'OCBC0229', name: 'OCBC Online Banking', code: 'OCBC0229', logo: '/images/banks/ocbc.png' },
+  { id: 'HSBC0223', name: 'HSBC Online Banking', code: 'HSBC0223', logo: '/images/banks/hsbc.png' },
+  { id: 'UOB0226', name: 'UOB Internet Banking', code: 'UOB0226', logo: '/images/banks/uob.png' },
+  { id: 'SCB0216', name: 'Standard Chartered Online Banking', code: 'SCB0216', logo: '/images/banks/scb.png' },
+  { id: 'CIT0219', name: 'Citibank Online', code: 'CIT0219', logo: '/images/banks/citibank.png' },
+  { id: 'ABB0233', name: 'Affin Online', code: 'ABB0233', logo: '/images/banks/affin.png' },
+  { id: 'ABMB0212', name: 'Alliance Online', code: 'ABMB0212', logo: '/images/banks/alliance.png' },
+  { id: 'BKRM0602', name: 'i-Rakyat (Bank Kerjasama Rakyat)', code: 'BKRM0602', logo: '/images/banks/bkrm.png' },
+  { id: 'BMMB0341', name: 'i-Muamalat', code: 'BMMB0341', logo: '/images/banks/muamalat.png' },
+  { id: 'KFH0346', name: 'KFH Online', code: 'KFH0346', logo: '/images/banks/kfh.png' },
+  { id: 'AGRO01', name: 'AGRONet', code: 'AGRO01', logo: '/images/banks/agrobank.png' },
 ]
 
 export function CheckoutPageClient() {
@@ -181,6 +193,12 @@ export function CheckoutPageClient() {
     setIsProcessing(true)
 
     try {
+      // Find the selected bank details
+      const bankDetails = fpxBanks.find(bank => bank.id === selectedBank)
+      if (!bankDetails) {
+        throw new Error('Invalid bank selection')
+      }
+
       // Generate order ID
       const orderId = generateOrderId()
 
@@ -209,7 +227,7 @@ export function CheckoutPageClient() {
       // Save order before creating bill
       saveOrder(orderData)
 
-      // Create Billplz bill
+      // Create Billplz bill with bank code
       const response = await fetch('/api/billplz/create-bill', {
         method: 'POST',
         headers: {
@@ -222,6 +240,7 @@ export function CheckoutPageClient() {
           description: `Order ${orderId} - ${cart?.items.length || 0} item(s)`,
           orderId,
           phone: customerInfo.phone,
+          bankCode: bankDetails.code, // Pass the Billplz bank code
         }),
       })
 
@@ -258,8 +277,13 @@ export function CheckoutPageClient() {
       orderData.billplzBillId = billData.billId
       saveOrder(orderData)
 
-      // Redirect to Billplz payment page
-      window.location.href = billData.paymentUrl
+      // Append auto_submit=true to redirect directly to bank's online portal
+      const paymentUrl = billData.paymentUrl.includes('?')
+        ? `${billData.paymentUrl}&auto_submit=true`
+        : `${billData.paymentUrl}?auto_submit=true`
+
+      // Redirect to Billplz payment page (which will auto-submit to selected bank)
+      window.location.href = paymentUrl
     } catch (error) {
       console.error('Error creating payment:', error)
       const errorMessage = error instanceof Error 
@@ -654,12 +678,12 @@ export function CheckoutPageClient() {
 
                     <div className="space-y-3 mb-6">
                       <p className="text-sm text-gray-600 mb-4">Select your bank:</p>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
                         {fpxBanks.map((bank) => (
                           <button
                             key={bank.id}
                             onClick={() => setSelectedBank(bank.id)}
-                            className={`p-3 border-2 rounded-xl transition-colors text-left ${
+                            className={`p-4 border-2 rounded-xl transition-colors text-left ${
                               selectedBank === bank.id
                                 ? 'border-salaam-red-500 bg-salaam-red-50'
                                 : 'border-gray-200 hover:border-gray-300'

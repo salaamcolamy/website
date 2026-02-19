@@ -16,7 +16,7 @@ async function handler(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email, name, amount, description, orderId, phone, draftOrderId } = body
+    const { email, name, amount, description, orderId, phone, draftOrderId, bankCode } = body
 
     if (!email || !name || !amount || !description || !orderId) {
       return createValidationError('Missing required fields: email, name, amount, description, or orderId')
@@ -101,8 +101,11 @@ async function handler(request: NextRequest) {
       description,
       callbackUrl,
       redirectUrl,
-      reference_1_label: 'Order ID',
-      reference_1: orderId,
+      // If bankCode is provided, use it for direct payment gateway (FPX bank selection)
+      // Otherwise, use orderId as reference_1
+      bankCode: bankCode || undefined,
+      reference_1_label: bankCode ? undefined : 'Order ID',
+      reference_1: bankCode ? undefined : orderId,
       reference_2_label: draftOrderId ? 'Draft Order ID' : 'Phone',
       reference_2: draftOrderId || phone || '',
     })

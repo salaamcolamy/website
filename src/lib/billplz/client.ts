@@ -26,6 +26,7 @@ interface CreateBillParams {
   reference_1?: string
   reference_2_label?: string
   reference_2?: string
+  bankCode?: string // FPX bank code for direct payment gateway
 }
 
 interface BillplzBill {
@@ -126,8 +127,16 @@ class BillplzClient {
         redirect_url: params.redirectUrl,
       })
 
-      if (params.reference_1_label) formData.append('reference_1_label', params.reference_1_label)
-      if (params.reference_1) formData.append('reference_1', params.reference_1)
+      // If bankCode is provided, use it for direct payment gateway (bypass Billplz payment selection page)
+      if (params.bankCode) {
+        formData.append('reference_1_label', 'Bank Code')
+        formData.append('reference_1', params.bankCode)
+      } else {
+        // Use existing reference fields if provided
+        if (params.reference_1_label) formData.append('reference_1_label', params.reference_1_label)
+        if (params.reference_1) formData.append('reference_1', params.reference_1)
+      }
+      
       if (params.reference_2_label) formData.append('reference_2_label', params.reference_2_label)
       if (params.reference_2) formData.append('reference_2', params.reference_2)
 
