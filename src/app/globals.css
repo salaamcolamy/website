@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Fonts - loaded via CSS to avoid build-time fetching */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
 @font-face {
   font-family: 'Quora';
   src: url('/fonts/quora.otf') format('opentype');
@@ -15,6 +22,11 @@
     --background: 255 255 255;
     --foreground: 26 26 26;
     --salaam-red: 194 19 22;
+    --font-geist-sans: 'Geist', system-ui, sans-serif;
+    --font-geist-mono: 'Geist Mono', monospace;
+    --font-noto-arabic: 'Noto Sans Arabic', system-ui, sans-serif;
+    --font-poppins: 'Poppins', system-ui, sans-serif;
+    --font-anton: 'Anton', system-ui, sans-serif;
   }
 
   html {

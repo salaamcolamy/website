@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import { Geist, Geist_Mono, Noto_Sans_Arabic, Poppins, Anton } from 'next/font/google'
 import { routing } from '@/i18n/routing'
 import { localeDirection, Locale } from '@/i18n/config'
 import { CartProvider } from '@/context/CartContext'
@@ -21,57 +20,6 @@ export const metadata: Metadata = {
     apple: '/apple-icon.png',
   },
 }
-
-// Font configurations with fallback handling
-// preload: false prevents Next.js from fetching fonts during build
-// adjustFontFallback: false prevents font metric calculations
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-  display: 'swap',
-  fallback: ['system-ui', 'sans-serif'],
-  preload: false,
-  adjustFontFallback: false,
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-  display: 'swap',
-  fallback: ['monospace'],
-  preload: false,
-  adjustFontFallback: false,
-})
-
-const notoArabic = Noto_Sans_Arabic({
-  variable: '--font-noto-arabic',
-  subsets: ['arabic'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  fallback: ['system-ui', 'sans-serif'],
-  preload: false,
-  adjustFontFallback: false,
-})
-
-const poppins = Poppins({
-  variable: '--font-poppins',
-  subsets: ['latin'],
-  weight: ['400', '600', '700', '800', '900'],
-  display: 'swap',
-  fallback: ['system-ui', 'sans-serif'],
-  preload: false,
-  adjustFontFallback: false,
-})
-
-const anton = Anton({
-  variable: '--font-anton',
-  subsets: ['latin'],
-  weight: ['400'],
-  display: 'swap',
-  fallback: ['system-ui', 'sans-serif'],
-  preload: false,
-  adjustFontFallback: false,
-})
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
@@ -105,7 +53,6 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       dir={direction}
-      className={`${geistSans.variable} ${geistMono.variable} ${notoArabic.variable} ${poppins.variable} ${anton.variable}`}
     >
       <body className={`antialiased ${isRTL ? 'font-arabic' : 'font-sans'}`}>
         <NextIntlClientProvider messages={messages}>
