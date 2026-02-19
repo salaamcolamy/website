@@ -20,7 +20,7 @@ import {
 import { getShippingForLocation } from '@/lib/shipping'
 
 type Step = 'information' | 'shipping' | 'payment'
-type PaymentMethod = 'card' | 'fpx'
+type PaymentMethod = 'fpx'
 
 interface CustomerInfo {
   email: string
@@ -35,13 +35,6 @@ interface CustomerInfo {
   country: string
 }
 
-interface CardInfo {
-  number: string
-  name: string
-  expiry: string
-  cvv: string
-}
-
 // Demo prefilled data
 const demoCustomerInfo: CustomerInfo = {
   email: 'ahmad@example.com',
@@ -54,13 +47,6 @@ const demoCustomerInfo: CustomerInfo = {
   state: 'Wilayah Persekutuan',
   postcode: '50200',
   country: 'Malaysia',
-}
-
-const demoCardInfo: CardInfo = {
-  number: '4242 4242 4242 4242',
-  name: 'AHMAD IBRAHIM',
-  expiry: '12/28',
-  cvv: '123',
 }
 
 // Malaysian banks for FPX
@@ -79,7 +65,7 @@ export function CheckoutPageClient() {
   const router = useRouter()
   const { cart, clearCart } = useCart()
   const [currentStep, setCurrentStep] = useState<Step>('information')
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card')
+  const [paymentMethod] = useState<PaymentMethod>('fpx')
   const [selectedBank, setSelectedBank] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [useDemoData, setUseDemoData] = useState(false)
@@ -97,16 +83,8 @@ export function CheckoutPageClient() {
     country: 'Malaysia',
   })
 
-  const [cardInfo, setCardInfo] = useState<CardInfo>({
-    number: '',
-    name: '',
-    expiry: '',
-    cvv: '',
-  })
-
   const fillDemoData = () => {
     setCustomerInfo(demoCustomerInfo)
-    setCardInfo(demoCardInfo)
     setUseDemoData(true)
   }
 
@@ -164,26 +142,6 @@ export function CheckoutPageClient() {
     router.push(`/order-confirmation?orderId=${orderId}`)
   }
 
-  // Format card number with spaces
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '')
-    const matches = v.match(/\d{4,16}/g)
-    const match = (matches && matches[0]) || ''
-    const parts = []
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4))
-    }
-    return parts.length ? parts.join(' ') : value
-  }
-
-  // Format expiry date
-  const formatExpiry = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '')
-    if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4)
-    }
-    return v
-  }
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -567,160 +525,34 @@ export function CheckoutPageClient() {
                     className="bg-white rounded-2xl shadow-sm p-6"
                   >
                     <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-salaam-red-500" />
+                      <Building2 className="w-5 h-5 text-salaam-red-500" />
                       Payment Method
                     </h2>
 
-                    {/* Payment Method Selection */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <button
-                        onClick={() => setPaymentMethod('card')}
-                        className={`p-4 border-2 rounded-xl transition-colors ${
-                          paymentMethod === 'card'
-                            ? 'border-salaam-red-500 bg-salaam-red-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <CreditCard
-                          className={`w-8 h-8 mx-auto mb-2 ${
-                            paymentMethod === 'card' ? 'text-salaam-red-500' : 'text-gray-400'
-                          }`}
-                        />
-                        <p className="font-medium text-gray-900">Credit/Debit Card</p>
-                        <p className="text-xs text-gray-500">Visa, Mastercard, Amex</p>
-                      </button>
-                      <button
-                        onClick={() => setPaymentMethod('fpx')}
-                        className={`p-4 border-2 rounded-xl transition-colors ${
-                          paymentMethod === 'fpx'
-                            ? 'border-salaam-red-500 bg-salaam-red-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <Building2
-                          className={`w-8 h-8 mx-auto mb-2 ${
-                            paymentMethod === 'fpx' ? 'text-salaam-red-500' : 'text-gray-400'
-                          }`}
-                        />
-                        <p className="font-medium text-gray-900">FPX Online Banking</p>
-                        <p className="text-xs text-gray-500">Malaysian banks</p>
-                      </button>
+                    <div className="space-y-3 mb-6">
+                      <p className="text-sm text-gray-600 mb-4">Select your bank:</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        {fpxBanks.map((bank) => (
+                          <button
+                            key={bank.id}
+                            onClick={() => setSelectedBank(bank.id)}
+                            className={`p-3 border-2 rounded-xl transition-colors text-left ${
+                              selectedBank === bank.id
+                                ? 'border-salaam-red-500 bg-salaam-red-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <p className="font-medium text-gray-900 text-sm">{bank.name}</p>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-
-                    {/* Card Payment Form */}
-                    {paymentMethod === 'card' && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="space-y-4"
-                      >
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Card Number
-                          </label>
-                          <input
-                            type="text"
-                            value={cardInfo.number}
-                            onChange={(e) =>
-                              setCardInfo({
-                                ...cardInfo,
-                                number: formatCardNumber(e.target.value),
-                              })
-                            }
-                            maxLength={19}
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
-                            placeholder="1234 5678 9012 3456"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Name on Card
-                          </label>
-                          <input
-                            type="text"
-                            value={cardInfo.name}
-                            onChange={(e) =>
-                              setCardInfo({ ...cardInfo, name: e.target.value.toUpperCase() })
-                            }
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
-                            placeholder="JOHN DOE"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Expiry Date
-                            </label>
-                            <input
-                              type="text"
-                              value={cardInfo.expiry}
-                              onChange={(e) =>
-                                setCardInfo({
-                                  ...cardInfo,
-                                  expiry: formatExpiry(e.target.value),
-                                })
-                              }
-                              maxLength={5}
-                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
-                              placeholder="MM/YY"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              CVV
-                            </label>
-                            <input
-                              type="text"
-                              value={cardInfo.cvv}
-                              onChange={(e) =>
-                                setCardInfo({
-                                  ...cardInfo,
-                                  cvv: e.target.value.replace(/\D/g, '').slice(0, 4),
-                                })
-                              }
-                              maxLength={4}
-                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
-                              placeholder="123"
-                            />
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* FPX Bank Selection */}
-                    {paymentMethod === 'fpx' && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="space-y-3"
-                      >
-                        <p className="text-sm text-gray-600 mb-4">Select your bank:</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          {fpxBanks.map((bank) => (
-                            <button
-                              key={bank.id}
-                              onClick={() => setSelectedBank(bank.id)}
-                              className={`p-3 border-2 rounded-xl transition-colors text-left ${
-                                selectedBank === bank.id
-                                  ? 'border-salaam-red-500 bg-salaam-red-50'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
-                            >
-                              <p className="font-medium text-gray-900 text-sm">{bank.name}</p>
-                            </button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
 
                     {/* Security Notice */}
                     <div className="mt-6 p-4 bg-gray-50 rounded-xl flex items-center gap-3">
                       <Lock className="w-5 h-5 text-green-600 flex-shrink-0" />
                       <p className="text-sm text-gray-600">
-                        Your payment information is encrypted and secure. We never store your card
-                        details.
+                        Your payment will be processed securely through FPX online banking. You will be redirected to your bank's secure payment page.
                       </p>
                     </div>
 
@@ -734,7 +566,7 @@ export function CheckoutPageClient() {
                       </button>
                       <button
                         onClick={handlePlaceOrder}
-                        disabled={isProcessing || (paymentMethod === 'fpx' && !selectedBank)}
+                        disabled={isProcessing || !selectedBank}
                         className="px-8 py-3 bg-salaam-red-500 text-white rounded-full font-semibold hover:bg-salaam-red-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isProcessing ? (
