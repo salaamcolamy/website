@@ -275,6 +275,17 @@ export async function getCartDeliveryRates(
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to get delivery rates'
-    return { shippingCost: 0, currencyCode: 'MYR', options: [], error: message }
+    console.error('[Shopify Delivery] Error calculating shipping:', err)
+    
+    // Provide more detailed error information
+    let errorMessage = message
+    if (err instanceof Error) {
+      // Check if it's a GraphQL error
+      if (err.message.includes('GraphQL') || err.message.includes('Shopify')) {
+        errorMessage = `Shopify API error: ${err.message}. Please check your Shopify configuration and shipping zones.`
+      }
+    }
+    
+    return { shippingCost: 0, currencyCode: 'MYR', options: [], error: errorMessage }
   }
 }

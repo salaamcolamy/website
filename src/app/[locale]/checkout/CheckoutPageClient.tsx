@@ -123,8 +123,11 @@ export function CheckoutPageClient() {
     // Check if we have a valid Shopify cart ID
     const isShopifyCart = cart?.id?.startsWith('gid://shopify/Cart')
     if (!isShopifyCart) {
-      console.warn('[Checkout] Cannot calculate shipping: Cart is not a Shopify cart', { cartId: cart?.id })
-      setShippingError('Cart is not ready for shipping calculation. Please refresh the page.')
+      console.warn('[Checkout] Cannot calculate shipping: Cart is not a Shopify cart', { 
+        cartId: cart?.id,
+        cartItems: cart?.items?.length || 0,
+      })
+      setShippingError('Cart is not ready for shipping calculation. Please ensure you have items in your cart and refresh the page.')
       setShopifyShippingCost(null)
       setShippingLoading(false)
       return
@@ -133,6 +136,15 @@ export function CheckoutPageClient() {
     if (!cart?.id) {
       console.warn('[Checkout] Cannot calculate shipping: No cart ID')
       setShippingError('Cart is not ready. Please refresh the page.')
+      setShopifyShippingCost(null)
+      setShippingLoading(false)
+      return
+    }
+
+    // Check if cart has items
+    if (!cart.items || cart.items.length === 0) {
+      console.warn('[Checkout] Cannot calculate shipping: Cart has no items')
+      setShippingError('Your cart is empty. Please add items to your cart before calculating shipping.')
       setShopifyShippingCost(null)
       setShippingLoading(false)
       return
@@ -170,26 +182,47 @@ export function CheckoutPageClient() {
         }),
       })
       
+      // Check HTTP response status
+      if (!res.ok) {
+        const errorText = await res.text()
+        let errorMessage = `HTTP ${res.status}: ${res.statusText}`
+        try {
+          const errorData = JSON.parse(errorText)
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          errorMessage = errorText || errorMessage
+        }
+        throw new Error(errorMessage)
+      }
+      
       const data = await res.json()
       console.log('[Checkout] Shipping API response:', data)
       
       if (data.error) {
-        setShippingError(data.error)
+        const errorMsg = data.error || 'Failed to calculate shipping rates'
+        setShippingError(errorMsg)
         setShopifyShippingCost(null)
-        console.error('[Checkout] Shipping API error:', data.error)
+        console.error('[Checkout] Shipping API error:', data.error, 'Full response:', data)
       } else {
         // Check if we got valid shipping options
         if (data.options && data.options.length > 0) {
           // Use the shipping cost from Shopify
-          setShopifyShippingCost(data.shippingCost ?? 0)
+          const calculatedCost = data.shippingCost ?? 0
+          setShopifyShippingCost(calculatedCost)
           setShippingError(null)
-          console.log('[Checkout] Shipping cost calculated successfully:', data.shippingCost, 'Options:', data.options)
+          console.log('[Checkout] Shipping cost calculated successfully:', calculatedCost, 'Options:', data.options)
         } else {
-          // No options returned - might be a zone mismatch
-          const errorMsg = `No shipping options found for ${customerInfo.state}. Please verify your address or contact support.`
+          // No options returned - provide detailed error message
+          const errorMsg = data.error 
+            ? data.error 
+            : `No shipping options found for ${customerInfo.state}, ${customerInfo.city}. Please verify your address matches a shipping zone in Shopify Admin, or contact support.`
           setShippingError(errorMsg)
           setShopifyShippingCost(null)
-          console.warn('[Checkout] No shipping options returned:', data)
+          console.warn('[Checkout] No shipping options returned. Response:', data, 'Address sent:', {
+            state: customerInfo.state,
+            city: customerInfo.city,
+            postcode: customerInfo.postcode,
+          })
         }
       }
     } catch (error) {
