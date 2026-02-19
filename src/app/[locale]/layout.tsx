@@ -23,11 +23,13 @@ export const metadata: Metadata = {
 }
 
 // Font configurations with fallback handling
+// adjustFontFallback: false prevents build failures when fonts can't be fetched
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
+  adjustFontFallback: false,
 })
 
 const geistMono = Geist_Mono({
@@ -35,6 +37,7 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
   display: 'swap',
   fallback: ['monospace'],
+  adjustFontFallback: false,
 })
 
 const notoArabic = Noto_Sans_Arabic({
@@ -43,6 +46,7 @@ const notoArabic = Noto_Sans_Arabic({
   weight: ['400', '500', '600', '700'],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
+  adjustFontFallback: false,
 })
 
 const poppins = Poppins({
@@ -51,6 +55,7 @@ const poppins = Poppins({
   weight: ['400', '600', '700', '800', '900'],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
+  adjustFontFallback: false,
 })
 
 const anton = Anton({
@@ -59,6 +64,7 @@ const anton = Anton({
   weight: ['400'],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
+  adjustFontFallback: false,
 })
 
 export function generateStaticParams() {

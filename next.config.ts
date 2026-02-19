@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.myshopify.com https://*.shopify.com https://www.billplz.com https://www.billplz-sandbox.com; img-src 'self' https: data: blob:; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://www.billplz.com https://www.billplz-sandbox.com;" },
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.myshopify.com https://*.shopify.com https://www.billplz.com https://www.billplz-sandbox.com; img-src 'self' https: data: blob:; font-src 'self' data: https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://www.billplz.com https://www.billplz-sandbox.com;" },
         ],
       },
     ]
