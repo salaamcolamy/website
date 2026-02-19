@@ -1148,7 +1148,8 @@ export function CheckoutPageClient() {
                               <p className="font-medium text-gray-900">
                                 {(() => {
                                   // Determine if this is East or West Malaysia based on customer address
-                                  const isEastMalaysia = customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' || customerInfo.state === 'Labuan'
+                                  // East Malaysia: Sabah and Sarawak only (Labuan is West Malaysia)
+                                  const isEastMalaysia = customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak'
                                   const regionLabel = isEastMalaysia ? 'East Malaysia' : 'West Malaysia'
                                   
                                   // Get the base title from Shopify
@@ -1174,7 +1175,7 @@ export function CheckoutPageClient() {
                               </p>
                               <p className="text-sm text-gray-500">
                                 {customerInfo.state 
-                                  ? `3-5 business days${customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' || customerInfo.state === 'Labuan' ? ' (East Malaysia)' : ' (West Malaysia)'}`
+                                  ? `3-5 business days${customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' ? ' (East Malaysia)' : ' (West Malaysia)'}`
                                   : '3-5 business days'}
                               </p>
                             </div>
