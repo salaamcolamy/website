@@ -48,13 +48,15 @@ export interface DeliveryAddressInput {
 function mapStateToShopifyProvinceCode(stateName: string): string {
   // Shopify shipping zones typically use province names, not ISO codes
   // Map state names to match exactly what's configured in Shopify Admin
+  // WILAYAH PERSEKUTUAN (Federal Territory): Kuala Lumpur, Putrajaya, and Wilayah Persekutuan
+  // are all in the same West Malaysia shipping zone. Include both "Kuala Lumpur" and
+  // "Wilayah Persekutuan" in the West Malaysia zone in Shopify Admin / Advanced Shipping.
   const stateToProvinceName: Record<string, string> = {
     // Normalize variations to match Shopify's exact format
-    // Note: Wilayah Persekutuan includes Kuala Lumpur, Putrajaya, and Labuan
     // Labuan is EXCLUDED from shipping zones (no shipping available)
-    'Wilayah Persekutuan': 'Kuala Lumpur', // Maps to Kuala Lumpur (part of West Malaysia zone)
+    'Wilayah Persekutuan': 'Wilayah Persekutuan', // West Malaysia zone – include in zone with Kuala Lumpur
+    'Kuala Lumpur': 'Kuala Lumpur', // West Malaysia zone – same zone as Wilayah Persekutuan
     'Pulau Pinang': 'Penang', // Shopify typically uses "Penang"
-    // All other states use their exact names as-is
     'Johor': 'Johor',
     'Kedah': 'Kedah',
     'Kelantan': 'Kelantan',
@@ -67,9 +69,8 @@ function mapStateToShopifyProvinceCode(stateName: string): string {
     'Sarawak': 'Sarawak',
     'Selangor': 'Selangor',
     'Terengganu': 'Terengganu',
-    'Kuala Lumpur': 'Kuala Lumpur', // Part of Wilayah Persekutuan, included in West Malaysia
     'Labuan': 'Labuan', // EXCLUDED from shipping zones - no shipping available
-    'Putrajaya': 'Putrajaya', // Part of Wilayah Persekutuan, included in West Malaysia
+    'Putrajaya': 'Putrajaya', // Part of Wilayah Persekutuan, West Malaysia
   }
   
   // Return normalized province name (Shopify zones use names, not codes)
@@ -343,19 +344,19 @@ export async function getCartDeliveryRates(
     }
     
     if (!cart?.deliveryGroups?.nodes?.length) {
-      // Special handling for Wilayah Persekutuan / Kuala Lumpur
-      const isKualaLumpur = address.province === 'Wilayah Persekutuan' || address.province === 'Kuala Lumpur' || provinceCode === 'Kuala Lumpur'
+      // Kuala Lumpur and Wilayah Persekutuan: both in West Malaysia zone
+      const isWPKL = address.province === 'Wilayah Persekutuan' || address.province === 'Kuala Lumpur' || provinceCode === 'Wilayah Persekutuan' || provinceCode === 'Kuala Lumpur'
       
       let errorMessage = `No delivery options available for ${address.province}`
       let troubleshootingSteps: string[] = []
       
-      if (isKualaLumpur) {
-        errorMessage = `No shipping zone found for ${address.province === 'Wilayah Persekutuan' ? 'Wilayah Persekutuan' : 'Kuala Lumpur'} (sent as "Kuala Lumpur").`
+      if (isWPKL) {
+        errorMessage = `No shipping zone found for ${address.province}. Kuala Lumpur and Wilayah Persekutuan must both be included in the West Malaysia shipping zone.`
         troubleshootingSteps = [
           'Go to Shopify Admin → Settings → Shipping → Shipping zones',
-          'Check if "West Malaysia" zone includes "Kuala Lumpur"',
-          'Verify Advanced Shipping app has rules for "Kuala Lumpur"',
-          'Ensure "Kuala Lumpur" is spelled exactly as shown (not "Wilayah Persekutuan" or "KL")',
+          'In "West Malaysia" zone, include both "Kuala Lumpur" and "Wilayah Persekutuan"',
+          'Verify Advanced Shipping app West Malaysia service has rules for both "Kuala Lumpur" and "Wilayah Persekutuan"',
+          'Ensure names are spelled exactly (case-sensitive)',
           'Check that Advanced Shipping app service is linked to the shipping zone'
         ]
       } else {
@@ -373,7 +374,7 @@ export async function getCartDeliveryRates(
         city: address.city,
         zip: address.zip,
         cartId: cartId.substring(0, 50) + '...',
-        isKualaLumpur: isKualaLumpur,
+        isWPKL,
         possibleCauses: [
           'Shipping zone not configured for this province',
           'Cart might be empty or items not synced',

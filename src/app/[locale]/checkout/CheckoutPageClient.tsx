@@ -1118,6 +1118,7 @@ export function CheckoutPageClient() {
                             <option value="Sarawak">Sarawak</option>
                             <option value="Selangor">Selangor</option>
                             <option value="Terengganu">Terengganu</option>
+                            <option value="Kuala Lumpur">Kuala Lumpur</option>
                             <option value="Wilayah Persekutuan">Wilayah Persekutuan</option>
                           </select>
                         </div>
