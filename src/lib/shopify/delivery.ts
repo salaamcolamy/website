@@ -263,90 +263,80 @@ export async function getCartDeliveryRates(
     }
     
     // PRIORITIZE ADVANCED SHIPPING APP RATES (especially weight-based rates)
-    // Advanced Shipping app rates are identified by:
-    // 1. Weight-based keywords: "weight", "weight-based", "by weight", "kg", "per kg"
-    // 2. Advanced Shipping keywords: "advanced", "advanced-shipping", "advancedshipping"
-    // 3. Non-free options (Advanced Shipping typically charges based on weight)
+    // Strategy: Advanced Shipping app rates are typically non-free and weight-based
+    // If Advanced Shipping app is installed, prioritize ALL non-free options over free shipping
+    // When multiple non-free options exist, use the HIGHEST cost (correct weight tier)
     
-    // STEP 1: Find weight-based options (highest priority - these are Advanced Shipping app rates)
-    const weightBasedOptions = options.filter((opt) => {
-      const handleLower = opt.handle.toLowerCase()
-      const titleLower = opt.title.toLowerCase()
-      return handleLower.includes('weight') ||
-             titleLower.includes('weight') ||
-             titleLower.includes('weight-based') ||
-             titleLower.includes('by weight') ||
-             titleLower.includes('per kg') ||
-             titleLower.includes('per kilogram') ||
-             handleLower.includes('weight-based')
+    // Get all options with their costs
+    const optionsWithCosts = options.map(opt => ({
+      option: opt,
+      cost: parseFloat(opt.estimatedCost.amount) || 0,
+      handle: opt.handle.toLowerCase(),
+      title: opt.title.toLowerCase()
+    }))
+    
+    // STEP 1: Find weight-based options by keywords (highest priority)
+    const weightBasedOptions = optionsWithCosts.filter(({ handle, title }) => {
+      return handle.includes('weight') ||
+             title.includes('weight') ||
+             title.includes('weight-based') ||
+             title.includes('by weight') ||
+             title.includes('per kg') ||
+             title.includes('per kilogram') ||
+             handle.includes('weight-based')
     })
     
-    // STEP 2: Find Advanced Shipping app options (by explicit keywords)
-    const advancedShippingOptions = options.filter((opt) => {
-      const handleLower = opt.handle.toLowerCase()
-      const titleLower = opt.title.toLowerCase()
-      return handleLower.includes('advanced') || 
-             titleLower.includes('advanced') ||
-             handleLower.includes('advanced-shipping') ||
-             handleLower.includes('advancedshipping')
+    // STEP 2: Find Advanced Shipping app options by keywords
+    const advancedShippingOptions = optionsWithCosts.filter(({ handle, title }) => {
+      return handle.includes('advanced') || 
+             title.includes('advanced') ||
+             handle.includes('advanced-shipping') ||
+             handle.includes('advancedshipping')
     })
     
-    // STEP 3: Get all non-free options (Advanced Shipping typically charges based on weight)
-    const nonFreeOptions = options.filter((opt) => {
-      const cost = parseFloat(opt.estimatedCost.amount) || 0
-      return cost > 0
-    })
+    // STEP 3: Get ALL non-free options (Advanced Shipping app rates are always non-free)
+    const nonFreeOptions = optionsWithCosts.filter(({ cost }) => cost > 0)
     
-    // Sort non-free options by cost (descending) - weight-based rates typically cost more for heavier items
-    const sortedNonFreeOptions = [...nonFreeOptions].sort((a, b) => {
-      const costA = parseFloat(a.estimatedCost.amount) || 0
-      const costB = parseFloat(b.estimatedCost.amount) || 0
-      return costB - costA // Higher cost first (likely weight-based)
-    })
+    // Sort non-free options by cost DESCENDING (highest cost = correct weight tier for Advanced Shipping)
+    const sortedNonFreeOptions = [...nonFreeOptions].sort((a, b) => b.cost - a.cost)
     
-    // STEP 4: Find standard delivery (non-free)
-    const standardDeliveryOption = options.find(
-      (opt) => {
-        const titleLower = opt.title.toLowerCase()
-        const handleLower = opt.handle.toLowerCase()
-        return (titleLower.includes('standard') || handleLower.includes('standard')) &&
-               parseFloat(opt.estimatedCost.amount) > 0
-      }
-    )
+    // STEP 4: Find free shipping options (should be lowest priority if Advanced Shipping is installed)
+    const freeOptions = optionsWithCosts.filter(({ cost }) => cost === 0)
     
-    // SELECTION PRIORITY (Advanced Shipping weight-based rates first):
-    // 1. Weight-based options (highest priority - Advanced Shipping app weight-based rates)
-    // 2. Advanced Shipping app options (by keywords)
-    // 3. Non-free options sorted by cost (descending - higher cost = likely weight-based)
+    // CRITICAL: If Advanced Shipping app is configured, ALWAYS prioritize non-free options
+    // Advanced Shipping app rates are weight-based and will have costs > 0
+    const advancedShippingAppConfigured = isAdvancedShippingConfigured()
+    
+    // SELECTION PRIORITY (Advanced Shipping app rates FIRST):
+    // 1. Weight-based options (by keywords) - sorted by cost DESCENDING
+    // 2. Advanced Shipping app options (by keywords) - sorted by cost DESCENDING  
+    // 3. ALL non-free options sorted by cost DESCENDING (Advanced Shipping app rates are non-free)
     // 4. Standard Delivery (non-free)
-    // 5. First available option
+    // 5. Free shipping options (only if no non-free options exist)
+    // 6. First available option
+    
     let selectedOption: typeof options[0] | undefined
     
     if (weightBasedOptions.length > 0) {
-      // Prioritize weight-based options - if multiple, use the one with highest cost (likely correct weight tier)
-      const sortedWeightOptions = [...weightBasedOptions].sort((a, b) => {
-        const costA = parseFloat(a.estimatedCost.amount) || 0
-        const costB = parseFloat(b.estimatedCost.amount) || 0
-        return costB - costA // Higher cost first
-      })
-      selectedOption = sortedWeightOptions[0]
-      console.log('[Shopify Delivery] ✓✓✓ PRIORITIZED: Advanced Shipping weight-based rate:', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount, selectedOption.estimatedCost.currencyCode)
+      // Sort by cost descending - highest cost = correct weight tier
+      const sortedWeightOptions = [...weightBasedOptions].sort((a, b) => b.cost - a.cost)
+      selectedOption = sortedWeightOptions[0].option
+      console.log('[Shopify Delivery] ✓✓✓ PRIORITIZED: Weight-based rate (Advanced Shipping app):', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount, selectedOption.estimatedCost.currencyCode)
     } else if (advancedShippingOptions.length > 0) {
-      // Use Advanced Shipping app option
-      const sortedAdvancedOptions = [...advancedShippingOptions].sort((a, b) => {
-        const costA = parseFloat(a.estimatedCost.amount) || 0
-        const costB = parseFloat(b.estimatedCost.amount) || 0
-        return costB - costA // Higher cost first
-      })
-      selectedOption = sortedAdvancedOptions[0]
+      // Sort by cost descending
+      const sortedAdvancedOptions = [...advancedShippingOptions].sort((a, b) => b.cost - a.cost)
+      selectedOption = sortedAdvancedOptions[0].option
       console.log('[Shopify Delivery] ✓✓ PRIORITIZED: Advanced Shipping app rate:', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount, selectedOption.estimatedCost.currencyCode)
     } else if (sortedNonFreeOptions.length > 0) {
-      // Use highest cost non-free option (likely weight-based from Advanced Shipping)
-      selectedOption = sortedNonFreeOptions[0]
-      console.log('[Shopify Delivery] ✓ PRIORITIZED: Non-free shipping option (likely Advanced Shipping weight-based):', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount, selectedOption.estimatedCost.currencyCode)
-    } else if (standardDeliveryOption) {
-      selectedOption = standardDeliveryOption
-      console.log('[Shopify Delivery] Using Standard Delivery:', standardDeliveryOption.title)
+      // CRITICAL: Always use highest cost non-free option when Advanced Shipping app is likely installed
+      // This ensures we get the correct weight tier from Advanced Shipping app
+      selectedOption = sortedNonFreeOptions[0].option
+      console.log('[Shopify Delivery] ✓✓✓ PRIORITIZED: Highest cost non-free option (Advanced Shipping app weight-based):', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount, selectedOption.estimatedCost.currencyCode)
+      console.log('[Shopify Delivery] 💡 All non-free options:', sortedNonFreeOptions.map(o => `${o.option.title} (${o.cost} ${o.option.estimatedCost.currencyCode})`).join(', '))
+    } else if (freeOptions.length > 0) {
+      // Only use free shipping if no non-free options exist
+      selectedOption = freeOptions[0].option
+      console.log('[Shopify Delivery] ⚠ Using free shipping (no non-free options available):', selectedOption.title)
     } else {
       selectedOption = options[0]
       console.log('[Shopify Delivery] Using first available option:', selectedOption.title)
@@ -377,6 +367,14 @@ export async function getCartDeliveryRates(
                                  handleLower.includes('advanced-shipping') ||
                                  handleLower.includes('advancedshipping')
       const isAdvancedShippingApp = isWeightBased || isAdvancedShipping
+      const isNonFree = cost > 0
+      let priority = 'LOW'
+      if (isWeightBased) priority = 'HIGHEST (weight-based)'
+      else if (isAdvancedShipping) priority = 'HIGH (Advanced Shipping)'
+      else if (isNonFree && advancedShippingAppConfigured) priority = 'HIGH (non-free - Advanced Shipping app)'
+      else if (isNonFree) priority = 'MEDIUM (non-free)'
+      else priority = 'LOW (free)'
+      
       return { 
         title: o.title, 
         handle: o.handle,
@@ -386,21 +384,27 @@ export async function getCartDeliveryRates(
         isFree: cost === 0,
         isWeightBased: isWeightBased,
         isAdvancedShipping: isAdvancedShipping,
-        priority: isWeightBased ? 'HIGHEST (weight-based)' : isAdvancedShipping ? 'HIGH (Advanced Shipping)' : cost > 0 ? 'MEDIUM (non-free)' : 'LOW (free)',
-        source: isAdvancedShippingApp ? 'Advanced Shipping App (detected)' : 'Shopify Native'
+        isNonFree: isNonFree,
+        priority: priority,
+        source: isAdvancedShippingApp ? 'Advanced Shipping App (detected)' : (isNonFree && advancedShippingAppConfigured ? 'Advanced Shipping App (likely)' : 'Shopify Native')
       }
     }))
     
     // Log detection results
     if (weightBasedOptions.length > 0) {
-      console.log('[Shopify Delivery] ✓✓✓ WEIGHT-BASED RATES DETECTED (Advanced Shipping app):', weightBasedOptions.map(o => `${o.title} (${o.estimatedCost.amount} ${o.estimatedCost.currencyCode})`))
+      console.log('[Shopify Delivery] ✓✓✓ WEIGHT-BASED RATES DETECTED:', weightBasedOptions.map(({ option, cost }) => `${option.title} (${cost} ${option.estimatedCost.currencyCode})`))
     }
     if (advancedShippingOptions.length > 0) {
-      console.log('[Shopify Delivery] ✓✓ Advanced Shipping app rates detected:', advancedShippingOptions.map(o => `${o.title} (${o.estimatedCost.amount} ${o.estimatedCost.currencyCode})`))
+      console.log('[Shopify Delivery] ✓✓ Advanced Shipping app rates detected:', advancedShippingOptions.map(({ option, cost }) => `${option.title} (${cost} ${option.estimatedCost.currencyCode})`))
     }
-    if (sortedNonFreeOptions.length > 0 && weightBasedOptions.length === 0 && advancedShippingOptions.length === 0) {
-      console.log('[Shopify Delivery] ✓ Non-free options detected (likely Advanced Shipping weight-based):', sortedNonFreeOptions.map(o => `${o.title} (${o.estimatedCost.amount} ${o.estimatedCost.currencyCode})`))
-      console.log('[Shopify Delivery] 💡 Prioritizing highest cost option (likely correct weight tier)')
+    if (sortedNonFreeOptions.length > 0) {
+      console.log('[Shopify Delivery] ✓ Non-free options (Advanced Shipping app rates):', sortedNonFreeOptions.map(({ option, cost }) => `${option.title} (${cost} ${option.estimatedCost.currencyCode})`))
+      if (sortedNonFreeOptions.length > 1) {
+        console.log('[Shopify Delivery] 💡 Multiple non-free options detected - using HIGHEST cost (correct weight tier)')
+      }
+    }
+    if (advancedShippingAppConfigured) {
+      console.log('[Shopify Delivery] ⚙️ Advanced Shipping app is configured - prioritizing non-free options')
     }
     
     console.log('[Shopify Delivery] Selected option:', selectedOption.title, 'Cost:', amount, currencyCode)
