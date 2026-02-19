@@ -427,14 +427,33 @@ export function CheckoutPageClient() {
       return
     }
     
-    console.log('[Checkout] Fetching shipping rates for:', {
+    // CRITICAL: Verify cart has items before calculating shipping
+    // This is especially important when multiple products (6-pack + 24-pack) are added
+    if (!currentCart.items || currentCart.items.length === 0) {
+      console.error('[Checkout] ❌ Cart has no items after reload, cannot calculate shipping')
+      setShippingError('Cart appears to be empty. Please add items to your cart and try again.')
+      setShopifyShippingCost(null)
+      setShippingLoading(false)
+      return
+    }
+    
+    // Log detailed cart state for debugging multiple products
+    const itemsSummary = currentCart.items.map((item: any) => ({
+      title: item.title,
+      variantTitle: item.variantTitle,
+      quantity: item.quantity,
+    }))
+    
+    console.log('[Checkout] ✓ Fetching shipping rates with verified cart:', {
       cartId: currentCartId,
       address: customerInfo.address,
       city: customerInfo.city,
       state: customerInfo.state,
       postcode: customerInfo.postcode,
-      itemsCount: currentCart.items?.length || 0,
-      totalQuantity: currentCart.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
+      itemsCount: currentCart.items.length,
+      totalQuantity: currentCart.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
+      items: itemsSummary,
+      note: 'Cart verified - all items present. Shopify will sum weights automatically.'
     })
     
     try {
