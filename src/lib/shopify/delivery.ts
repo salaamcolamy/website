@@ -96,6 +96,27 @@ function mapStateToMalaysiaIsoCode(stateName: string): string | null {
   return stateToIso[stateName] ?? null
 }
 
+/**
+ * Converts Shopify variant weight to kilograms for Advanced Shipping API.
+ * Shopify uses WeightUnit: GRAMS, KILOGRAMS, POUNDS, OUNCES.
+ * Advanced Shipping API expects weight in kg.
+ */
+function variantWeightToKg(
+  weight: number | null | undefined,
+  weightUnit: string | null | undefined
+): number | undefined {
+  if (weight == null || Number.isNaN(weight) || weight < 0) return undefined
+  const w = Number(weight)
+  const unit = (weightUnit ?? '').toUpperCase()
+  if (unit === 'KILOGRAMS' || unit === 'KG') return w
+  if (unit === 'GRAMS' || unit === 'G') return w / 1000
+  if (unit === 'POUNDS' || unit === 'LB' || unit === 'LBS') return w * 0.453592
+  if (unit === 'OUNCES' || unit === 'OZ') return w * 0.0283495
+  // Fallback: treat as grams if looks like gram unit, else assume kg
+  if (String(weightUnit).toLowerCase().includes('gram')) return w / 1000
+  return w
+}
+
 export interface DeliveryOption {
   handle: string
   title: string
@@ -491,6 +512,8 @@ export async function getCartDeliveryRates(
           const m = edge.node.merchandise!
           const w = m.weight != null ? Number(m.weight) : null
           const qty = edge.node.quantity || 0
+          const wKg = variantWeightToKg(w, m.weightUnit ?? undefined)
+          const totalKg = wKg != null && qty > 0 ? wKg * qty : null
           return {
             productTitle: m.product?.title || 'Unknown',
             variantTitle: m.title || 'Unknown',
@@ -498,27 +521,32 @@ export async function getCartDeliveryRates(
             weight: w,
             weightUnit: m.weightUnit ?? null,
             totalWeight: w != null && qty > 0 ? w * qty : null,
+            weightKg: wKg,
+            totalKg,
           }
         })
       
       const totalCartWeight = cartItems.reduce((sum, item) => sum + (item.totalWeight ?? 0), 0)
+      const totalCartKg = cartItems.reduce((sum, item) => sum + (item.totalKg ?? 0), 0)
       const itemsWithoutWeight = cartItems.filter(item => item.weight == null || item.weight <= 0)
       
       console.log('[Shopify Delivery] 📦 Cart Weight Analysis:', {
         totalCartWeight: totalCartWeight > 0 ? `${totalCartWeight} ${cartItems[0]?.weightUnit || 'kg'}` : 'UNKNOWN (no weights set)',
+        totalCartKg: totalCartKg > 0 ? `${totalCartKg.toFixed(4)} kg` : 'UNKNOWN (no weights set)',
         itemsCount: cartItems.length,
         totalQuantity: cart.totalQuantity,
         items: cartItems.map(item => ({
           product: item.productTitle,
           variant: item.variantTitle,
           qty: item.quantity,
-          weight: item.weight ? `${item.weight} ${item.weightUnit}` : '❌ NOT SET',
-          totalWeight: item.totalWeight ? `${item.totalWeight} ${item.weightUnit}` : 'N/A'
+          weight: item.weight != null ? `${item.weight} ${item.weightUnit}` : '❌ NOT SET',
+          weightKg: item.weightKg != null ? `${item.weightKg.toFixed(4)} kg` : '—',
+          totalKg: item.totalKg != null ? `${item.totalKg.toFixed(4)} kg` : 'N/A',
         })),
         warning: itemsWithoutWeight.length > 0 
           ? `⚠️ ${itemsWithoutWeight.length} product(s) missing weight in Shopify Admin. Advanced Shipping app needs product weights to calculate rates correctly.`
           : '✓ All products have weight set',
-        note: 'Advanced Shipping app uses this total weight to calculate shipping rates'
+        note: 'Advanced Shipping app uses total weight in kg to calculate shipping rates'
       })
       
       if (itemsWithoutWeight.length > 0) {
@@ -537,10 +565,13 @@ export async function getCartDeliveryRates(
             .filter((e) => e?.node?.merchandise)
             .map((e) => {
               const m = e!.node!.merchandise!
-              const w = m.weight != null ? Number(m.weight) : undefined
-              const wKg = w != null && (m.weightUnit === 'GRAMS' || String(m.weightUnit).toLowerCase().includes('gram')) ? w / 1000 : w
+              const wKg = variantWeightToKg(m.weight ?? null, m.weightUnit ?? undefined)
               return { id: m.id, quantity: e!.node!.quantity || 0, weight: wKg }
             })
+          console.log('[Shopify Delivery] Advanced Shipping API request (no zone):', {
+            items: items.map((i) => ({ id: i.id, qty: i.quantity, weightKg: i.weight })),
+            destination: { province: address.province || provinceCode, city: address.city, zip: address.zip, country: address.countryCode === 'MY' ? 'Malaysia' : address.countryCode },
+          })
           const asResponse = await getAdvancedShippingRates(ADVANCED_SHIPPING_APP_ID, ADVANCED_SHIPPING_API_KEY, {
             items,
             destination: {
@@ -689,14 +720,17 @@ export async function getCartDeliveryRates(
           .filter((e) => e?.node?.merchandise)
           .map((e) => {
             const m = e!.node!.merchandise!
-            const w = m.weight != null ? Number(m.weight) : undefined
-            const wKg = w != null && (m.weightUnit === 'GRAMS' || String(m.weightUnit).toLowerCase().includes('gram')) ? w / 1000 : w
+            const wKg = variantWeightToKg(m.weight ?? null, m.weightUnit ?? undefined)
             return {
               id: m.id,
               quantity: e!.node!.quantity || 0,
               weight: wKg,
             }
           })
+        console.log('[Shopify Delivery] Advanced Shipping API request (no options):', {
+          items: items.map((i) => ({ id: i.id, qty: i.quantity, weightKg: i.weight })),
+          destination: { province: address.province, city: address.city, zip: address.zip, country: address.countryCode === 'MY' ? 'Malaysia' : address.countryCode },
+        })
         const asResponse = await getAdvancedShippingRates(ADVANCED_SHIPPING_APP_ID, ADVANCED_SHIPPING_API_KEY, {
           items,
           destination: {
