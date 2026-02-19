@@ -349,12 +349,15 @@ export async function getCartDeliveryRates(
       let troubleshootingSteps: string[] = []
       
       if (isWPKL) {
-        errorMessage = `No shipping zone found for ${address.province} (sent as "Kuala Lumpur"). Add "Kuala Lumpur" to the West Malaysia shipping zone.`
+        const userSelected = address.province === 'Wilayah Persekutuan' ? 'Wilayah Persekutuan' : 'Kuala Lumpur'
+        errorMessage = `No shipping zone found for ${userSelected}. When customers select "Kuala Lumpur" or "Wilayah Persekutuan", we send "Kuala Lumpur" to Shopify. Add "Kuala Lumpur" to the West Malaysia shipping zone (this covers both selections).`
         troubleshootingSteps = [
           'Go to Shopify Admin → Settings → Shipping → Shipping zones',
-          'In "West Malaysia" zone, add "Kuala Lumpur" (covers both Kuala Lumpur and Wilayah Persekutuan)',
-          'Verify Advanced Shipping app West Malaysia service has rule: Province = Kuala Lumpur',
-          'Check that Advanced Shipping app service is linked to the shipping zone'
+          'Open "West Malaysia" zone',
+          'Add "Kuala Lumpur" to the zone (this covers both "Kuala Lumpur" and "Wilayah Persekutuan" selections)',
+          'In Advanced Shipping app → West Malaysia service → Add rule: Province = Kuala Lumpur',
+          'Verify Advanced Shipping app service is linked to the West Malaysia shipping zone',
+          'Save all changes and test again'
         ]
       } else {
         troubleshootingSteps = [
