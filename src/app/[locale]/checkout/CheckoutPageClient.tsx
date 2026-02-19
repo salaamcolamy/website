@@ -493,6 +493,38 @@ export function CheckoutPageClient() {
       }
       
       const data = await res.json()
+      
+      // COMPREHENSIVE SHIPPING VERIFICATION LOG
+      console.group('🚚 SHIPPING CALCULATION VERIFICATION')
+      console.log('📍 Address:', {
+        state: customerInfo.state,
+        city: customerInfo.city,
+        postcode: customerInfo.postcode,
+        region: customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' ? 'East Malaysia' : 'West Malaysia'
+      })
+      console.log('🛒 Cart:', {
+        cartId: currentCartId.substring(0, 50) + '...',
+        itemsCount: currentCart.items.length,
+        totalQuantity: currentCart.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
+        items: currentCart.items.map((item: any) => `${item.title} x${item.quantity}`)
+      })
+      console.log('💰 Shipping Response:', {
+        shippingCost: data.shippingCost,
+        currencyCode: data.currencyCode,
+        optionsCount: data.options?.length || 0,
+        hasError: !!data.error,
+        error: data.error || 'None'
+      })
+      console.log('📋 Available Options:', data.options?.map((o: any, idx: number) => ({
+        index: idx + 1,
+        title: o.title,
+        handle: o.handle,
+        cost: o.estimatedCost?.amount,
+        currency: o.estimatedCost?.currencyCode,
+        isAdvancedShipping: o.handle?.toLowerCase().includes('advanced') || o.title?.toLowerCase().includes('advanced'),
+        isWeightBased: o.handle?.toLowerCase().includes('weight') || o.title?.toLowerCase().includes('weight')
+      })) || [])
+      
       console.log('[Checkout] ✓ Shipping API response received:', {
         shippingCost: data.shippingCost,
         optionsCount: data.options?.length || 0,
@@ -508,6 +540,13 @@ export function CheckoutPageClient() {
       })
       
       if (data.error) {
+        console.error('❌ ERROR:', data.error)
+        console.log('💡 TROUBLESHOOTING:')
+        console.log('1. Check if products have weight set in Shopify Admin')
+        console.log('2. Verify Advanced Shipping app is configured for this region')
+        console.log('3. Check Shopify Admin → Settings → Shipping → Shipping zones')
+        console.log('4. Ensure Advanced Shipping app service is active')
+        console.groupEnd()
         const errorMsg = data.error || 'Failed to calculate shipping rates'
         setShippingError(errorMsg)
         setShopifyShippingCost(null)
@@ -564,6 +603,13 @@ export function CheckoutPageClient() {
                 handle: o.handle 
               }))
             })
+            console.log('✅ SUCCESS: Shipping rates calculated')
+            console.log('Selected Rate:', {
+              title: selectedOption?.title,
+              cost: `RM${calculatedCost.toFixed(2)}`,
+              isAdvancedShipping: true
+            })
+            console.groupEnd()
           } else {
             console.log('[Checkout] Using shipping rate:', {
               title: selectedOption?.title,
@@ -574,8 +620,21 @@ export function CheckoutPageClient() {
                 handle: o.handle 
               }))
             })
+            console.log('✅ SUCCESS: Shipping rates calculated')
+            console.log('Selected Rate:', {
+              title: selectedOption?.title,
+              cost: `RM${calculatedCost.toFixed(2)}`,
+              isAdvancedShipping: false
+            })
+            console.groupEnd()
           }
         } else {
+          console.warn('⚠️ WARNING: No shipping options returned')
+          console.log('💡 POSSIBLE CAUSES:')
+          console.log('- Advanced Shipping app not configured for this region')
+          console.log('- Shipping zone not set up correctly')
+          console.log('- Products missing weight in Shopify Admin')
+          console.groupEnd()
           // No options returned - provide detailed error message
           const errorMsg = data.error 
             ? data.error 
