@@ -300,11 +300,34 @@ export function CheckoutPageClient() {
           setIsMigratingCart(false)
           const errorMsg = migrationError instanceof Error ? migrationError.message : 'Failed to migrate cart'
           
-          // Provide more helpful error message
+          // Auto-fix: Clear demo cart and redirect to shop if items have invalid variant IDs
+          const hasInvalidVariants = errorMsg.includes('Invalid variant ID') || errorMsg.includes('No items could be migrated')
+          
+          if (hasInvalidVariants) {
+            // Clear demo cart automatically
+            if (typeof localStorage !== 'undefined') {
+              localStorage.removeItem('salaamcola-demo-cart')
+              localStorage.removeItem('salaamcola-cart-id')
+            }
+            
+            // Clear cart context
+            clearCart()
+            
+            // Show message and redirect to shop after a delay
+            setShippingError('Your cart contained items that cannot be migrated. Cart has been cleared. Redirecting to shop...')
+            setShopifyShippingCost(null)
+            setShippingLoading(false)
+            
+            // Redirect to shop after 3 seconds
+            setTimeout(() => {
+              router.push('/shop')
+            }, 3000)
+            return
+          }
+          
+          // Provide more helpful error message for other errors
           let userMessage = `Cart migration failed: ${errorMsg}`
-          if (errorMsg.includes('Invalid variant ID') || errorMsg.includes('No items could be migrated')) {
-            userMessage += ' Your cart contains items that were added before Shopify integration. Please clear your cart and add items fresh through the shop page.'
-          } else if (errorMsg.includes('SHOPIFY_STORE_DOMAIN') || errorMsg.includes('SHOPIFY_STOREFRONT_ACCESS_TOKEN')) {
+          if (errorMsg.includes('SHOPIFY_STORE_DOMAIN') || errorMsg.includes('SHOPIFY_STOREFRONT_ACCESS_TOKEN')) {
             userMessage += ' Please check that Shopify environment variables are configured correctly.'
           } else {
             userMessage += ' Please try adding items through the shop page to create a Shopify cart.'

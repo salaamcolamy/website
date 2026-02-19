@@ -125,6 +125,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Initialize cart on mount
   useEffect(() => {
     async function initializeCart() {
+      // Always clear demo cart first - we want to use Shopify carts only
+      if (typeof localStorage !== 'undefined') {
+        const demoCart = localStorage.getItem(DEMO_CART_KEY)
+        if (demoCart) {
+          console.log('[Cart] Found demo cart, clearing it to use Shopify cart')
+          localStorage.removeItem(DEMO_CART_KEY)
+        }
+      }
+      
       // Always attempt Shopify first - try to load/create Shopify cart
       try {
         const storedCartId = localStorage.getItem(CART_ID_KEY)
@@ -133,7 +142,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           try {
             const existingCart = await getCart(storedCartId)
             if (existingCart && existingCart.id.startsWith('gid://shopify/Cart')) {
-              // Clear demo cart when using Shopify cart
+              // Ensure demo cart is cleared
               if (typeof localStorage !== 'undefined') {
                 localStorage.removeItem(DEMO_CART_KEY)
               }
@@ -167,7 +176,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           
           const newCart = await createResponse.json()
           if (newCart.id && newCart.id.startsWith('gid://shopify/Cart')) {
-            // Clear demo cart when using Shopify cart
+            // Ensure demo cart is cleared
             if (typeof localStorage !== 'undefined') {
               localStorage.removeItem(DEMO_CART_KEY)
               localStorage.setItem(CART_ID_KEY, newCart.id)
@@ -193,40 +202,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem(CART_ID_KEY)
         }
 
-        // For demo mode, load cart from localStorage or create empty
-        try {
-          const storedCart = localStorage.getItem(DEMO_CART_KEY)
-          if (storedCart) {
-            const parsedCart = JSON.parse(storedCart) as Cart
-            dispatch({ type: 'SET_CART', payload: parsedCart })
-          } else {
-            dispatch({
-              type: 'SET_CART',
-              payload: {
-                id: 'demo-cart',
-                checkoutUrl: '/checkout',
-                totalQuantity: 0,
-                subtotal: 0,
-                total: 0,
-                currencyCode: 'MYR',
-                items: [],
-              },
-            })
-          }
-        } catch {
-          dispatch({
-            type: 'SET_CART',
-            payload: {
-              id: 'demo-cart',
-              checkoutUrl: '/checkout',
-              totalQuantity: 0,
-              subtotal: 0,
-              total: 0,
-              currencyCode: 'MYR',
-              items: [],
-            },
-          })
-        }
+        // For demo mode, create empty cart (don't load from localStorage to avoid old demo carts)
+        dispatch({
+          type: 'SET_CART',
+          payload: {
+            id: 'demo-cart',
+            checkoutUrl: '/checkout',
+            totalQuantity: 0,
+            subtotal: 0,
+            total: 0,
+            currencyCode: 'MYR',
+            items: [],
+          },
+        })
       } finally {
         setIsInitialized(true)
       }
@@ -508,7 +496,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [state.cart, calculateCartTotals]
   )
 
-  const clearCart = useCallback(() => {
+  const clearCart = useCallback(async () => {
+    // Clear both demo and Shopify carts from localStorage
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(DEMO_CART_KEY)
+      localStorage.removeItem(CART_ID_KEY)
+    }
+    
+    // Try to create a new Shopify cart if Shopify is available
+    try {
+      const createResponse = await fetch('/api/cart?action=create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      
+      if (createResponse.ok) {
+        const newCart = await createResponse.json()
+        if (newCart.id && newCart.id.startsWith('gid://shopify/Cart')) {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(CART_ID_KEY, newCart.id)
+          }
+          dispatch({ type: 'SET_CART', payload: newCart })
+          console.log('[Cart] Cleared and created new Shopify cart:', newCart.id)
+          return
+        }
+      }
+    } catch (error) {
+      console.warn('[Cart] Failed to create Shopify cart after clear, using empty demo cart:', error)
+    }
+    
+    // Fallback to empty demo cart
     const emptyCart: Cart = {
       id: 'demo-cart',
       checkoutUrl: '/checkout',
@@ -518,7 +535,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       currencyCode: 'MYR',
       items: [],
     }
-    localStorage.setItem(DEMO_CART_KEY, JSON.stringify(emptyCart))
     dispatch({ type: 'SET_CART', payload: emptyCart })
   }, [])
 
