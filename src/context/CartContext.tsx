@@ -12,10 +12,8 @@ import {
 import type { Cart, CartItem, Product } from '@/lib/shopify/types'
 import {
   getCart,
-  updateCartLine as updateCartLineAPI,
-  removeFromCart as removeFromCartAPI,
 } from '@/lib/shopify/queries/cart'
-import { isShopifyConfigured } from '@/lib/shopify/client'
+// All cart operations now use Shopify API routes (/api/cart)
 
 // Demo products for simulation
 export const demoProducts = [
@@ -89,7 +87,6 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 interface CartContextValue extends CartState {
   addItem: (variantId: string, quantity?: number, product?: Product) => Promise<void>
-  addDemoItem: (productId: string, quantity?: number) => void
   updateItem: (lineId: string, quantity: number) => Promise<void>
   removeItem: (lineId: string) => Promise<void>
   clearCart: () => void
@@ -107,12 +104,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Helper to calculate cart totals
+  // Helper to calculate cart totals (DEPRECATED - only used for demo mode which is being removed)
+  // This function should not be used anymore - all carts should be Shopify carts
   const calculateCartTotals = (items: CartItem[]): Cart => {
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
     return {
-      id: 'demo-cart',
+      id: 'demo-cart', // DEPRECATED - should not be used
       checkoutUrl: '/checkout',
       totalQuantity,
       subtotal,
@@ -194,26 +192,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
           throw createError
         }
       } catch (error) {
-        // Shopify operations failed - fall back to demo mode
-        console.warn('[Cart] Shopify not available, falling back to demo mode:', error)
+        // Shopify operations failed - don't fall back to demo mode
+        console.error('[Cart] Failed to initialize Shopify cart:', error)
         
-        // Clear Shopify cart ID if it exists
+        // Clear any invalid cart IDs
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem(CART_ID_KEY)
+          localStorage.removeItem(DEMO_CART_KEY)
         }
 
-        // For demo mode, create empty cart (don't load from localStorage to avoid old demo carts)
+        // Set cart to null - user will need to add items to create a cart
         dispatch({
           type: 'SET_CART',
-          payload: {
-            id: 'demo-cart',
-            checkoutUrl: '/checkout',
-            totalQuantity: 0,
-            subtotal: 0,
-            total: 0,
-            currencyCode: 'MYR',
-            items: [],
-          },
+          payload: null,
         })
       } finally {
         setIsInitialized(true)
@@ -223,58 +214,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     initializeCart()
   }, [])
 
-  const addDemoItem = useCallback(
-    (productId: string, quantity: number = 1) => {
-      if (!state.cart) return
-
-      const product = demoProducts.find((p) => p.id === productId)
-      if (!product) return
-
-      dispatch({ type: 'SET_LOADING', payload: true })
-
-      const existingItemIndex = state.cart.items.findIndex(
-        (item) => item.productHandle === productId
-      )
-
-      let updatedItems: CartItem[]
-
-      if (existingItemIndex >= 0) {
-        // Update existing item quantity
-        updatedItems = state.cart.items.map((item, index) =>
-          index === existingItemIndex
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        )
-      } else {
-        // Add new item
-        const newItem: CartItem = {
-          id: `demo-item-${productId}-${Date.now()}`,
-          variantId: `variant-${productId}`,
-          productId: `product-${productId}`,
-          title: product.title,
-          variantTitle: 'Default',
-          productHandle: productId,
-          quantity,
-          price: product.price,
-          currencyCode: 'MYR',
-          image: {
-            url: product.image,
-            altText: product.title,
-            width: 500,
-            height: 500,
-          },
-        }
-        updatedItems = [...state.cart.items, newItem]
-      }
-
-      const updatedCart = calculateCartTotals(updatedItems)
-      localStorage.setItem(DEMO_CART_KEY, JSON.stringify(updatedCart))
-      dispatch({ type: 'SET_CART', payload: updatedCart })
-      dispatch({ type: 'SET_LOADING', payload: false })
-      dispatch({ type: 'OPEN_CART' })
-    },
-    [state.cart, calculateCartTotals]
-  )
+  // DEPRECATED: addDemoItem removed - all carts must use Shopify
 
   const addItem = useCallback(
     async (variantId: string, quantity: number = 1, product?: Product) => {
@@ -348,91 +288,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
           return
         } catch (error) {
           console.error('[Cart] Failed to add item via Shopify:', error)
-          // If Shopify operation fails, check if it's because Shopify isn't configured
-          // If product is provided, we can still add it as demo item
-          if (product) {
-            console.warn('[Cart] Falling back to demo mode for product:', product.title)
-            const newItem: CartItem = {
-              id: `demo-${product.id}-${variantId}`,
-              variantId,
-              productId: product.id,
-              productHandle: product.handle,
-              title: product.title,
-              variantTitle: product.variants[0]?.title ?? 'Default Title',
-              quantity,
-              price: product.price,
-              currencyCode: product.currencyCode,
-              image: product.featuredImage,
-            }
-            let items: CartItem[] = state.cart?.items ?? []
-            const existing = items.find(
-              (i) => i.variantId === variantId || i.productHandle === product.handle
-            )
-            if (existing) {
-              items = items.map((i) =>
-                i.id === existing.id ? { ...i, quantity: i.quantity + quantity } : i
-              )
-            } else {
-              items = [...items, newItem]
-            }
-            const updatedCart = calculateCartTotals(items)
-            localStorage.setItem(DEMO_CART_KEY, JSON.stringify(updatedCart))
-            dispatch({ type: 'SET_CART', payload: updatedCart })
-            dispatch({ type: 'OPEN_CART' })
-            dispatch({ type: 'SET_LOADING', payload: false })
-            return
-          }
-          // Re-throw error if we can't fall back
+          // Don't fall back to demo mode - throw error instead
           throw error
         }
-      }
-
-      // For non-Shopify variant IDs, use demo mode
-      try {
-        if (!isShopifyConfigured()) {
-          // Demo mode: when product is provided, add from product data
-          if (product) {
-            const newItem: CartItem = {
-              id: `demo-${product.id}-${variantId}`,
-              variantId,
-              productId: product.id,
-              productHandle: product.handle,
-              title: product.title,
-              variantTitle: product.variants[0]?.title ?? 'Default Title',
-              quantity,
-              price: product.price,
-              currencyCode: product.currencyCode,
-              image: product.featuredImage,
-            }
-            let items: CartItem[] = state.cart?.items ?? []
-            const existing = items.find(
-              (i) => i.variantId === variantId || i.productHandle === product.handle
-            )
-            if (existing) {
-              items = items.map((i) =>
-                i.id === existing.id ? { ...i, quantity: i.quantity + quantity } : i
-              )
-            } else {
-              items = [...items, newItem]
-            }
-            const updatedCart = calculateCartTotals(items)
-            localStorage.setItem(DEMO_CART_KEY, JSON.stringify(updatedCart))
-            dispatch({ type: 'SET_CART', payload: updatedCart })
-            dispatch({ type: 'OPEN_CART' })
-            dispatch({ type: 'SET_LOADING', payload: false })
-            return
-          }
-          // Fallback: legacy demo product lookup by id
-          if (state.cart) {
-            addDemoItem(variantId, quantity)
-          }
-          dispatch({ type: 'SET_LOADING', payload: false })
-          return
-        }
-      } catch (error) {
-        console.error('[Cart] Failed to add item:', error)
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
+      } else {
+        // Non-Shopify variant ID - this shouldn't happen if products are from Shopify
+        console.error('[Cart] addItem: Non-Shopify variant ID provided:', variantId)
+        throw new Error('Invalid variant ID. Only Shopify product variants are supported.')
       }
     },
     [state.cart, addDemoItem, calculateCartTotals]
@@ -445,27 +307,92 @@ export function CartProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: true })
 
       try {
-        if (!isShopifyConfigured()) {
-          // Demo mode update
-          const updatedItems = state.cart.items.map((item) =>
-            item.id === lineId ? { ...item, quantity } : item
-          )
-          const updatedCart = calculateCartTotals(updatedItems)
-          localStorage.setItem(DEMO_CART_KEY, JSON.stringify(updatedCart))
-          dispatch({ type: 'SET_CART', payload: updatedCart })
+        // Check if cart is a Shopify cart
+        const isShopifyCart = state.cart.id.startsWith('gid://shopify/Cart')
+        
+        if (!isShopifyCart) {
+          // If not a Shopify cart, try to create one and migrate items
+          console.warn('[Cart] updateItem: Cart is not a Shopify cart, attempting to create Shopify cart...')
+          
+          // Create new Shopify cart
+          const createResponse = await fetch('/api/cart?action=create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+          
+          if (!createResponse.ok) {
+            throw new Error('Failed to create Shopify cart for updateItem')
+          }
+          
+          const newCart = await createResponse.json()
+          if (!newCart.id || !newCart.id.startsWith('gid://shopify/Cart')) {
+            throw new Error('Invalid Shopify cart created')
+          }
+          
+          // Migrate all items to new Shopify cart
+          if (state.cart.items.length > 0) {
+            for (const item of state.cart.items) {
+              // Only migrate if it's a Shopify variant
+              if (item.variantId.startsWith('gid://shopify/ProductVariant')) {
+                await fetch('/api/cart?action=add', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    cartId: newCart.id,
+                    variantId: item.variantId,
+                    quantity: item.id === lineId ? quantity : item.quantity,
+                  }),
+                })
+              }
+            }
+          }
+          
+          // Reload cart
+          const getResponse = await fetch(`/api/cart?id=${encodeURIComponent(newCart.id)}`)
+          if (getResponse.ok) {
+            const updatedCart = await getResponse.json()
+            dispatch({ type: 'SET_CART', payload: updatedCart })
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem(CART_ID_KEY, updatedCart.id)
+              localStorage.removeItem(DEMO_CART_KEY)
+            }
+          }
           dispatch({ type: 'SET_LOADING', payload: false })
           return
         }
 
-        const updatedCart = await updateCartLineAPI(state.cart.id, lineId, quantity)
+        // Use API route for updating items (always use Shopify)
+        const updateResponse = await fetch('/api/cart?action=update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cartId: state.cart.id,
+            lineId,
+            quantity,
+          }),
+        })
+        
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.json().catch(() => ({}))
+          throw new Error(errorData.error || `Failed to update item: HTTP ${updateResponse.status}`)
+        }
+        
+        const updatedCart = await updateResponse.json()
         dispatch({ type: 'SET_CART', payload: updatedCart })
+        
+        // Ensure demo cart is cleared
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(DEMO_CART_KEY)
+        }
       } catch (error) {
-        console.error('Failed to update item:', error)
+        console.error('[Cart] Failed to update item:', error)
+        // Don't fall back to demo mode - show error instead
+        throw error
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [state.cart, calculateCartTotals]
+    [state.cart]
   )
 
   const removeItem = useCallback(
@@ -475,25 +402,90 @@ export function CartProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: true })
 
       try {
-        if (!isShopifyConfigured()) {
-          // Demo mode remove
-          const updatedItems = state.cart.items.filter((item) => item.id !== lineId)
-          const updatedCart = calculateCartTotals(updatedItems)
-          localStorage.setItem(DEMO_CART_KEY, JSON.stringify(updatedCart))
-          dispatch({ type: 'SET_CART', payload: updatedCart })
+        // Check if cart is a Shopify cart
+        const isShopifyCart = state.cart.id.startsWith('gid://shopify/Cart')
+        
+        if (!isShopifyCart) {
+          // If not a Shopify cart, try to create one
+          console.warn('[Cart] removeItem: Cart is not a Shopify cart, attempting to create Shopify cart...')
+          
+          // Create new Shopify cart
+          const createResponse = await fetch('/api/cart?action=create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+          
+          if (!createResponse.ok) {
+            throw new Error('Failed to create Shopify cart for removeItem')
+          }
+          
+          const newCart = await createResponse.json()
+          if (!newCart.id || !newCart.id.startsWith('gid://shopify/Cart')) {
+            throw new Error('Invalid Shopify cart created')
+          }
+          
+          // Migrate all items except the one being removed
+          if (state.cart.items.length > 0) {
+            for (const item of state.cart.items) {
+              if (item.id !== lineId && item.variantId.startsWith('gid://shopify/ProductVariant')) {
+                await fetch('/api/cart?action=add', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    cartId: newCart.id,
+                    variantId: item.variantId,
+                    quantity: item.quantity,
+                  }),
+                })
+              }
+            }
+          }
+          
+          // Reload cart
+          const getResponse = await fetch(`/api/cart?id=${encodeURIComponent(newCart.id)}`)
+          if (getResponse.ok) {
+            const updatedCart = await getResponse.json()
+            dispatch({ type: 'SET_CART', payload: updatedCart })
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem(CART_ID_KEY, updatedCart.id)
+              localStorage.removeItem(DEMO_CART_KEY)
+            }
+          }
           dispatch({ type: 'SET_LOADING', payload: false })
           return
         }
 
-        const updatedCart = await removeFromCartAPI(state.cart.id, [lineId])
+        // Use API route for removing items (always use Shopify)
+        const removeResponse = await fetch('/api/cart?action=remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cartId: state.cart.id,
+            lineIds: [lineId],
+          }),
+        })
+        
+        if (!removeResponse.ok) {
+          const errorData = await removeResponse.json().catch(() => ({}))
+          throw new Error(errorData.error || `Failed to remove item: HTTP ${removeResponse.status}`)
+        }
+        
+        const updatedCart = await removeResponse.json()
         dispatch({ type: 'SET_CART', payload: updatedCart })
+        
+        // Ensure demo cart is cleared
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(DEMO_CART_KEY)
+        }
       } catch (error) {
-        console.error('Failed to remove item:', error)
+        console.error('[Cart] Failed to remove item:', error)
+        // Don't fall back to demo mode - show error instead
+        throw error
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
-    [state.cart, calculateCartTotals]
+    [state.cart]
   )
 
   const clearCart = useCallback(async () => {
@@ -503,7 +495,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(CART_ID_KEY)
     }
     
-    // Try to create a new Shopify cart if Shopify is available
+    // Always create a new Shopify cart (no demo fallback)
     try {
       const createResponse = await fetch('/api/cart?action=create', {
         method: 'POST',
@@ -521,21 +513,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           return
         }
       }
+      throw new Error('Failed to create Shopify cart')
     } catch (error) {
-      console.warn('[Cart] Failed to create Shopify cart after clear, using empty demo cart:', error)
+      console.error('[Cart] Failed to create Shopify cart after clear:', error)
+      // Set cart to null instead of demo cart
+      dispatch({ type: 'SET_CART', payload: null })
     }
-    
-    // Fallback to empty demo cart
-    const emptyCart: Cart = {
-      id: 'demo-cart',
-      checkoutUrl: '/checkout',
-      totalQuantity: 0,
-      subtotal: 0,
-      total: 0,
-      currencyCode: 'MYR',
-      items: [],
-    }
-    dispatch({ type: 'SET_CART', payload: emptyCart })
   }, [])
 
   const openCart = useCallback(() => {
@@ -559,7 +542,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         ...state,
         addItem,
-        addDemoItem,
         updateItem,
         removeItem,
         clearCart,
