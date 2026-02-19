@@ -57,6 +57,7 @@ export function generateOrderId(): string {
 }
 
 export function saveOrder(order: OrderData): void {
+  if (typeof window === 'undefined') return
   try {
     localStorage.setItem(`salaamcola-order-${order.id}`, JSON.stringify(order))
     const orderList = getOrderList()
@@ -71,6 +72,7 @@ export function saveOrder(order: OrderData): void {
 }
 
 export function getOrder(orderId: string): OrderData | null {
+  if (typeof window === 'undefined') return null
   try {
     const stored = localStorage.getItem(`salaamcola-order-${orderId}`)
     return stored ? JSON.parse(stored) : null
@@ -88,6 +90,7 @@ export function updateOrder(orderId: string, updates: Partial<OrderData>): void 
 }
 
 export function getOrderList(): string[] {
+  if (typeof window === 'undefined') return []
   try {
     const stored = localStorage.getItem(ORDER_STORAGE_KEY)
     return stored ? JSON.parse(stored) : []
@@ -203,6 +206,7 @@ export function markOrderFailed(orderId: string): void {
 }
 
 export function getLastOrder(): OrderData | null {
+  if (typeof window === 'undefined') return null
   try {
     const stored = localStorage.getItem('salaamcola-last-order')
     return stored ? JSON.parse(stored) : null
