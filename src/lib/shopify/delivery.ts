@@ -629,18 +629,17 @@ export async function getCartDeliveryRates(
         }
       }
       
-      let fullErrorMessage = troubleshootingSteps.length > 0
-        ? `${errorMessage}\n\nTo fix:\n${troubleshootingSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}`
-        : errorMessage
+      // Long troubleshooting text is logged above; show only a short message to the customer
+      const userFacingError = 'Unable to calculate shipping for your address. Please verify your details or contact support for assistance.'
       if (payload.warnings?.length) {
-        fullErrorMessage += `\n\nShopify warnings: ${payload.warnings.map((w) => w.message).join('; ')}`
+        console.warn('[Shopify Delivery] Shopify warnings:', payload.warnings.map((w) => w.message).join('; '))
       }
 
       return {
         shippingCost: 0,
         currencyCode: 'MYR',
         options: [],
-        error: fullErrorMessage,
+        error: userFacingError,
         debug: {
           cause: 'no_delivery_groups',
           deliveryGroupsCount: 0,

@@ -1085,9 +1085,6 @@ export function CheckoutPageClient() {
                           <p className="text-xs text-red-700 mt-1">
                             {shippingError}
                           </p>
-                          <p className="text-xs text-red-600 mt-2">
-                            Please verify your address details or contact support for assistance.
-                          </p>
                         </div>
                       )}
                       {isMigratingCart && (
