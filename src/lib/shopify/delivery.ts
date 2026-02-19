@@ -129,12 +129,34 @@ export async function getCartDeliveryRates(
       : 'West Malaysia address'
   })
 
+  // Query cart weight and items to verify weight calculation
+  // Shopify automatically calculates weight from product variant weights
   const mutation = `
     mutation cartDeliveryAddressesReplace($cartId: ID!, $addresses: [CartSelectableAddressInput!]!) {
       cartDeliveryAddressesReplace(cartId: $cartId, addresses: $addresses) {
         userErrors { message code field }
         cart {
           id
+          totalQuantity
+          lines(first: 100) {
+            edges {
+              node {
+                id
+                quantity
+                merchandise {
+                  ... on ProductVariant {
+                    id
+                    title
+                    weight
+                    weightUnit
+                    product {
+                      title
+                    }
+                  }
+                }
+              }
+            }
+          }
           deliveryGroups(first: 5) {
             nodes {
               id
@@ -242,6 +264,52 @@ export async function getCartDeliveryRates(
     }
 
     const cart = payload.cart
+    
+    // CRITICAL: Log cart weight information for debugging Advanced Shipping app
+    if (cart?.lines?.edges) {
+      const cartItems = cart.lines.edges.map(edge => ({
+        productTitle: edge.node.merchandise?.product?.title || 'Unknown',
+        variantTitle: edge.node.merchandise?.title || 'Unknown',
+        quantity: edge.node.quantity,
+        weight: edge.node.merchandise?.weight || null,
+        weightUnit: edge.node.merchandise?.weightUnit || null,
+        totalWeight: edge.node.merchandise?.weight && edge.node.quantity 
+          ? (parseFloat(edge.node.merchandise.weight) * edge.node.quantity) 
+          : null
+      }))
+      
+      const totalCartWeight = cartItems.reduce((sum, item) => {
+        if (item.totalWeight) return sum + item.totalWeight
+        return sum
+      }, 0)
+      
+      const itemsWithoutWeight = cartItems.filter(item => !item.weight)
+      
+      console.log('[Shopify Delivery] 📦 Cart Weight Analysis:', {
+        totalCartWeight: totalCartWeight > 0 ? `${totalCartWeight} ${cartItems[0]?.weightUnit || 'kg'}` : 'UNKNOWN (no weights set)',
+        itemsCount: cartItems.length,
+        totalQuantity: cart.totalQuantity,
+        items: cartItems.map(item => ({
+          product: item.productTitle,
+          variant: item.variantTitle,
+          qty: item.quantity,
+          weight: item.weight ? `${item.weight} ${item.weightUnit}` : '❌ NOT SET',
+          totalWeight: item.totalWeight ? `${item.totalWeight} ${item.weightUnit}` : 'N/A'
+        })),
+        warning: itemsWithoutWeight.length > 0 
+          ? `⚠️ ${itemsWithoutWeight.length} product(s) missing weight in Shopify Admin. Advanced Shipping app needs product weights to calculate rates correctly.`
+          : '✓ All products have weight set',
+        note: 'Advanced Shipping app uses this total weight to calculate shipping rates'
+      })
+      
+      if (itemsWithoutWeight.length > 0) {
+        console.error('[Shopify Delivery] ❌ PRODUCTS MISSING WEIGHT:', itemsWithoutWeight.map(item => 
+          `${item.productTitle} (${item.variantTitle}) - Quantity: ${item.quantity}`
+        ))
+        console.error('[Shopify Delivery] 💡 FIX: Go to Shopify Admin → Products → Select product → Variants → Set Weight for each variant')
+      }
+    }
+    
     if (!cart?.deliveryGroups?.nodes?.length) {
       console.error('[Shopify Delivery] ❌ No delivery groups found for address:', {
         province: address.province,
