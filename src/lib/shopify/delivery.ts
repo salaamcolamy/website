@@ -163,7 +163,14 @@ export async function getCartDeliveryRates(
     // to see what format your zones use (ISO codes like "10" or names like "Selangor")
     const provinceCode = mapStateToShopifyProvinceCode(address.province)
     
-    console.log('[Shopify Delivery] Sending province name:', provinceCode, 'for state:', address.province)
+    console.log('[Shopify Delivery] Calculating shipping rates for cart:', {
+      cartId: cartId.substring(0, 50) + '...',
+      province: provinceCode,
+      state: address.province,
+      city: address.city,
+      zip: address.zip,
+      note: 'Shopify will automatically use cart items and their weights to calculate rates'
+    })
     
     // Shopify's provinceCode field can accept province names (e.g., "Selangor", "Johor")
     // Shipping zones in Shopify Admin are typically configured with province names, not ISO codes

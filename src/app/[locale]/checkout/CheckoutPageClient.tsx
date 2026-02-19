@@ -501,19 +501,32 @@ export function CheckoutPageClient() {
     checkShopifyConfig()
   }, [])
 
-  // Fetch shipping rates when address is complete (even on information step)
+  // Fetch shipping rates when address is complete AND when cart changes (items, quantities, etc.)
+  // CRITICAL: Recalculate shipping when cart items or quantities change (for weight-based rates)
   // Always calculate shipping based on customer input - no fallback/demo rates
   // Let fetchShopifyShippingRates handle cart migration internally
   useEffect(() => {
     if (hasMinAddress && cart?.id && cart.items && cart.items.length > 0) {
+      // Calculate total quantity to detect quantity changes (not just item count)
+      const totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0)
+      
       // Always call fetchShopifyShippingRates - it will handle migration if needed
-      // This ensures shipping updates as user fills in address on information step
-      console.log('[Checkout] Address complete, attempting shipping calculation...', {
+      // This ensures shipping updates as user fills in address OR when cart quantities change
+      console.log('[Checkout] Cart or address changed, recalculating shipping...', {
         cartId: cart.id,
         itemsCount: cart.items.length,
+        totalQuantity: totalQuantity,
         isShopifyCart: cart.id.startsWith('gid://shopify/Cart'),
+        items: cart.items.map(item => `${item.title} x${item.quantity}`),
       })
-      fetchShopifyShippingRates()
+      
+      // Add a small delay to ensure Shopify has processed cart updates before calculating shipping
+      // This is important for weight-based rates from Advanced Shipping app
+      const timeoutId = setTimeout(() => {
+        fetchShopifyShippingRates()
+      }, 500) // 500ms delay to allow Shopify to process cart updates and recalculate weight
+      
+      return () => clearTimeout(timeoutId)
     } else {
       // If address is incomplete or cart not ready, clear shipping
       if (!hasMinAddress) {
@@ -530,15 +543,43 @@ export function CheckoutPageClient() {
         setShippingLoading(false)
       }
     }
-  }, [hasMinAddress, cart?.id, cart?.items?.length, fetchShopifyShippingRates])
+  }, [
+    hasMinAddress, 
+    cart?.id, 
+    cart?.items?.length,
+    // Track total quantity to detect quantity changes (critical for weight-based shipping)
+    cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
+    fetchShopifyShippingRates
+  ])
 
   // Also fetch when explicitly on shipping step (in case it wasn't triggered before)
+  // Recalculate shipping when step changes to ensure rates reflect current cart state
   useEffect(() => {
     if (currentStep === 'shipping' && hasMinAddress && cart?.id && cart.items && cart.items.length > 0) {
-      console.log('[Checkout] On shipping step, fetching shipping rates...')
-      fetchShopifyShippingRates()
+      const totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0)
+      console.log('[Checkout] On shipping step, recalculating shipping rates...', {
+        cartId: cart.id,
+        itemsCount: cart.items.length,
+        totalQuantity: totalQuantity,
+        items: cart.items.map(item => `${item.title} x${item.quantity}`),
+      })
+      
+      // Add delay to ensure cart is synced with Shopify before calculating shipping
+      const timeoutId = setTimeout(() => {
+        fetchShopifyShippingRates()
+      }, 500) // 500ms delay for Shopify to process cart updates
+      
+      return () => clearTimeout(timeoutId)
     }
-  }, [currentStep, hasMinAddress, cart?.id, cart?.items?.length, fetchShopifyShippingRates])
+  }, [
+    currentStep, 
+    hasMinAddress, 
+    cart?.id, 
+    cart?.items?.length,
+    // Track total quantity to detect quantity changes
+    cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
+    fetchShopifyShippingRates
+  ])
 
   // Shipping cost: Always calculated from customer address input via Shopify API
   // No fallback rates - shipping must be calculated based on actual address
