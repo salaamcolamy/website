@@ -19,7 +19,6 @@ import {
 } from 'lucide-react'
 import { generateOrderId, saveOrder, type OrderData } from '@/lib/orders/orderService'
 import { createCart, addToCart as addToCartAPI, getCart } from '@/lib/shopify/queries/cart'
-import { isShopifyConfigured } from '@/lib/shopify/client'
 
 type Step = 'information' | 'shipping' | 'payment'
 type PaymentMethod = 'fpx'
@@ -72,6 +71,7 @@ export function CheckoutPageClient() {
   const [shopifyShippingCost, setShopifyShippingCost] = useState<number | null>(null)
   const [shippingLoading, setShippingLoading] = useState(false)
   const [shippingError, setShippingError] = useState<string | null>(null)
+  const [shopifyConfigured, setShopifyConfigured] = useState<boolean | null>(null)
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     email: '',
@@ -149,8 +149,9 @@ export function CheckoutPageClient() {
         cartType: cart.id.includes('demo') || cart.id.includes('mock') ? 'demo/mock' : 'unknown',
       })
       
-      // Try to migrate demo cart to Shopify cart if Shopify is configured
-      if (isShopifyConfigured() && cart.items && cart.items.length > 0 && (cart.id.includes('demo') || cart.id.includes('mock'))) {
+      // Try to migrate demo cart to Shopify cart
+      // Always attempt migration - if Shopify is configured, it will succeed; if not, it will fail gracefully
+      if (cart.items && cart.items.length > 0 && (cart.id.includes('demo') || cart.id.includes('mock'))) {
         console.log('[Checkout] Attempting to migrate demo cart to Shopify cart...', { 
           items: cart.items,
           itemVariantIds: cart.items.map(i => ({ title: i.title, variantId: i.variantId }))
@@ -329,6 +330,21 @@ export function CheckoutPageClient() {
       setShippingLoading(false)
     }
   }, [cart?.id, hasMinAddress, customerInfo.address, customerInfo.apartment, customerInfo.city, customerInfo.state, customerInfo.country, customerInfo.postcode, customerInfo.firstName, customerInfo.lastName, customerInfo.phone])
+
+  // Check Shopify configuration on mount
+  useEffect(() => {
+    async function checkShopifyConfig() {
+      try {
+        const res = await fetch('/api/shopify/check-config')
+        const data = await res.json()
+        setShopifyConfigured(data.configured ?? false)
+      } catch (error) {
+        console.error('[Checkout] Failed to check Shopify config:', error)
+        setShopifyConfigured(false)
+      }
+    }
+    checkShopifyConfig()
+  }, [])
 
   // Fetch shipping rates when address is complete (even on information step)
   // Always calculate shipping based on customer input - no fallback/demo rates
@@ -871,7 +887,9 @@ export function CheckoutPageClient() {
                             <br />
                             Items: {cart.items?.length || 0}
                             <br />
-                            {isShopifyConfigured() 
+                            {shopifyConfigured === null 
+                              ? 'Checking Shopify configuration...'
+                              : shopifyConfigured
                               ? 'Shopify is configured. Cart migration will be attempted automatically.'
                               : 'Shopify is not configured. Please configure Shopify to calculate shipping.'}
                           </p>
