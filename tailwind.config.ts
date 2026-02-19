@@ -29,6 +29,7 @@ const config: Config = {
         quora: ['Quora', 'system-ui', 'sans-serif'],
         poppins: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
         anton: ['var(--font-anton)', 'system-ui', 'sans-serif'],
+        loubag: ['var(--font-loubag)', 'Loubag', 'system-ui', 'sans-serif'],
       },
       backdropBlur: {
         xs: '2px',
