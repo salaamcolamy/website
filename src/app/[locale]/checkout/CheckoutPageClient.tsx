@@ -535,7 +535,22 @@ export function CheckoutPageClient() {
                           </span>
                         </div>
                       </div>
-                      {!customerInfo.state && (
+                      {shippingError && (
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-sm text-yellow-800">
+                            {shippingError}
+                          </p>
+                          <p className="text-xs text-yellow-700 mt-1">
+                            Using fallback shipping rate. Please verify your address.
+                          </p>
+                        </div>
+                      )}
+                      {shippingLoading && (
+                        <p className="text-sm text-gray-500 italic mt-2">
+                          Loading shipping rates...
+                        </p>
+                      )}
+                      {!customerInfo.state && !shippingLoading && (
                         <p className="text-sm text-gray-500 italic">
                           Shipping cost will be calculated based on your delivery address
                         </p>
