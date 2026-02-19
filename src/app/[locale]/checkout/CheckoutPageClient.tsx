@@ -1189,7 +1189,7 @@ export function CheckoutPageClient() {
                               <p className="font-medium text-gray-900">
                                 {(() => {
                                   // Determine if this is East or West Malaysia based on customer address
-                                  // East Malaysia: Sabah and Sarawak only (Labuan is West Malaysia)
+                                  // East Malaysia: Sabah and Sarawak only (Labuan excluded - no shipping available)
                                   const isEastMalaysia = customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak'
                                   const regionLabel = isEastMalaysia ? 'East Malaysia' : 'West Malaysia'
                                   

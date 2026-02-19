@@ -51,7 +51,7 @@ function mapStateToShopifyProvinceCode(stateName: string): string {
   const stateToProvinceName: Record<string, string> = {
     // Normalize variations to match Shopify's exact format
     // Note: Wilayah Persekutuan includes Kuala Lumpur, Putrajaya, and Labuan
-    // All are mapped to their specific names for West Malaysia zone
+    // Labuan is EXCLUDED from shipping zones (no shipping available)
     'Wilayah Persekutuan': 'Kuala Lumpur', // Maps to Kuala Lumpur (part of West Malaysia zone)
     'Pulau Pinang': 'Penang', // Shopify typically uses "Penang"
     // All other states use their exact names as-is
@@ -68,7 +68,7 @@ function mapStateToShopifyProvinceCode(stateName: string): string {
     'Selangor': 'Selangor',
     'Terengganu': 'Terengganu',
     'Kuala Lumpur': 'Kuala Lumpur', // Part of Wilayah Persekutuan, included in West Malaysia
-    'Labuan': 'Labuan', // Part of Wilayah Persekutuan, included in West Malaysia
+    'Labuan': 'Labuan', // EXCLUDED from shipping zones - no shipping available
     'Putrajaya': 'Putrajaya', // Part of Wilayah Persekutuan, included in West Malaysia
   }
   
@@ -225,6 +225,17 @@ export async function getCartDeliveryRates(
   }
 
   try {
+    // Check if Labuan (no shipping available)
+    if (address.province === 'Labuan' || address.province?.toLowerCase() === 'labuan') {
+      console.warn('[Shopify Delivery] Labuan address detected - shipping not available')
+      return {
+        shippingCost: 0,
+        currencyCode: 'MYR',
+        options: [],
+        error: 'Shipping is not available to Labuan. Please contact support for alternative arrangements.',
+      }
+    }
+    
     // Map state name to Shopify's expected province code
     // IMPORTANT: Check your Shopify Admin → Settings → Shipping → Shipping zones
     // to see what format your zones use (ISO codes like "10" or names like "Selangor")

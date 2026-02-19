@@ -26,7 +26,7 @@ The website uses this mapping (from `src/lib/shopify/delivery.ts`):
 | Kuala Lumpur | `Kuala Lumpur` | West Malaysia - Part of Wilayah Persekutuan |
 | Wilayah Persekutuan | `Kuala Lumpur` ⚠️ | West Malaysia - Maps to "Kuala Lumpur" |
 | Putrajaya | `Putrajaya` | West Malaysia - Part of Wilayah Persekutuan |
-| Labuan | `Labuan` | West Malaysia - Part of Wilayah Persekutuan |
+| Labuan | `Labuan` | ❌ **NO SHIPPING** - Excluded from all shipping zones |
 | Sabah | `Sabah` | East Malaysia |
 | Sarawak | `Sarawak` | East Malaysia |
 
@@ -56,15 +56,13 @@ The website uses this mapping (from `src/lib/shopify/delivery.ts`):
    Terengganu
    Kuala Lumpur    ← Part of Wilayah Persekutuan
    Putrajaya       ← Part of Wilayah Persekutuan
-   Labuan          ← Part of Wilayah Persekutuan
    ```
    
-   **Note**: Wilayah Persekutuan (Federal Territory) includes:
-   - Kuala Lumpur
-   - Putrajaya
-   - Labuan
-   
-   All three are included in the West Malaysia zone.
+   **⚠️ IMPORTANT**: 
+   - **Labuan is EXCLUDED** from all shipping zones (no shipping available)
+   - Wilayah Persekutuan (Federal Territory) includes: Kuala Lumpur, Putrajaya, and Labuan
+   - Only Kuala Lumpur and Putrajaya are included in West Malaysia zone
+   - Do NOT add Labuan to any shipping zone
 5. **Rates**: Add **Advanced Shipping** app rate (or configure manual rates)
 6. Click **"Save"**
 
@@ -112,10 +110,13 @@ The website uses this mapping (from `src/lib/shopify/delivery.ts`):
    Province = Terengganu
    Province = Kuala Lumpur    ← Part of Wilayah Persekutuan
    Province = Putrajaya       ← Part of Wilayah Persekutuan
-   Province = Labuan          ← Part of Wilayah Persekutuan
    ```
    
-   **Note**: If users select "Wilayah Persekutuan", the website converts it to "Kuala Lumpur" for Shopify API. Ensure your Advanced Shipping app rules include all three Federal Territories (Kuala Lumpur, Putrajaya, Labuan) in the West Malaysia service.
+   **⚠️ IMPORTANT**: 
+   - **Labuan is EXCLUDED** from Advanced Shipping app rules (no shipping available)
+   - If users select "Wilayah Persekutuan", the website converts it to "Kuala Lumpur" for Shopify API
+   - Only include Kuala Lumpur and Putrajaya in the West Malaysia service
+   - Do NOT add Labuan to any Advanced Shipping app service
    
    **OR** use condition: `Province is one of: [list all above]`
 6. **Rate Type**: Weight-based
@@ -242,7 +243,8 @@ If you see `⚠ CHECK - May need adjustment`, the province name doesn't match:
 
 | Component | West Malaysia Provinces | East Malaysia Provinces |
 |-----------|------------------------|------------------------|
-| **Website Sends** | Johor, Kedah, Kelantan, Melaka, Negeri Sembilan, Pahang, Perak, Perlis, **Penang**, Selangor, Terengganu, Kuala Lumpur, Putrajaya, Labuan | Sabah, Sarawak |
+| **Website Sends** | Johor, Kedah, Kelantan, Melaka, Negeri Sembilan, Pahang, Perak, Perlis, **Penang**, Selangor, Terengganu, Kuala Lumpur, Putrajaya | Sabah, Sarawak |
+| **Excluded** | **Labuan** ❌ (No shipping available) | - |
 | **Shopify Zone** | Must include all above provinces | Must include Sabah, Sarawak |
 | **Advanced Shipping Service** | Must have rules for all above provinces | Must have rules for Sabah, Sarawak |
 | **Service Name** | `West Malaysia` | `East Malaysia` |
@@ -252,17 +254,19 @@ If you see `⚠ CHECK - May need adjustment`, the province name doesn't match:
 ### Complete Matching Checklist
 
 - [ ] **Shopify Admin Zones**:
-  - [ ] `West Malaysia` zone exists with all provinces listed
+  - [ ] `West Malaysia` zone exists with all provinces listed (excluding Labuan)
   - [ ] `East Malaysia` zone exists with Sabah, Sarawak
   - [ ] Zones use `Penang` (not "Pulau Pinang")
   - [ ] Zones use `Kuala Lumpur` (not "Wilayah Persekutuan")
+  - [ ] **Labuan is NOT included** in any shipping zone
   - [ ] Advanced Shipping app is selected as rate provider
 
 - [ ] **Advanced Shipping App Services**:
   - [ ] `West Malaysia` service exists
   - [ ] `East Malaysia` service exists
   - [ ] Service names match zone names exactly
-  - [ ] All provinces are included in rules
+  - [ ] All provinces are included in rules (excluding Labuan)
+  - [ ] **Labuan is NOT included** in any service rules
   - [ ] Services are Active/Enabled
   - [ ] Weight-based rates are configured
 
@@ -308,7 +312,10 @@ If you see `⚠ CHECK - May need adjustment`, the province name doesn't match:
 3. Advanced Shipping app services must have rules for those exact province names
 4. Service names should match zone names (`West Malaysia`, `East Malaysia`)
 5. All three must match for shipping to calculate correctly
+6. **Labuan is EXCLUDED** from all shipping zones (no shipping available)
 
 **Most Common Issue**: Province name mismatch (e.g., "Penang" vs "Pulau Pinang")
 
 **Solution**: Use the exact names the website sends (see table above) in both Shopify Admin and Advanced Shipping app.
+
+**Important**: If a customer selects Labuan as their state, the website will show an error message: "Shipping is not available to Labuan. Please contact support for alternative arrangements."
