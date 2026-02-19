@@ -72,17 +72,20 @@ export async function POST(req: NextRequest) {
       address2: address2?.trim(),
       city: city.trim(),
       province: province.trim(),
-      countryCode: countryCode.trim(),
+      countryCode: (countryCode?.trim().toUpperCase().slice(0, 2)) || 'MY',
       zip: zip.trim(),
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       phone: phone?.trim(),
     })
 
-    console.log('[Shipping API] Result:', { 
-      shippingCost: result.shippingCost, 
+    if (result.error) {
+      console.warn('[Shipping API] No rates or error:', result.error, { province, city, zip })
+    }
+    console.log('[Shipping API] Result:', {
+      shippingCost: result.shippingCost,
       optionsCount: result.options?.length || 0,
-      hasError: !!result.error 
+      hasError: !!result.error,
     })
 
     return Response.json(result, {

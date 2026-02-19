@@ -365,29 +365,17 @@ export function CheckoutPageClient() {
     let currentCartId = cart.id
     let currentCart = cart
     
+    // Try to reload cart from Shopify to ensure latest state; if reload fails, still proceed with current cart
     try {
       console.log('[Checkout] Reloading cart before calculating shipping...', {
         cartId: cart.id,
         itemsCount: cart.items?.length || 0,
       })
       
-      // CRITICAL: Reload cart from Shopify to ensure ALL items are synced (especially when multiple products added)
-      // When 6-pack + 24-pack are added together, we need to ensure both are in Shopify cart
       const cartResponse = await fetch(`/api/cart?id=${encodeURIComponent(cart.id)}`)
       if (cartResponse.ok) {
         const refreshedCart = await cartResponse.json()
-        if (refreshedCart && refreshedCart.id) {
-          // Verify cart has items before using it
-          if (!refreshedCart.items || refreshedCart.items.length === 0) {
-            console.error('[Checkout] Reloaded cart has no items!', {
-              originalCartItems: cart.items?.length || 0,
-              reloadedCartItems: 0,
-              cartId: refreshedCart.id
-            })
-            throw new Error('Cart reloaded but has no items. Please refresh the page and try again.')
-          }
-          
-          // Log detailed cart state for debugging multiple products
+        if (refreshedCart?.id && refreshedCart.items?.length > 0) {
           const itemsDetail = refreshedCart.items.map((item: any) => ({
             title: item.title,
             variantTitle: item.variantTitle,
@@ -396,35 +384,28 @@ export function CheckoutPageClient() {
             is6Pack: item.title?.toLowerCase().includes('6-pack') || item.title?.toLowerCase().includes('6 pack'),
             is24Pack: item.title?.toLowerCase().includes('24-pack') || item.title?.toLowerCase().includes('24 pack'),
           }))
-          
           currentCart = refreshedCart
           currentCartId = refreshedCart.id
-          console.log('[Checkout] ✓ Cart reloaded and verified for shipping calculation:', {
+          console.log('[Checkout] ✓ Cart reloaded for shipping:', {
             cartId: currentCartId,
             itemsCount: refreshedCart.items.length,
             totalQuantity: refreshedCart.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
             items: itemsDetail,
-            note: 'Shopify will automatically sum weights: 6-pack (~2.5kg) + 24-pack (~10kg) = total weight for shipping'
           })
         } else {
-          throw new Error('Invalid cart returned from reload')
+          console.warn('[Checkout] Reloaded cart empty or invalid, using current cart state')
         }
       } else {
         const errorText = await cartResponse.text().catch(() => 'Unknown error')
-        console.error('[Checkout] Failed to reload cart:', {
+        console.warn('[Checkout] Cart reload failed, using current cart for shipping:', {
           status: cartResponse.status,
           statusText: cartResponse.statusText,
-          error: errorText
+          error: errorText?.slice(0, 200),
         })
-        throw new Error(`Failed to reload cart: ${cartResponse.status} ${cartResponse.statusText}`)
       }
     } catch (reloadError) {
-      const errorMsg = reloadError instanceof Error ? reloadError.message : 'Unknown error'
-      console.error('[Checkout] Error reloading cart:', reloadError)
-      setShippingError(`Failed to load cart: ${errorMsg}. Please refresh the page and try again.`)
-      setShopifyShippingCost(null)
-      setShippingLoading(false)
-      return
+      // Don't block shipping: proceed with current cart so we can still try to get rates
+      console.warn('[Checkout] Cart reload error (proceeding with current cart):', reloadError)
     }
     
     // CRITICAL: Verify cart has items before calculating shipping
@@ -636,9 +617,9 @@ export function CheckoutPageClient() {
           console.log('- Products missing weight in Shopify Admin')
           console.groupEnd()
           // No options returned - provide detailed error message
-          const errorMsg = data.error 
-            ? data.error 
-            : `No shipping options found for ${customerInfo.state}, ${customerInfo.city}. Please verify your address matches a shipping zone in Shopify Admin, or contact support.`
+          const errorMsg = data.error
+            ? data.error
+            : `No shipping rates for ${customerInfo.state}. Check your address and that we deliver to your area, or contact support.`
           setShippingError(errorMsg)
           setShopifyShippingCost(null)
           setSelectedShippingOption(null)
@@ -651,8 +632,9 @@ export function CheckoutPageClient() {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Could not load shipping rates'
-      setShippingError(`Failed to calculate shipping: ${errorMessage}. Please try again or contact support.`)
+      setShippingError(`Unable to calculate shipping. ${errorMessage} Check your address and try again, or contact support.`)
       setShopifyShippingCost(null)
+      setSelectedShippingOption(null)
       console.error('[Checkout] Shipping calculation error:', error)
     } finally {
       setShippingLoading(false)

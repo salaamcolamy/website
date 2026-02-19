@@ -255,16 +255,16 @@ export async function getCartDeliveryRates(
             oneTimeUse: true,
             address: {
               deliveryAddress: {
-                address1: address.address1,
-                address2: address.address2 || undefined,
-                city: address.city,
+                address1: address.address1?.trim() || '',
+                address2: address.address2?.trim() || undefined,
+                city: address.city?.trim() || '',
                 // Use normalized province name - Shopify zones use names like "Selangor", not codes like "10"
                 // The provinceCode field accepts province names for Malaysia
-                provinceCode: provinceCode, // This is now the normalized province name (e.g., "Selangor", "Kuala Lumpur")
-                countryCode: address.countryCode,
-                zip: address.zip,
-                firstName: address.firstName,
-                lastName: address.lastName,
+                provinceCode: provinceCode,
+                countryCode: (address.countryCode?.trim().toUpperCase().slice(0, 2)) || 'MY',
+                zip: address.zip?.trim() || '',
+                firstName: address.firstName?.trim() || '',
+                lastName: address.lastName?.trim() || '',
                 phone: address.phone || undefined,
               },
             },
@@ -284,24 +284,25 @@ export async function getCartDeliveryRates(
     const cart = payload.cart
     
     // CRITICAL: Log cart weight information for debugging Advanced Shipping app
-    if (cart?.lines?.edges) {
-      const cartItems = cart.lines.edges.map(edge => ({
-        productTitle: edge.node.merchandise?.product?.title || 'Unknown',
-        variantTitle: edge.node.merchandise?.title || 'Unknown',
-        quantity: edge.node.quantity,
-        weight: edge.node.merchandise?.weight || null,
-        weightUnit: edge.node.merchandise?.weightUnit || null,
-        totalWeight: edge.node.merchandise?.weight && edge.node.quantity 
-          ? (parseFloat(edge.node.merchandise.weight) * edge.node.quantity) 
-          : null
-      }))
+    if (cart?.lines?.edges?.length) {
+      const cartItems = cart.lines.edges
+        .filter(edge => edge?.node?.merchandise)
+        .map(edge => {
+          const m = edge.node.merchandise!
+          const w = m.weight != null ? Number(m.weight) : null
+          const qty = edge.node.quantity || 0
+          return {
+            productTitle: m.product?.title || 'Unknown',
+            variantTitle: m.title || 'Unknown',
+            quantity: qty,
+            weight: w,
+            weightUnit: m.weightUnit ?? null,
+            totalWeight: w != null && qty > 0 ? w * qty : null,
+          }
+        })
       
-      const totalCartWeight = cartItems.reduce((sum, item) => {
-        if (item.totalWeight) return sum + item.totalWeight
-        return sum
-      }, 0)
-      
-      const itemsWithoutWeight = cartItems.filter(item => !item.weight)
+      const totalCartWeight = cartItems.reduce((sum, item) => sum + (item.totalWeight ?? 0), 0)
+      const itemsWithoutWeight = cartItems.filter(item => item.weight == null || item.weight <= 0)
       
       console.log('[Shopify Delivery] 📦 Cart Weight Analysis:', {
         totalCartWeight: totalCartWeight > 0 ? `${totalCartWeight} ${cartItems[0]?.weightUnit || 'kg'}` : 'UNKNOWN (no weights set)',
