@@ -10,25 +10,25 @@ The website sends province names to Shopify API. **Both Shopify Admin and Advanc
 
 The website uses this mapping (from `src/lib/shopify/delivery.ts`):
 
-| User Input | Sent to Shopify API |
-|------------|---------------------|
-| Johor | `Johor` |
-| Kedah | `Kedah` |
-| Kelantan | `Kelantan` |
-| Melaka | `Melaka` |
-| Negeri Sembilan | `Negeri Sembilan` |
-| Pahang | `Pahang` |
-| Perak | `Perak` |
-| Perlis | `Perlis` |
-| Pulau Pinang | `Penang` ⚠️ |
-| Selangor | `Selangor` |
-| Terengganu | `Terengganu` |
-| Kuala Lumpur | `Kuala Lumpur` |
-| Wilayah Persekutuan | `Kuala Lumpur` ⚠️ |
-| Putrajaya | `Putrajaya` |
-| Labuan | `Labuan` |
-| Sabah | `Sabah` |
-| Sarawak | `Sarawak` |
+| User Input | Sent to Shopify API | Notes |
+|------------|---------------------|-------|
+| Johor | `Johor` | West Malaysia |
+| Kedah | `Kedah` | West Malaysia |
+| Kelantan | `Kelantan` | West Malaysia |
+| Melaka | `Melaka` | West Malaysia |
+| Negeri Sembilan | `Negeri Sembilan` | West Malaysia |
+| Pahang | `Pahang` | West Malaysia |
+| Perak | `Perak` | West Malaysia |
+| Perlis | `Perlis` | West Malaysia |
+| Pulau Pinang | `Penang` ⚠️ | West Malaysia - Note: Sent as "Penang" |
+| Selangor | `Selangor` | West Malaysia |
+| Terengganu | `Terengganu` | West Malaysia |
+| Kuala Lumpur | `Kuala Lumpur` | West Malaysia - Part of Wilayah Persekutuan |
+| Wilayah Persekutuan | `Kuala Lumpur` ⚠️ | West Malaysia - Maps to "Kuala Lumpur" |
+| Putrajaya | `Putrajaya` | West Malaysia - Part of Wilayah Persekutuan |
+| Labuan | `Labuan` | West Malaysia - Part of Wilayah Persekutuan |
+| Sabah | `Sabah` | East Malaysia |
+| Sarawak | `Sarawak` | East Malaysia |
 
 **⚠️ Important Notes:**
 - `Pulau Pinang` → Sent as `Penang` (not "Pulau Pinang")
@@ -54,10 +54,17 @@ The website uses this mapping (from `src/lib/shopify/delivery.ts`):
    Penang          ← Note: Use "Penang" not "Pulau Pinang"
    Selangor
    Terengganu
-   Kuala Lumpur
-   Putrajaya
-   Labuan
+   Kuala Lumpur    ← Part of Wilayah Persekutuan
+   Putrajaya       ← Part of Wilayah Persekutuan
+   Labuan          ← Part of Wilayah Persekutuan
    ```
+   
+   **Note**: Wilayah Persekutuan (Federal Territory) includes:
+   - Kuala Lumpur
+   - Putrajaya
+   - Labuan
+   
+   All three are included in the West Malaysia zone.
 5. **Rates**: Add **Advanced Shipping** app rate (or configure manual rates)
 6. Click **"Save"**
 
@@ -103,10 +110,13 @@ The website uses this mapping (from `src/lib/shopify/delivery.ts`):
    Province = Penang          ← Use "Penang" not "Pulau Pinang"
    Province = Selangor
    Province = Terengganu
-   Province = Kuala Lumpur
-   Province = Putrajaya
-   Province = Labuan
+   Province = Kuala Lumpur    ← Part of Wilayah Persekutuan
+   Province = Putrajaya       ← Part of Wilayah Persekutuan
+   Province = Labuan          ← Part of Wilayah Persekutuan
    ```
+   
+   **Note**: If users select "Wilayah Persekutuan", the website converts it to "Kuala Lumpur" for Shopify API. Ensure your Advanced Shipping app rules include all three Federal Territories (Kuala Lumpur, Putrajaya, Labuan) in the West Malaysia service.
+   
    **OR** use condition: `Province is one of: [list all above]`
 6. **Rate Type**: Weight-based
 7. Configure weight tiers (e.g., RM 8.50 for first 2kg, then RM 2.00 per kg)

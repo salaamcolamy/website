@@ -50,7 +50,9 @@ function mapStateToShopifyProvinceCode(stateName: string): string {
   // Map state names to match exactly what's configured in Shopify Admin
   const stateToProvinceName: Record<string, string> = {
     // Normalize variations to match Shopify's exact format
-    'Wilayah Persekutuan': 'Kuala Lumpur', // Shopify uses "Kuala Lumpur" not "Wilayah Persekutuan"
+    // Note: Wilayah Persekutuan includes Kuala Lumpur, Putrajaya, and Labuan
+    // All are mapped to their specific names for West Malaysia zone
+    'Wilayah Persekutuan': 'Kuala Lumpur', // Maps to Kuala Lumpur (part of West Malaysia zone)
     'Pulau Pinang': 'Penang', // Shopify typically uses "Penang"
     // All other states use their exact names as-is
     'Johor': 'Johor',
@@ -65,9 +67,9 @@ function mapStateToShopifyProvinceCode(stateName: string): string {
     'Sarawak': 'Sarawak',
     'Selangor': 'Selangor',
     'Terengganu': 'Terengganu',
-    'Kuala Lumpur': 'Kuala Lumpur',
-    'Labuan': 'Labuan',
-    'Putrajaya': 'Putrajaya',
+    'Kuala Lumpur': 'Kuala Lumpur', // Part of Wilayah Persekutuan, included in West Malaysia
+    'Labuan': 'Labuan', // Part of Wilayah Persekutuan, included in West Malaysia
+    'Putrajaya': 'Putrajaya', // Part of Wilayah Persekutuan, included in West Malaysia
   }
   
   // Return normalized province name (Shopify zones use names, not codes)
