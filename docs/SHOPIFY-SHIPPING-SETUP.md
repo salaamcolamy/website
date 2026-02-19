@@ -39,22 +39,48 @@ Based on your rate card, you need to set up shipping zones with weight-based rat
 
 Shopify will automatically calculate RM 33.00 for a 2.5kg product (rounded up to 3kg tier).
 
-## Alternative Methods if Weight-Based Not Available
+## Advanced Shipping App Integration
 
-### Option A: Use Shipping Apps
+### How It Works
 
-If Shopify's native weight-based shipping isn't available, use these apps:
+The website automatically uses **Advanced Shipping** app rates when installed:
 
-1. **"Advanced Shipping"** by Webkul
-   - Search in Shopify App Store
-   - Supports weight-based rates
-   - Free plan available
+1. **Automatic Detection**: The code detects Advanced Shipping app rates from Shopify's delivery options
+2. **Priority**: Advanced Shipping app rates are prioritized over native Shopify rates
+3. **Seamless Integration**: No code changes needed - just install and configure the app in Shopify Admin
 
-2. **"Weight Based Shipping"** by Bold
+### Setting Up Advanced Shipping App
+
+1. **Install the App**:
+   - Go to Shopify App Store
+   - Search for **"Advanced Shipping"** by Webkul
+   - Install the app (free plan available)
+
+2. **Configure Weight-Based Rates**:
+   - Open Advanced Shipping app in Shopify Admin
+   - Set up weight-based shipping rules:
+     - **Peninsular Malaysia**: RM 8.50 (first 2kg), then RM 2.00 per kg
+     - **East Malaysia**: RM 11.00 (first 1kg), then RM 11.00 per kg
+     - Configure other zones as needed
+
+3. **Enable for Headless Channel**:
+   - Make sure Advanced Shipping rates are enabled for **Headless** sales channel
+   - The app will automatically provide rates via Shopify's Storefront API
+
+4. **Verify**:
+   - Check browser console during checkout
+   - Look for: `[Checkout] ✓ Using Advanced Shipping app rate`
+   - The shipping method name will show "(Advanced Shipping)" label
+
+### Alternative Shipping Apps
+
+If Advanced Shipping isn't available, these apps also work:
+
+1. **"Weight Based Shipping"** by Bold
    - Easy weight-based setup
    - Free trial available
 
-3. **"Easy Shipping"** 
+2. **"Easy Shipping"** 
    - Supports complex weight rules
    - Good for Malaysia shipping zones
 

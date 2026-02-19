@@ -89,6 +89,11 @@ export interface CartDeliveryRatesResult {
 /**
  * Replaces the cart's delivery address and returns available delivery options with costs.
  * Use this to get zone-based shipping rates from Shopify for the customer's address.
+ * 
+ * IMPORTANT - Advanced Shipping App Integration:
+ * This function automatically returns rates from Advanced Shipping app if installed.
+ * Shopify's Storefront API includes app-generated rates in deliveryOptions.
+ * The function prioritizes Advanced Shipping app rates when available.
  */
 export async function getCartDeliveryRates(
   cartId: string,
@@ -244,23 +249,51 @@ export async function getCartDeliveryRates(
       return { shippingCost: 0, currencyCode: 'MYR', options: [], error: 'No shipping methods available' }
     }
     
-    // Try to find "Standard Delivery" option first, otherwise use the first available option
+    // Prioritize Advanced Shipping app rates if available, then Standard Delivery, then first available
+    // Advanced Shipping app rates typically have "weight" or "advanced" in handle/title
+    const advancedShippingOption = options.find(
+      (opt) => opt.handle.includes('advanced') || 
+               opt.title.toLowerCase().includes('advanced') ||
+               (opt.handle.includes('weight') && !opt.title.toLowerCase().includes('free'))
+    )
+    
     const standardDeliveryOption = options.find(
       (opt) => opt.title.toLowerCase().includes('standard') || opt.handle.toLowerCase().includes('standard')
     )
-    const selectedOption = standardDeliveryOption || options[0]
+    
+    // Priority: Advanced Shipping > Standard Delivery > First available
+    const selectedOption = advancedShippingOption || standardDeliveryOption || options[0]
+    
+    if (advancedShippingOption) {
+      console.log('[Shopify Delivery] Using Advanced Shipping app rate:', advancedShippingOption.title)
+    }
     
     const amount = selectedOption
       ? parseFloat(selectedOption.estimatedCost.amount)
       : 0
     const currencyCode = selectedOption?.estimatedCost.currencyCode ?? 'MYR'
 
+    // Log all available options (includes Advanced Shipping app rates if installed)
     console.log('[Shopify Delivery] Found options:', options.map(o => ({ 
       title: o.title, 
       handle: o.handle,
       cost: o.estimatedCost.amount,
-      currency: o.estimatedCost.currencyCode 
+      currency: o.estimatedCost.currencyCode,
+      source: o.handle.includes('advanced') || o.title.toLowerCase().includes('advanced') ? 'Advanced Shipping App' : 'Shopify Native'
     })))
+    
+    // Check if Advanced Shipping app rates are present
+    const advancedShippingOptions = options.filter(
+      opt => opt.handle.includes('advanced') || 
+             opt.title.toLowerCase().includes('advanced') ||
+             opt.handle.includes('weight') ||
+             opt.title.toLowerCase().includes('weight')
+    )
+    
+    if (advancedShippingOptions.length > 0) {
+      console.log('[Shopify Delivery] Advanced Shipping app rates detected:', advancedShippingOptions.map(o => o.title))
+    }
+    
     console.log('[Shopify Delivery] Selected option:', selectedOption.title, 'Cost:', amount, currencyCode)
 
     // If amount is 0, check if it's actually free shipping or if no zone matched

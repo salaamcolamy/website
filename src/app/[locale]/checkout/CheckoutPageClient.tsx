@@ -72,6 +72,7 @@ export function CheckoutPageClient() {
   const [shippingLoading, setShippingLoading] = useState(false)
   const [shippingError, setShippingError] = useState<string | null>(null)
   const [shopifyConfigured, setShopifyConfigured] = useState<boolean | null>(null)
+  const [selectedShippingOption, setSelectedShippingOption] = useState<{ title: string; cost: number } | null>(null)
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     email: '',
@@ -408,15 +409,43 @@ export function CheckoutPageClient() {
         const errorMsg = data.error || 'Failed to calculate shipping rates'
         setShippingError(errorMsg)
         setShopifyShippingCost(null)
+        setSelectedShippingOption(null)
         console.error('[Checkout] Shipping API error:', data.error, 'Full response:', data)
       } else {
         // Check if we got valid shipping options
         if (data.options && data.options.length > 0) {
-          // Use the shipping cost from Shopify
-          const calculatedCost = data.shippingCost ?? 0
+          // Check for Advanced Shipping app rates (prioritize them)
+          const advancedShippingOption = data.options.find(
+            (opt: any) => opt.handle?.includes('advanced') || 
+                         opt.title?.toLowerCase().includes('advanced') ||
+                         (opt.handle?.includes('weight') && !opt.title?.toLowerCase().includes('free'))
+          )
+          
+          // Use Advanced Shipping app rate if available, otherwise use the first option
+          const selectedOption = advancedShippingOption || data.options[0]
+          const calculatedCost = parseFloat(selectedOption.estimatedCost?.amount || '0') || data.shippingCost || 0
+          
           setShopifyShippingCost(calculatedCost)
+          setSelectedShippingOption({
+            title: selectedOption.title || 'Standard Delivery',
+            cost: calculatedCost
+          })
           setShippingError(null)
-          console.log('[Checkout] Shipping cost calculated successfully:', calculatedCost, 'Options:', data.options)
+          
+          // Log which option is being used
+          if (advancedShippingOption) {
+            console.log('[Checkout] ✓ Using Advanced Shipping app rate:', {
+              title: advancedShippingOption.title,
+              cost: calculatedCost,
+              handle: advancedShippingOption.handle
+            })
+          } else {
+            console.log('[Checkout] Using Shopify native rate:', {
+              title: selectedOption.title,
+              cost: calculatedCost,
+              allOptions: data.options.map((o: any) => ({ title: o.title, cost: o.estimatedCost?.amount }))
+            })
+          }
         } else {
           // No options returned - provide detailed error message
           const errorMsg = data.error 
@@ -424,6 +453,7 @@ export function CheckoutPageClient() {
             : `No shipping options found for ${customerInfo.state}, ${customerInfo.city}. Please verify your address matches a shipping zone in Shopify Admin, or contact support.`
           setShippingError(errorMsg)
           setShopifyShippingCost(null)
+          setSelectedShippingOption(null)
           console.warn('[Checkout] No shipping options returned. Response:', data, 'Address sent:', {
             state: customerInfo.state,
             city: customerInfo.city,
@@ -941,7 +971,12 @@ export function CheckoutPageClient() {
                               <div className="w-3 h-3 rounded-full bg-salaam-red-500" />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">Standard Delivery</p>
+                              <p className="font-medium text-gray-900">
+                                {selectedShippingOption?.title || 'Standard Delivery'}
+                                {selectedShippingOption && selectedShippingOption.title.toLowerCase().includes('advanced') && (
+                                  <span className="ml-2 text-xs text-salaam-red-600 font-normal">(Advanced Shipping)</span>
+                                )}
+                              </p>
                               <p className="text-sm text-gray-500">
                                 {customerInfo.state 
                                   ? `3-5 business days${customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' ? ' (East Malaysia)' : ' (West Malaysia)'}`
