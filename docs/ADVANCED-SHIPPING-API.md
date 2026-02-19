@@ -4,11 +4,16 @@ This document explains how the Advanced Shipping Rules API is integrated into th
 
 ## API Key Configuration
 
-The Advanced Shipping API key should be stored in your environment variables:
+The Advanced Shipping API requires both an **App ID** and **API Key**:
 
 ```env
+ADVANCED_SHIPPING_APP_ID=your-app-id
 ADVANCED_SHIPPING_API_KEY=8270f9c-3581-476c-b0c6-771f59093679
 ```
+
+**Note:** 
+- **API Key** (provided): `8270f9c-3581-476c-b0c6-771f59093679` - Found in Advanced Shipping App → Settings → General
+- **App ID** (required): Contact Advanced Shipping Rules support to obtain an App ID
 
 ## How It Works
 
@@ -38,7 +43,10 @@ If you need direct API access, the API key can be used:
    ```typescript
    import { getAdvancedShippingRates } from '@/lib/advanced-shipping/client'
    
-   const rates = await getAdvancedShippingRates(apiKey, {
+   const appId = process.env.ADVANCED_SHIPPING_APP_ID!
+   const apiKey = process.env.ADVANCED_SHIPPING_API_KEY!
+   
+   const rates = await getAdvancedShippingRates(appId, apiKey, {
      items: [{ id: 'variant-id', quantity: 1, weight: 2.5 }],
      destination: { address1: '...', city: '...', province: '...', country: 'MY', zip: '...' }
    })
@@ -61,10 +69,12 @@ Your API key: `8270f9c-3581-476c-b0c6-771f59093679`
 1. Add to `.env.local`:
    ```env
    ADVANCED_SHIPPING_API_KEY=8270f9c-3581-476c-b0c6-771f59093679
+   ADVANCED_SHIPPING_APP_ID=your-app-id  # Contact Advanced Shipping for App ID
    ```
 
-2. The key is stored but **not required** for normal operation
+2. The keys are stored but **not required** for normal operation
    - Advanced Shipping rates come through Shopify automatically
+   - Direct API requires both App ID and API Key (contact Advanced Shipping for App ID)
    - Direct API is only used if needed for custom integrations
 
 ## Verification

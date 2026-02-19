@@ -52,18 +52,25 @@ export interface AdvancedShippingResponse {
 
 /**
  * Fetches shipping rates from Advanced Shipping Rules API
+ * 
+ * Requires both App ID and API Key for authentication.
+ * App ID serves as username, API Key as password in Basic Auth.
+ * 
+ * To obtain an App ID, contact Advanced Shipping Rules support.
+ * API Key can be found in Advanced Shipping Rules App → Settings → General
  */
 export async function getAdvancedShippingRates(
+  appId: string,
   apiKey: string,
   request: AdvancedShippingRequest
 ): Promise<AdvancedShippingResponse> {
-  if (!apiKey) {
-    throw new Error('Advanced Shipping API key is required')
+  if (!appId || !apiKey) {
+    throw new Error('Advanced Shipping App ID and API key are required')
   }
 
   try {
-    // Basic authentication: API key as username, empty password
-    const auth = Buffer.from(`${apiKey}:`).toString('base64')
+    // Basic authentication: App ID as username, API Key as password
+    const auth = Buffer.from(`${appId}:${apiKey}`).toString('base64')
 
     const response = await fetch(`${API_BASE_URL}/rates`, {
       method: 'POST',
@@ -92,7 +99,8 @@ export async function getAdvancedShippingRates(
 
 /**
  * Checks if Advanced Shipping API is configured
+ * Requires both App ID and API Key
  */
 export function isAdvancedShippingConfigured(): boolean {
-  return Boolean(process.env.ADVANCED_SHIPPING_API_KEY)
+  return Boolean(process.env.ADVANCED_SHIPPING_APP_ID && process.env.ADVANCED_SHIPPING_API_KEY)
 }
