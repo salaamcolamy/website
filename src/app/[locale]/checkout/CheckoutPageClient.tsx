@@ -488,7 +488,7 @@ export function CheckoutPageClient() {
                     </h2>
 
                     <div className="space-y-4">
-                      <label className="block p-4 border-2 border-salaam-red-500 rounded-xl bg-salaam-red-50 cursor-pointer">
+                      <div className="block p-4 border-2 border-salaam-red-500 rounded-xl bg-salaam-red-50">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-5 h-5 rounded-full border-2 border-salaam-red-500 flex items-center justify-center">
@@ -496,27 +496,23 @@ export function CheckoutPageClient() {
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">Standard Delivery</p>
-                              <p className="text-sm text-gray-500">3-5 business days</p>
+                              <p className="text-sm text-gray-500">
+                                {customerInfo.state 
+                                  ? `3-5 business days${customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' ? ' (East Malaysia)' : ' (West Malaysia)'}`
+                                  : '3-5 business days'}
+                              </p>
                             </div>
                           </div>
                           <span className="font-bold text-salaam-red-500">
                             {shippingCost === 0 ? 'FREE' : `RM${shippingCost.toFixed(2)}`}
                           </span>
                         </div>
-                      </label>
-
-                      <label className="block p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
-                            <div>
-                              <p className="font-medium text-gray-900">Express Delivery</p>
-                              <p className="text-sm text-gray-500">1-2 business days</p>
-                            </div>
-                          </div>
-                          <span className="font-bold text-gray-900">RM15.00</span>
-                        </div>
-                      </label>
+                      </div>
+                      {!customerInfo.state && (
+                        <p className="text-sm text-gray-500 italic">
+                          Shipping cost will be calculated based on your delivery address
+                        </p>
+                      )}
                     </div>
 
                     {/* Shipping Address Summary */}
