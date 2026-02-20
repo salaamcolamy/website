@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server'
 import { shopifyFetch, isShopifyConfigured } from '@/lib/shopify/client'
-import { isAdvancedShippingConfigured } from '@/lib/advanced-shipping/client'
 
 /**
  * GET /api/shopify/validate-setup
@@ -204,7 +203,7 @@ export async function GET(req: NextRequest) {
       if (groups.length === 0) {
         issues.push(`No shipping zone found for ${testAddress.province}, Malaysia`)
         fixes.push(
-          `Go to Shopify Admin → Settings → Shipping and delivery → Add or edit a zone → Add "${testAddress.province}" (or "Malaysia" to cover all states) → Add a rate (e.g. Advanced Shipping Rules)`
+          `Go to Shopify Admin → Settings → Shipping and delivery → Add or edit a zone → Add "${testAddress.province}" (or "Malaysia") → Add a rate (manual or carrier)`
         )
       } else {
         const firstGroup = groups[0]
@@ -213,7 +212,7 @@ export async function GET(req: NextRequest) {
         if (optionsCount === 0) {
           issues.push(`Shipping zone found for ${testAddress.province} but has 0 rates`)
           fixes.push(
-            `Go to Shopify Admin → Settings → Shipping and delivery → Find the zone that includes "${testAddress.province}" → Click "Add rate" → Choose "Use carrier or app" → Select "Advanced Shipping Rules" (or add a manual rate)`
+            `Go to Shopify Admin → Settings → Shipping and delivery → Find the zone that includes "${testAddress.province}" → Click "Add rate" → Add a manual rate or use a carrier`
           )
         } else {
           warnings.push(`✓ Shipping zone for ${testAddress.province} has ${optionsCount} rate(s)`)
@@ -233,15 +232,6 @@ export async function GET(req: NextRequest) {
   } catch (e) {
     issues.push(`Cannot test shipping zones: ${e instanceof Error ? e.message : String(e)}`)
     fixes.push('Check server logs for [Shopify] GraphQL errors')
-  }
-
-  // 3. Check Advanced Shipping API config
-  if (isAdvancedShippingConfigured()) {
-    warnings.push('✓ Advanced Shipping API is configured (fallback will work if Shopify returns no rates)')
-  } else {
-    warnings.push(
-      '⚠ Advanced Shipping API not configured - set ADVANCED_SHIPPING_APP_ID and ADVANCED_SHIPPING_API_KEY in .env.local for direct API fallback'
-    )
   }
 
   return Response.json({

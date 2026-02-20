@@ -187,8 +187,7 @@ export function CheckoutPageClient() {
     setShippingLoading(true)
     setShippingError(null)
     
-    // CRITICAL: Reload cart from Shopify before calculating shipping to ensure latest state
-    // This ensures cart weight is up-to-date for Advanced Shipping app calculations
+    // Reload cart from Shopify before calculating shipping so weight/items are up to date for Shopify backend rates
     let currentCartId = cart.id
     let currentCart = cart
     
@@ -352,11 +351,7 @@ export function CheckoutPageClient() {
         if (data.debug) {
           console.error('[Checkout] Failure cause (data.debug):', data.debug)
         }
-        console.log('💡 TROUBLESHOOTING:')
-        console.log('1. Check if products have weight set in Shopify Admin')
-        console.log('2. Verify Advanced Shipping app is configured for this region')
-        console.log('3. Check Shopify Admin → Settings → Shipping → Shipping zones')
-        console.log('4. Ensure Advanced Shipping app service is active')
+        console.log('💡 TROUBLESHOOTING: Check Shopify Admin → Settings → Shipping and delivery; set variant weights; add zone for this region.')
         console.groupEnd()
         const errorMsg = data.error || 'Failed to calculate shipping rates'
         setShippingError(errorMsg)
@@ -366,85 +361,24 @@ export function CheckoutPageClient() {
       } else {
         // Check if we got valid shipping options
         if (data.options && data.options.length > 0) {
-          // The backend (delivery.ts) already prioritizes Advanced Shipping app rates
-          // Use the shippingCost from the backend response, which uses the selected option
-          const calculatedCost = data.shippingCost || 0
-          
-          // Find the option that matches the selected cost (from backend selection)
+          const calculatedCost = data.shippingCost ?? 0
           const selectedOption = data.options.find(
             (opt: any) => parseFloat(opt.estimatedCost?.amount || '0') === calculatedCost
-          ) || data.options[0] // Fallback to first option if no match
+          ) || data.options[0]
           
-          // Check if this is an Advanced Shipping app rate
-          const isAdvancedShipping = selectedOption?.handle?.toLowerCase().includes('advanced') ||
-                                     selectedOption?.title?.toLowerCase().includes('advanced') ||
-                                     selectedOption?.handle?.toLowerCase().includes('weight') ||
-                                     selectedOption?.title?.toLowerCase().includes('weight-based') ||
-                                     (calculatedCost > 0 && data.options.length > 1) // Non-free option when multiple options exist
-          
-          console.log('[Checkout] ✓ Setting shipping cost:', {
-            cost: calculatedCost,
-            title: selectedOption?.title,
-            isAdvancedShipping: isAdvancedShipping,
-            willDisplay: calculatedCost > 0 ? `RM${calculatedCost.toFixed(2)}` : 'FREE'
-          })
+          console.log('[Checkout] ✓ Shipping (Shopify):', selectedOption?.title, 'RM' + calculatedCost.toFixed(2))
           
           setShopifyShippingCost(calculatedCost)
           setSelectedShippingOption({
             title: selectedOption?.title || 'Standard Delivery',
             cost: calculatedCost,
-            isAdvancedShipping: isAdvancedShipping
+            isAdvancedShipping: false
           })
           setShippingError(null)
-          
-          // Force a small delay to ensure state updates are reflected in UI
-          setTimeout(() => {
-            console.log('[Checkout] Shipping cost should now be displayed:', calculatedCost)
-          }, 100)
-          
-          // Log which option is being used
-          if (isAdvancedShipping) {
-            console.log('[Checkout] ✓ Using Advanced Shipping app rate:', {
-              title: selectedOption?.title,
-              cost: calculatedCost,
-              handle: selectedOption?.handle,
-              allOptions: data.options.map((o: any) => ({ 
-                title: o.title, 
-                cost: parseFloat(o.estimatedCost?.amount || '0'),
-                handle: o.handle 
-              }))
-            })
-            console.log('✅ SUCCESS: Shipping rates calculated')
-            console.log('Selected Rate:', {
-              title: selectedOption?.title,
-              cost: `RM${calculatedCost.toFixed(2)}`,
-              isAdvancedShipping: true
-            })
-            console.groupEnd()
-          } else {
-            console.log('[Checkout] Using shipping rate:', {
-              title: selectedOption?.title,
-              cost: calculatedCost,
-              allOptions: data.options.map((o: any) => ({ 
-                title: o.title, 
-                cost: parseFloat(o.estimatedCost?.amount || '0'),
-                handle: o.handle 
-              }))
-            })
-            console.log('✅ SUCCESS: Shipping rates calculated')
-            console.log('Selected Rate:', {
-              title: selectedOption?.title,
-              cost: `RM${calculatedCost.toFixed(2)}`,
-              isAdvancedShipping: false
-            })
-            console.groupEnd()
-          }
+          setTimeout(() => {}, 100)
+          console.groupEnd()
         } else {
-          console.warn('⚠️ WARNING: No shipping options returned')
-          console.log('💡 POSSIBLE CAUSES:')
-          console.log('- Advanced Shipping app not configured for this region')
-          console.log('- Shipping zone not set up correctly')
-          console.log('- Products missing weight in Shopify Admin')
+          console.warn('⚠️ No shipping options from Shopify. Check Admin → Shipping and delivery; set variant weights.')
           console.groupEnd()
           // No options returned - provide detailed error message
           const errorMsg = data.error
@@ -1112,9 +1046,6 @@ export function CheckoutPageClient() {
                                     return `${baseTitle} - ${regionLabel}`
                                   }
                                 })()}
-                                {selectedShippingOption?.isAdvancedShipping && (
-                                  <span className="ml-2 text-xs text-salaam-red-600 font-normal">(Advanced Shipping)</span>
-                                )}
                               </p>
                               <p className="text-sm text-gray-500">
                                 {customerInfo.state 

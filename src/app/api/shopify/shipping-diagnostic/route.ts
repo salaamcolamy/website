@@ -161,9 +161,9 @@ export async function POST(req: NextRequest) {
         payload.userErrors?.length
           ? `Shopify returned userErrors: ${payload.userErrors.map((e) => e.message).join('; ')}`
           : nodes.length === 0
-            ? 'Shopify returned 0 delivery groups. Add this province to a shipping zone in Settings → Shipping and delivery, and add Advanced Shipping (or a rate) to that zone.'
+            ? 'Shopify returned 0 delivery groups. Add this province to a shipping zone in Settings → Shipping and delivery, and add a rate to that zone.'
             : optionsCount === 0
-              ? 'Shopify returned a delivery group but 0 options. Ensure the zone has a rate (e.g. Advanced Shipping) and product variants have Weight set.'
+              ? 'Shopify returned a delivery group but 0 options. Add a rate to the zone and set Weight on product variants.'
               : null,
     })
   } catch (err) {

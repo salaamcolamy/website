@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
 import { getCartDeliveryRates } from '@/lib/shopify/delivery'
 import { isShopifyConfigured } from '@/lib/shopify/client'
-import { isAdvancedShippingConfigured } from '@/lib/advanced-shipping/client'
 
 export interface ShippingRatesBody {
   cartId: string
@@ -72,14 +71,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Log detailed information for debugging multiple products (6-pack + 24-pack)
     console.log('[Shipping API] Calculating shipping for cart:', { 
       cartId: cartId.substring(0, 50) + '...',
       province, 
       city, 
       zip,
-      advancedShippingConfigured: isAdvancedShippingConfigured(),
-      note: 'For multiple products (6-pack + 24-pack), Shopify will sum weights automatically'
+      note: 'Rates from Shopify backend (Settings → Shipping). Variant weights set in Admin.'
     })
 
     const result = await getCartDeliveryRates(cartId, {

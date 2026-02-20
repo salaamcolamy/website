@@ -23,11 +23,8 @@
  */
 
 import { shopifyFetch, isShopifyConfigured, cartQueryWithCarrierRates } from './client'
-import { getAdvancedShippingRates, isAdvancedShippingConfigured } from '../advanced-shipping/client'
 
-const ADVANCED_SHIPPING_APP_ID = process.env.ADVANCED_SHIPPING_APP_ID || ''
-const ADVANCED_SHIPPING_API_KEY = process.env.ADVANCED_SHIPPING_API_KEY || ''
-/** Optional: when no zone/Advanced Shipping rates, return one option with this amount (MYR) so checkout can proceed. e.g. FALLBACK_SHIPPING_MY_RATE=10 */
+/** Optional: when no Shopify delivery options, return one option with this amount (MYR) so checkout can proceed. e.g. FALLBACK_SHIPPING_MY_RATE=10 */
 const FALLBACK_SHIPPING_MY_RATE = process.env.FALLBACK_SHIPPING_MY_RATE != null ? parseFloat(process.env.FALLBACK_SHIPPING_MY_RATE) : NaN
 
 export interface DeliveryAddressInput {
@@ -97,9 +94,8 @@ function mapStateToMalaysiaIsoCode(stateName: string): string | null {
 }
 
 /**
- * Converts Shopify variant weight to kilograms for Advanced Shipping API.
+ * Converts Shopify variant weight to kilograms (for logging).
  * Shopify uses WeightUnit: GRAMS, KILOGRAMS, POUNDS, OUNCES.
- * Advanced Shipping API expects weight in kg.
  */
 function variantWeightToKg(
   weight: number | null | undefined,
@@ -144,10 +140,8 @@ export interface CartDeliveryRatesResult {
  * Replaces the cart's delivery address and returns available delivery options with costs.
  * Use this to get zone-based shipping rates from Shopify for the customer's address.
  * 
- * IMPORTANT - Advanced Shipping App Integration:
- * This function automatically returns rates from Advanced Shipping app if installed.
- * Shopify's Storefront API includes app-generated rates in deliveryOptions.
- * The function prioritizes Advanced Shipping app rates when available.
+ * Shipping rates come only from Shopify backend (Settings → Shipping and delivery).
+ * Configure zones and rates in Shopify Admin; variant weights are used for weight-based rates.
  */
 export async function getCartDeliveryRates(
   cartId: string,
@@ -202,12 +196,11 @@ export async function getCartDeliveryRates(
     },
     region: regionLabel,
     note: isEastMalaysia 
-      ? '⚠️ East Malaysia address - ensure Advanced Shipping app has East Malaysia service configured'
+      ? 'East Malaysia address – ensure a shipping zone/rate is configured in Shopify Admin'
       : 'West Malaysia address'
   })
 
-  // Query cart weight and items to verify weight calculation
-  // Shopify automatically calculates weight from product variant weights
+  // Query cart weight and items for logging. Delivery options come from Shopify backend (zones + variant weights in Admin).
   const mutation = `
     mutation cartDeliveryAddressesReplace($cartId: ID!, $addresses: [CartSelectableAddressInput!]!) {
       cartDeliveryAddressesReplace(cartId: $cartId, addresses: $addresses) {
@@ -229,6 +222,7 @@ export async function getCartDeliveryRates(
                     weightUnit
                     product {
                       title
+                      handle
                     }
                   }
                 }
@@ -277,6 +271,7 @@ export async function getCartDeliveryRates(
                 weightUnit: string
                 product: {
                   title: string
+                  handle: string
                 }
               } | null
             }
@@ -504,7 +499,6 @@ export async function getCartDeliveryRates(
 
     const cart = payload.cart
     
-    // CRITICAL: Log cart weight information for debugging Advanced Shipping app
     if (cart?.lines?.edges?.length) {
       const cartItems = cart.lines.edges
         .filter(edge => edge?.node?.merchandise)
@@ -526,85 +520,27 @@ export async function getCartDeliveryRates(
           }
         })
       
-      const totalCartWeight = cartItems.reduce((sum, item) => sum + (item.totalWeight ?? 0), 0)
       const totalCartKg = cartItems.reduce((sum, item) => sum + (item.totalKg ?? 0), 0)
       const itemsWithoutWeight = cartItems.filter(item => item.weight == null || item.weight <= 0)
       
-      console.log('[Shopify Delivery] 📦 Cart Weight Analysis:', {
-        totalCartWeight: totalCartWeight > 0 ? `${totalCartWeight} ${cartItems[0]?.weightUnit || 'kg'}` : 'UNKNOWN (no weights set)',
-        totalCartKg: totalCartKg > 0 ? `${totalCartKg.toFixed(4)} kg` : 'UNKNOWN (no weights set)',
+      console.log('[Shopify Delivery] 📦 Cart weight (from Shopify):', {
+        totalCartKg: totalCartKg > 0 ? `${totalCartKg.toFixed(4)} kg` : 'UNKNOWN (set variant weight in Admin)',
         itemsCount: cartItems.length,
-        totalQuantity: cart.totalQuantity,
         items: cartItems.map(item => ({
           product: item.productTitle,
-          variant: item.variantTitle,
           qty: item.quantity,
-          weight: item.weight != null ? `${item.weight} ${item.weightUnit}` : '❌ NOT SET',
+          weight: item.weight != null ? `${item.weight} ${item.weightUnit}` : 'NOT SET',
           weightKg: item.weightKg != null ? `${item.weightKg.toFixed(4)} kg` : '—',
-          totalKg: item.totalKg != null ? `${item.totalKg.toFixed(4)} kg` : 'N/A',
         })),
-        warning: itemsWithoutWeight.length > 0 
-          ? `⚠️ ${itemsWithoutWeight.length} product(s) missing weight in Shopify Admin. Advanced Shipping app needs product weights to calculate rates correctly.`
-          : '✓ All products have weight set',
-        note: 'Advanced Shipping app uses total weight in kg to calculate shipping rates'
+        note: 'Rates come from Shopify backend (Settings → Shipping). Set weight on each variant for correct rates.',
       })
-      
       if (itemsWithoutWeight.length > 0) {
-        console.error('[Shopify Delivery] ❌ PRODUCTS MISSING WEIGHT:', itemsWithoutWeight.map(item => 
-          `${item.productTitle} (${item.variantTitle}) - Quantity: ${item.quantity}`
-        ))
-        console.error('[Shopify Delivery] 💡 FIX: Go to Shopify Admin → Products → Select product → Variants → Set Weight for each variant')
+        console.warn('[Shopify Delivery] ⚠ Products missing weight in Admin:', itemsWithoutWeight.map(i => `${i.productTitle} (${i.variantTitle})`))
       }
     }
     
     if (!cart?.deliveryGroups?.nodes?.length) {
-      // Last resort: try Advanced Shipping API so checkout isn't blocked when Shopify zones don't match (e.g. Wilayah Persekutuan)
-      if (isAdvancedShippingConfigured() && ADVANCED_SHIPPING_APP_ID && ADVANCED_SHIPPING_API_KEY && cart?.lines?.edges?.length) {
-        try {
-          const items = cart.lines.edges
-            .filter((e) => e?.node?.merchandise)
-            .map((e) => {
-              const m = e!.node!.merchandise!
-              const wKg = variantWeightToKg(m.weight ?? null, m.weightUnit ?? undefined)
-              return { id: m.id, quantity: e!.node!.quantity || 0, weight: wKg }
-            })
-          console.log('[Shopify Delivery] Advanced Shipping API request (no zone):', {
-            items: items.map((i) => ({ id: i.id, qty: i.quantity, weightKg: i.weight })),
-            destination: { province: address.province || provinceCode, city: address.city, zip: address.zip, country: address.countryCode === 'MY' ? 'Malaysia' : address.countryCode },
-          })
-          const asResponse = await getAdvancedShippingRates(ADVANCED_SHIPPING_APP_ID, ADVANCED_SHIPPING_API_KEY, {
-            items,
-            destination: {
-              address1: address.address1 || '',
-              address2: address.address2,
-              city: address.city || '',
-              province: address.province || provinceCode || '',
-              country: address.countryCode === 'MY' ? 'Malaysia' : address.countryCode,
-              zip: address.zip || '',
-            },
-          })
-          if (asResponse.rates?.length) {
-            const optionsFromApp = asResponse.rates.map((r) => ({
-              handle: r.handle || r.title || 'advanced-shipping',
-              title: r.title,
-              estimatedCost: { amount: String(r.cost), currencyCode: r.currencyCode || 'MYR' },
-            }))
-            console.log('[Shopify Delivery] ✓ No zone match; using Advanced Shipping API rates:', optionsFromApp.length)
-            const selected = optionsFromApp[0]
-            const shippingCost = selected ? parseFloat(selected.estimatedCost.amount) || 0 : 0
-            return {
-              shippingCost,
-              currencyCode: selected?.estimatedCost?.currencyCode || 'MYR',
-              options: optionsFromApp,
-              debug: { cause: 'no_delivery_groups', usedAdvancedShippingFallback: true, provinceTried: provinceCode },
-            }
-          }
-        } catch (apiErr) {
-          console.warn('[Shopify Delivery] Advanced Shipping fallback (no zone) failed:', apiErr)
-        }
-      }
-
-      // Kuala Lumpur / Wilayah Persekutuan: we send "Kuala Lumpur" for both; both are West Malaysia
+      // No delivery groups from Shopify – check zones and variant weights in Admin
       const isWPKL = address.province === 'Wilayah Persekutuan' || address.province === 'Kuala Lumpur' || provinceCode === 'Kuala Lumpur'
       
       let errorMessage = `No delivery options available for ${address.province}`
@@ -616,35 +552,24 @@ export async function getCartDeliveryRates(
         troubleshootingSteps = [
           'Go to Shopify Admin → Settings → Shipping and delivery',
           'Open your West Malaysia zone (or create one)',
-          'Click "Add country/region" or "Edit" on the zone',
-          'Under Malaysia, add BOTH "Kuala Lumpur" AND "Wilayah Persekutuan" if they appear in the list (exact spelling)',
-          'If you only see "Malaysia" with no states: click "Add region" / "Limit to specific states" and add Kuala Lumpur',
-          'Under Rates, click "Add rate" → "Use carrier or app" → choose "Advanced Shipping Rules"',
-          'Save. Then in Apps → Advanced Shipping Rules → West Malaysia service, add a rule: Province = Kuala Lumpur (or Wilayah Persekutuan)',
-          'Test again. If it still fails, run GET /api/shopify/validate-setup to see what Shopify recognizes'
+          'Under Malaysia, add "Kuala Lumpur" and/or "Wilayah Persekutuan" (exact spelling)',
+          'Under Rates, add a rate (e.g. Standard, or a carrier). Save.',
+          'Run GET /api/shopify/validate-setup to verify what Shopify recognizes'
         ]
       } else {
         troubleshootingSteps = [
           `We tried province as "${provinceCode}" (name or ISO). Add this region to a shipping zone in Shopify Admin.`,
-          'Settings → Shipping → Edit zone → Add country/region → select your state (or add by name/code to match).',
-          'Check Advanced Shipping app has rules for this province.',
-          'Verify cart items have weight set in Shopify (Products → Variant → Weight).',
+          'Settings → Shipping and delivery → Edit zone → Add country/region → select your state.',
+          'Verify variant weights are set (Products → Variant → Weight).',
         ]
       }
       
-      console.error('[Shopify Delivery] ❌ No delivery groups found for address:', {
+      console.error('[Shopify Delivery] ❌ No delivery groups from Shopify for address:', {
         province: address.province,
         provinceCode: provinceCode,
         city: address.city,
         zip: address.zip,
-        cartId: cartId.substring(0, 50) + '...',
-        isWPKL,
-        possibleCauses: [
-          'Shipping zone not configured for this province',
-          'Cart might be empty or items not synced',
-          'Advanced Shipping app might not be configured for this zone',
-          'Province name mismatch between address and Shopify zones'
-        ],
+        possibleCauses: ['Shipping zone not configured for this province', 'Province name/code mismatch', 'Variant weights not set'],
         troubleshootingSteps
       })
 
@@ -698,60 +623,8 @@ export async function getCartDeliveryRates(
       // If Shopify normalized it differently, log a warning with matching instructions
       if (recognizedProvince && recognizedProvince !== provinceCode && recognizedProvince.toLowerCase() !== provinceCode.toLowerCase()) {
         console.warn(
-          `[Shopify Delivery] ⚠️ PROVINCE NAME MISMATCH DETECTED!`
+          `[Shopify Delivery] ⚠️ Province mismatch: sent "${provinceCode}" → Shopify recognized "${recognizedProvince}". Update shipping zone in Admin to match.`
         )
-        console.warn(
-          `Website sent: "${provinceCode}" → Shopify recognized: "${recognizedProvince}"`
-        )
-        console.warn(
-          `💡 TO FIX: Update Shopify Admin shipping zone to use "${provinceCode}" OR update Advanced Shipping app rules to use "${recognizedProvince}"`
-        )
-        console.warn(
-          `See docs/SHIPPING-ZONE-MATCHING-GUIDE.md for detailed matching instructions`
-        )
-      }
-    }
-    
-    // If no options from Shopify, try Advanced Shipping API directly so checkout stays linked to Advanced Shipping
-    if (options.length === 0 && isAdvancedShippingConfigured() && ADVANCED_SHIPPING_APP_ID && ADVANCED_SHIPPING_API_KEY && cart?.lines?.edges?.length) {
-      console.log('[Shopify Delivery] No Shopify options, fetching Advanced Shipping API directly...')
-      try {
-        const items = cart.lines.edges
-          .filter((e) => e?.node?.merchandise)
-          .map((e) => {
-            const m = e!.node!.merchandise!
-            const wKg = variantWeightToKg(m.weight ?? null, m.weightUnit ?? undefined)
-            return {
-              id: m.id,
-              quantity: e!.node!.quantity || 0,
-              weight: wKg,
-            }
-          })
-        console.log('[Shopify Delivery] Advanced Shipping API request (no options):', {
-          items: items.map((i) => ({ id: i.id, qty: i.quantity, weightKg: i.weight })),
-          destination: { province: address.province, city: address.city, zip: address.zip, country: address.countryCode === 'MY' ? 'Malaysia' : address.countryCode },
-        })
-        const asResponse = await getAdvancedShippingRates(ADVANCED_SHIPPING_APP_ID, ADVANCED_SHIPPING_API_KEY, {
-          items,
-          destination: {
-            address1: address.address1 || '',
-            address2: address.address2,
-            city: address.city || '',
-            province: address.province || '',
-            country: address.countryCode === 'MY' ? 'Malaysia' : address.countryCode,
-            zip: address.zip || '',
-          },
-        })
-        if (asResponse.rates?.length) {
-          options = asResponse.rates.map((r) => ({
-            handle: r.handle || r.title || 'advanced-shipping',
-            title: r.title,
-            estimatedCost: { amount: String(r.cost), currencyCode: r.currencyCode || 'MYR' },
-          }))
-          console.log('[Shopify Delivery] ✓ Advanced Shipping API fallback returned', options.length, 'rate(s)')
-        }
-      } catch (apiError) {
-        console.error('[Shopify Delivery] Advanced Shipping API fallback failed:', apiError)
       }
     }
 
@@ -770,163 +643,14 @@ export async function getCartDeliveryRates(
       }
     }
     
-    // PRIORITIZE ADVANCED SHIPPING APP RATES (especially weight-based rates)
-    // Strategy: Advanced Shipping app rates are typically non-free and weight-based
-    // If Advanced Shipping app is installed, prioritize ALL non-free options over free shipping
-    // When multiple non-free options exist, use the HIGHEST cost (correct weight tier)
-    
-    // Get all options with their costs
-    const optionsWithCosts = options.map(opt => ({
-      option: opt,
-      cost: parseFloat(opt.estimatedCost.amount) || 0,
-      handle: opt.handle.toLowerCase(),
-      title: opt.title.toLowerCase()
-    }))
-    
-    // STEP 1: Find weight-based options by keywords (highest priority)
-    const weightBasedOptions = optionsWithCosts.filter(({ handle, title }) => {
-      return handle.includes('weight') ||
-             title.includes('weight') ||
-             title.includes('weight-based') ||
-             title.includes('by weight') ||
-             title.includes('per kg') ||
-             title.includes('per kilogram') ||
-             handle.includes('weight-based')
-    })
-    
-    // STEP 2: Find Advanced Shipping app options by keywords
-    const advancedShippingOptions = optionsWithCosts.filter(({ handle, title }) => {
-      return handle.includes('advanced') || 
-             title.includes('advanced') ||
-             handle.includes('advanced-shipping') ||
-             handle.includes('advancedshipping')
-    })
-    
-    // STEP 3: Get ALL non-free options (Advanced Shipping app rates are always non-free)
-    const nonFreeOptions = optionsWithCosts.filter(({ cost }) => cost > 0)
-    
-    // Sort non-free options by cost DESCENDING (highest cost = correct weight tier for Advanced Shipping)
-    const sortedNonFreeOptions = [...nonFreeOptions].sort((a, b) => b.cost - a.cost)
-    
-    // STEP 4: Find free shipping options (should be lowest priority if Advanced Shipping is installed)
-    const freeOptions = optionsWithCosts.filter(({ cost }) => cost === 0)
-    
-    // CRITICAL: If Advanced Shipping app is configured, ALWAYS prioritize non-free options
-    // Advanced Shipping app rates are weight-based and will have costs > 0
-    const advancedShippingAppConfigured = isAdvancedShippingConfigured()
-    
-    // SELECTION PRIORITY (Advanced Shipping app rates FIRST):
-    // 1. Weight-based options (by keywords) - sorted by cost DESCENDING
-    // 2. Advanced Shipping app options (by keywords) - sorted by cost DESCENDING  
-    // 3. ALL non-free options sorted by cost DESCENDING (Advanced Shipping app rates are non-free)
-    // 4. Standard Delivery (non-free)
-    // 5. Free shipping options (only if no non-free options exist)
-    // 6. First available option
-    
-    let selectedOption: typeof options[0] | undefined
-    
-    if (weightBasedOptions.length > 0) {
-      // Sort by cost descending - highest cost = correct weight tier
-      const sortedWeightOptions = [...weightBasedOptions].sort((a, b) => b.cost - a.cost)
-      selectedOption = sortedWeightOptions[0].option
-      console.log('[Shopify Delivery] ✓✓✓ PRIORITIZED: Weight-based rate (Advanced Shipping app):', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount, selectedOption.estimatedCost.currencyCode)
-    } else if (advancedShippingOptions.length > 0) {
-      // Sort by cost descending
-      const sortedAdvancedOptions = [...advancedShippingOptions].sort((a, b) => b.cost - a.cost)
-      selectedOption = sortedAdvancedOptions[0].option
-      console.log('[Shopify Delivery] ✓✓ PRIORITIZED: Advanced Shipping app rate:', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount, selectedOption.estimatedCost.currencyCode)
-    } else if (sortedNonFreeOptions.length > 0) {
-      // CRITICAL: Always use highest cost non-free option when Advanced Shipping app is likely installed
-      // This ensures we get the correct weight tier from Advanced Shipping app
-      selectedOption = sortedNonFreeOptions[0].option
-      console.log('[Shopify Delivery] ✓✓✓ PRIORITIZED: Highest cost non-free option (Advanced Shipping app weight-based):', selectedOption.title, 'Cost:', selectedOption.estimatedCost.amount, selectedOption.estimatedCost.currencyCode)
-      console.log('[Shopify Delivery] 💡 All non-free options:', sortedNonFreeOptions.map(o => `${o.option.title} (${o.cost} ${o.option.estimatedCost.currencyCode})`).join(', '))
-    } else if (freeOptions.length > 0) {
-      // Only use free shipping if no non-free options exist
-      selectedOption = freeOptions[0].option
-      console.log('[Shopify Delivery] ⚠ Using free shipping (no non-free options available):', selectedOption.title)
-    } else {
-      selectedOption = options[0]
-      console.log('[Shopify Delivery] Using first available option:', selectedOption.title)
-    }
-    
-    if (!selectedOption) {
-      console.error('[Shopify Delivery] No option selected! Available options:', options)
-      selectedOption = options[0] // Fallback
-    }
-    
+    // Use first delivery option from Shopify backend (zones + rates configured in Admin)
+    const selectedOption = options[0]
     const amount = selectedOption
       ? parseFloat(selectedOption.estimatedCost.amount)
       : 0
     const currencyCode = selectedOption?.estimatedCost.currencyCode ?? 'MYR'
 
-    // Log region information for Advanced Shipping app debugging
-    const isEastMalaysiaAddress = address.province === 'Sabah' || address.province === 'Sarawak'
-    console.log('[Shopify Delivery] 🌍 Address Region:', {
-      province: address.province,
-      provinceCode: provinceCode,
-      region: isEastMalaysiaAddress ? 'East Malaysia' : 'West Malaysia',
-      note: isEastMalaysiaAddress 
-        ? '⚠️ If only West Malaysia rates appear, configure East Malaysia service in Advanced Shipping app'
-        : 'West Malaysia - rates should be available'
-    })
-    
-    // Log all available options with detailed information
-    console.log('[Shopify Delivery] 📦 All available shipping options:', options.map(o => {
-      const cost = parseFloat(o.estimatedCost.amount) || 0
-      const titleLower = o.title.toLowerCase()
-      const handleLower = o.handle.toLowerCase()
-      const isWeightBased = handleLower.includes('weight') ||
-                           titleLower.includes('weight') ||
-                           titleLower.includes('weight-based') ||
-                           titleLower.includes('by weight') ||
-                           titleLower.includes('per kg')
-      const isAdvancedShipping = handleLower.includes('advanced') || 
-                                 titleLower.includes('advanced') ||
-                                 handleLower.includes('advanced-shipping') ||
-                                 handleLower.includes('advancedshipping')
-      const isAdvancedShippingApp = isWeightBased || isAdvancedShipping
-      const isNonFree = cost > 0
-      let priority = 'LOW'
-      if (isWeightBased) priority = 'HIGHEST (weight-based)'
-      else if (isAdvancedShipping) priority = 'HIGH (Advanced Shipping)'
-      else if (isNonFree && advancedShippingAppConfigured) priority = 'HIGH (non-free - Advanced Shipping app)'
-      else if (isNonFree) priority = 'MEDIUM (non-free)'
-      else priority = 'LOW (free)'
-      
-      return { 
-        title: o.title, 
-        handle: o.handle,
-        cost: o.estimatedCost.amount,
-        costNumber: cost,
-        currency: o.estimatedCost.currencyCode,
-        isFree: cost === 0,
-        isWeightBased: isWeightBased,
-        isAdvancedShipping: isAdvancedShipping,
-        isNonFree: isNonFree,
-        priority: priority,
-        source: isAdvancedShippingApp ? 'Advanced Shipping App (detected)' : (isNonFree && advancedShippingAppConfigured ? 'Advanced Shipping App (likely)' : 'Shopify Native')
-      }
-    }))
-    
-    // Log detection results
-    if (weightBasedOptions.length > 0) {
-      console.log('[Shopify Delivery] ✓✓✓ WEIGHT-BASED RATES DETECTED:', weightBasedOptions.map(({ option, cost }) => `${option.title} (${cost} ${option.estimatedCost.currencyCode})`))
-    }
-    if (advancedShippingOptions.length > 0) {
-      console.log('[Shopify Delivery] ✓✓ Advanced Shipping app rates detected:', advancedShippingOptions.map(({ option, cost }) => `${option.title} (${cost} ${option.estimatedCost.currencyCode})`))
-    }
-    if (sortedNonFreeOptions.length > 0) {
-      console.log('[Shopify Delivery] ✓ Non-free options (Advanced Shipping app rates):', sortedNonFreeOptions.map(({ option, cost }) => `${option.title} (${cost} ${option.estimatedCost.currencyCode})`))
-      if (sortedNonFreeOptions.length > 1) {
-        console.log('[Shopify Delivery] 💡 Multiple non-free options detected - using HIGHEST cost (correct weight tier)')
-      }
-    }
-    if (advancedShippingAppConfigured) {
-      console.log('[Shopify Delivery] ⚙️ Advanced Shipping app is configured - prioritizing non-free options')
-    }
-    
-    console.log('[Shopify Delivery] Selected option:', selectedOption.title, 'Cost:', amount, currencyCode)
+    console.log('[Shopify Delivery] Using first Shopify option:', selectedOption?.title ?? '—', 'Cost:', amount, currencyCode)
 
     // If amount is 0, check if it's actually free shipping or if no zone matched
     if (amount === 0 && options.length > 0) {
