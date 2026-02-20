@@ -790,27 +790,6 @@ export function CheckoutPageClient() {
                             }
                           </span>
                         </div>
-                        {/* Shipping breakdown */}
-                        {shippingBreakdown && shippingCost !== null && (
-                          <div className="mt-3 pt-3 border-t border-salaam-red-200 text-xs text-gray-600 space-y-1">
-                            <div className="flex justify-between">
-                              <span>Weight: {shippingBreakdown.totalWeightKg}kg</span>
-                              <span>Base rate: RM{shippingBreakdown.baseRate.toFixed(2)}</span>
-                            </div>
-                            {shippingBreakdown.additionalWeightCharge > 0 && (
-                              <div className="flex justify-between">
-                                <span>Additional weight</span>
-                                <span>RM{shippingBreakdown.additionalWeightCharge.toFixed(2)}</span>
-                              </div>
-                            )}
-                            {shippingBreakdown.cartonProtection > 0 && (
-                              <div className="flex justify-between">
-                                <span>Carton protection ({shippingBreakdown.totalCartons} pcs)</span>
-                                <span>RM{shippingBreakdown.cartonProtection.toFixed(2)}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                       {shippingError && (
                         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
