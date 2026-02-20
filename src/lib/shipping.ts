@@ -9,7 +9,7 @@
  *
  * Currently shipping from Peninsular Malaysia → routes 1 & 2 active.
  * Product weights: 6-pack = 2.5kg, 24-pack = 8kg
- * Outer carton protection: RM 2.50 per piece
+ * Outer carton protection & bubble wrap already included in shipping fee.
  */
 
 const PENINSULAR_STATES = [
@@ -131,10 +131,8 @@ export function calculateShipping(state: string, cartItems: CartItemForShipping[
 
   // Calculate total weight
   let totalWeightKg = 0
-  let totalCartons = 0
   for (const item of cartItems) {
     totalWeightKg += estimateItemWeight(item) * item.quantity
-    totalCartons += countCartons(item) * item.quantity
   }
 
   // Round weight up to nearest kg
@@ -156,10 +154,7 @@ export function calculateShipping(state: string, cartItems: CartItemForShipping[
     regionLabel = 'East Malaysia'
   }
 
-  // Outer carton protection: RM 2.50 per piece
-  const cartonProtection = totalCartons * 2.50
-
-  const shippingCost = baseRate + additionalWeightCharge + cartonProtection
+  const shippingCost = baseRate + additionalWeightCharge
 
   return {
     success: true,
@@ -169,8 +164,8 @@ export function calculateShipping(state: string, cartItems: CartItemForShipping[
       totalWeightKg,
       baseRate,
       additionalWeightCharge,
-      cartonProtection,
-      totalCartons,
+      cartonProtection: 0,
+      totalCartons: 0,
     },
   }
 }
