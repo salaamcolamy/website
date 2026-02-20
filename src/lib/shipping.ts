@@ -1,11 +1,13 @@
 /**
  * TASB Domestic Express Rate Card — Weight-Based Shipping Calculator
  *
- * Routes:
- * 1. Within Peninsular:        RM 8.50 (first 2kg) + RM 2.00 per additional 1kg
- * 2. Peninsular → East MY:     RM 11.00 (first 1kg) + RM 11.00 per additional 1kg
- * 3. Within Sabah / Sarawak:   RM 17.50 (first 3kg) + RM 6.00 per additional 1kg
+ * Routes (Non-Documents):
+ * 1. Within Peninsular:          First 2kg = RM 8.50,  additional per 1kg = RM 2.00
+ * 2. Peninsular → East MY:      First 1kg = RM 11.50, additional per 1kg = RM 11.00
+ * 3. Between Sabah & Sarawak:   First 1kg = RM 14.50, additional per 1kg = RM 13.00
+ * 4. Within Sarawak or Sabah:   First 1kg = RM 17.50, additional per 1kg = RM 6.00
  *
+ * Currently shipping from Peninsular Malaysia → routes 1 & 2 active.
  * Product weights: 6-pack = 2.5kg, 24-pack = 8kg
  * Outer carton protection: RM 2.50 per piece
  */
@@ -148,8 +150,8 @@ export function calculateShipping(state: string, cartItems: CartItemForShipping[
     additionalWeightCharge = Math.max(0, weightCeiled - 2) * 2.00
     regionLabel = 'Peninsular Malaysia'
   } else {
-    // Peninsular → East Malaysia: RM 11.00 (first 1kg) + RM 11.00 per additional 1kg
-    baseRate = 11.00
+    // Peninsular → East Malaysia: RM 11.50 (first 1kg) + RM 11.00 per additional 1kg
+    baseRate = 11.50
     additionalWeightCharge = Math.max(0, weightCeiled - 1) * 11.00
     regionLabel = 'East Malaysia'
   }
