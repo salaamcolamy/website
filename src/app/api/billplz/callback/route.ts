@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBillplzClient } from '@/lib/billplz/client'
-import { isShopifyAdminConfigured, completeDraftOrder, markOrderAsPaid } from '@/lib/shopify/admin-client'
+import { isShopifyAdminConfigured, completeDraftOrder, markOrderAsPaid, type ShopifyOrder } from '@/lib/shopify/admin-client'
 import { logger } from '@/lib/logger'
 import crypto from 'crypto'
 
@@ -23,10 +23,11 @@ function parseReference2(reference2: string | null): { orderId: string; draftOrd
   }
 }
 
-async function completeShopifyOrderFromDraft(draftOrderId: string, amount: string): Promise<void> {
+async function completeShopifyOrderFromDraft(draftOrderId: string, amount: string): Promise<ShopifyOrder> {
   const order = await completeDraftOrder(draftOrderId)
   await markOrderAsPaid(order.id, amount)
   logger.info('Shopify order created and marked paid', { shopifyOrderId: order.id, shopifyOrderName: order.name })
+  return order
 }
 
 function verifyXSignature(formData: FormData, signature: string): boolean {
@@ -153,17 +154,22 @@ export async function GET(request: NextRequest) {
         const bill = await billplz.getBill(billplzId)
 
         const { orderId, draftOrderId } = parseReference2(bill.reference_2 || bill.reference_1)
+        let finalOrderId = orderId
 
         if (bill.paid && isShopifyAdminConfigured() && draftOrderId) {
           try {
-            await completeShopifyOrderFromDraft(draftOrderId, String(bill.paid_amount ?? bill.amount ?? 0))
+            const shopifyOrder = await completeShopifyOrderFromDraft(draftOrderId, String(bill.paid_amount ?? bill.amount ?? 0))
+            // Use Shopify's real order name (e.g. #1001) as the customer-facing order ID
+            if (shopifyOrder.name) {
+              finalOrderId = shopifyOrder.name
+            }
           } catch (orderError) {
             logger.error('Error completing order on redirect', orderError)
           }
         }
 
         const baseUrl = request.nextUrl.origin
-        return NextResponse.redirect(`${baseUrl}/en/order-confirmation?orderId=${orderId}&paid=${bill.paid}`)
+        return NextResponse.redirect(`${baseUrl}/en/order-confirmation?orderId=${encodeURIComponent(finalOrderId)}&paid=${bill.paid}`)
       } catch (error) {
         logger.error('Error processing bill redirect', error)
       }

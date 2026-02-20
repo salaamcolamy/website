@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/routing'
 import Image from 'next/image'
@@ -51,12 +52,19 @@ interface OrderData {
 export function OrderConfirmationClient() {
   const [order, setOrder] = useState<OrderData | null>(null)
   const [copied, setCopied] = useState(false)
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     // Load order from localStorage
     const storedOrder = localStorage.getItem('salaamcola-last-order')
     if (storedOrder) {
-      setOrder(JSON.parse(storedOrder))
+      const parsed = JSON.parse(storedOrder)
+      // Use Shopify order name from URL if available (set by Billplz callback after payment)
+      const urlOrderId = searchParams.get('orderId')
+      if (urlOrderId && urlOrderId !== parsed.id) {
+        parsed.id = urlOrderId
+      }
+      setOrder(parsed)
 
       // Trigger confetti
       confetti({
@@ -66,7 +74,7 @@ export function OrderConfirmationClient() {
         colors: ['#c21316', '#ffffff', '#ffd700'],
       })
     }
-  }, [])
+  }, [searchParams])
 
   const copyOrderId = () => {
     if (order) {
