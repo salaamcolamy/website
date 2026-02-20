@@ -77,6 +77,7 @@ export function CheckoutPageClient() {
     totalCartons: number
   } | null>(null)
   const shippingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof CustomerInfo | 'bank', string>>>({})
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     email: '',
@@ -99,9 +100,45 @@ export function CheckoutPageClient() {
 
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep)
 
+  const validateInformationStep = (): boolean => {
+    const errors: Partial<Record<keyof CustomerInfo, string>> = {}
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const phoneRegex = /^[+]?[\d\s\-()]{8,15}$/
+
+    if (!customerInfo.email.trim()) errors.email = 'Email is required'
+    else if (!emailRegex.test(customerInfo.email.trim())) errors.email = 'Please enter a valid email'
+
+    if (!customerInfo.phone.trim()) errors.phone = 'Phone number is required'
+    else if (!phoneRegex.test(customerInfo.phone.trim())) errors.phone = 'Please enter a valid phone number'
+
+    if (!customerInfo.firstName.trim()) errors.firstName = 'First name is required'
+    if (!customerInfo.lastName.trim()) errors.lastName = 'Last name is required'
+    if (!customerInfo.address.trim()) errors.address = 'Address is required'
+    if (!customerInfo.city.trim()) errors.city = 'City is required'
+    if (!customerInfo.state) errors.state = 'Please select a state'
+    if (!customerInfo.postcode.trim()) errors.postcode = 'Postcode is required'
+    else if (!/^\d{5}$/.test(customerInfo.postcode.trim())) errors.postcode = 'Postcode must be 5 digits'
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleNextStep = () => {
-    if (currentStep === 'information') setCurrentStep('shipping')
-    else if (currentStep === 'shipping') setCurrentStep('payment')
+    if (currentStep === 'information') {
+      if (!validateInformationStep()) return
+      setCurrentStep('shipping')
+    } else if (currentStep === 'shipping') {
+      if (shippingCost === null && !shippingLoading) {
+        setFieldErrors({ state: 'Shipping must be calculated before proceeding' })
+        return
+      }
+      if (shippingError) {
+        setFieldErrors({ state: shippingError })
+        return
+      }
+      setFieldErrors({})
+      setCurrentStep('payment')
+    }
   }
 
   const handlePrevStep = () => {
@@ -230,7 +267,14 @@ export function CheckoutPageClient() {
 
   const handlePlaceOrder = async () => {
     if (!selectedBank) {
-      alert('Please select a bank')
+      setFieldErrors({ bank: 'Please select a bank' })
+      return
+    }
+    setFieldErrors({})
+
+    // Validate all customer info is still present
+    if (!validateInformationStep()) {
+      setCurrentStep('information')
       return
     }
 
@@ -506,62 +550,70 @@ export function CheckoutPageClient() {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Email
+                          Email <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="email"
                           value={customerInfo.email}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             setCustomerInfo({ ...customerInfo, email: e.target.value })
-                          }
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                            if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: undefined }))
+                          }}
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500 ${fieldErrors.email ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                           placeholder="your@email.com"
                         />
+                        {fieldErrors.email && <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>}
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Phone Number
+                          Phone Number <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="tel"
                           value={customerInfo.phone}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             setCustomerInfo({ ...customerInfo, phone: e.target.value })
-                          }
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                            if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: undefined }))
+                          }}
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500 ${fieldErrors.phone ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                           placeholder="+60123456789"
                         />
+                        {fieldErrors.phone && <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>}
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            First Name
+                            First Name <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
                             value={customerInfo.firstName}
-                            onChange={(e) =>
+                            onChange={(e) => {
                               setCustomerInfo({ ...customerInfo, firstName: e.target.value })
-                            }
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                              if (fieldErrors.firstName) setFieldErrors(prev => ({ ...prev, firstName: undefined }))
+                            }}
+                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500 ${fieldErrors.firstName ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                             placeholder="First name"
                           />
+                          {fieldErrors.firstName && <p className="text-red-500 text-xs mt-1">{fieldErrors.firstName}</p>}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Last Name
+                            Last Name <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
                             value={customerInfo.lastName}
-                            onChange={(e) =>
+                            onChange={(e) => {
                               setCustomerInfo({ ...customerInfo, lastName: e.target.value })
-                            }
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                              if (fieldErrors.lastName) setFieldErrors(prev => ({ ...prev, lastName: undefined }))
+                            }}
+                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500 ${fieldErrors.lastName ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                             placeholder="Last name"
                           />
+                          {fieldErrors.lastName && <p className="text-red-500 text-xs mt-1">{fieldErrors.lastName}</p>}
                         </div>
                       </div>
                     </div>
@@ -574,17 +626,19 @@ export function CheckoutPageClient() {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Address
+                          Address <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           value={customerInfo.address}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             setCustomerInfo({ ...customerInfo, address: e.target.value })
-                          }
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                            if (fieldErrors.address) setFieldErrors(prev => ({ ...prev, address: undefined }))
+                          }}
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500 ${fieldErrors.address ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                           placeholder="Street address"
                         />
+                        {fieldErrors.address && <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>}
                       </div>
 
                       <div>
@@ -605,28 +659,31 @@ export function CheckoutPageClient() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            City
+                            City <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
                             value={customerInfo.city}
-                            onChange={(e) =>
+                            onChange={(e) => {
                               setCustomerInfo({ ...customerInfo, city: e.target.value })
-                            }
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                              if (fieldErrors.city) setFieldErrors(prev => ({ ...prev, city: undefined }))
+                            }}
+                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500 ${fieldErrors.city ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                             placeholder="City"
                           />
+                          {fieldErrors.city && <p className="text-red-500 text-xs mt-1">{fieldErrors.city}</p>}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            State
+                            State <span className="text-red-500">*</span>
                           </label>
                           <select
                             value={customerInfo.state}
-                            onChange={(e) =>
+                            onChange={(e) => {
                               setCustomerInfo({ ...customerInfo, state: e.target.value })
-                            }
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                              if (fieldErrors.state) setFieldErrors(prev => ({ ...prev, state: undefined }))
+                            }}
+                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500 ${fieldErrors.state ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                           >
                             <option value="">Select state</option>
                             <option value="Johor">Johor</option>
@@ -645,23 +702,26 @@ export function CheckoutPageClient() {
                             <option value="Kuala Lumpur">Kuala Lumpur</option>
                             <option value="Wilayah Persekutuan">Wilayah Persekutuan</option>
                           </select>
+                          {fieldErrors.state && <p className="text-red-500 text-xs mt-1">{fieldErrors.state}</p>}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Postcode
+                            Postcode <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
                             value={customerInfo.postcode}
-                            onChange={(e) =>
+                            onChange={(e) => {
                               setCustomerInfo({ ...customerInfo, postcode: e.target.value })
-                            }
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                              if (fieldErrors.postcode) setFieldErrors(prev => ({ ...prev, postcode: undefined }))
+                            }}
+                            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500 ${fieldErrors.postcode ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
                             placeholder="Postcode"
                           />
+                          {fieldErrors.postcode && <p className="text-red-500 text-xs mt-1">{fieldErrors.postcode}</p>}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -846,12 +906,16 @@ export function CheckoutPageClient() {
                     </h2>
 
                     <div className="space-y-3 mb-6">
-                      <p className="text-sm text-gray-600 mb-4">Select your bank:</p>
+                      <p className="text-sm text-gray-600 mb-4">Select your bank: <span className="text-red-500">*</span></p>
+                      {fieldErrors.bank && <p className="text-red-500 text-sm mb-3">{fieldErrors.bank}</p>}
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
                         {fpxBanks.map((bank) => (
                           <button
                             key={bank.id}
-                            onClick={() => setSelectedBank(bank.id)}
+                            onClick={() => {
+                              setSelectedBank(bank.id)
+                              if (fieldErrors.bank) setFieldErrors(prev => ({ ...prev, bank: undefined }))
+                            }}
                             className={`p-4 border-2 rounded-xl transition-colors text-left ${
                               selectedBank === bank.id
                                 ? 'border-salaam-red-500 bg-salaam-red-50'
