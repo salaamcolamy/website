@@ -662,7 +662,62 @@ export function CheckoutPageClient() {
       // Save order before creating bill
       saveOrder(orderData)
 
-      // Create Billplz bill with bank code
+      // Create Shopify draft order first so we can complete it when payment succeeds (orders appear in Shopify)
+      let draftOrderId: string | null = null
+      try {
+        const draftRes = await fetch('/api/orders/create-draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: customerInfo.email,
+            lineItems: (cart?.items || []).map(item => ({
+              variantId: item.variantId,
+              quantity: item.quantity,
+            })),
+            billingAddress: {
+              firstName: customerInfo.firstName,
+              lastName: customerInfo.lastName,
+              address1: customerInfo.address,
+              address2: customerInfo.apartment || '',
+              city: customerInfo.city,
+              province: customerInfo.state,
+              zip: customerInfo.postcode,
+              country: customerInfo.country,
+              phone: customerInfo.phone,
+            },
+            shippingAddress: {
+              firstName: customerInfo.firstName,
+              lastName: customerInfo.lastName,
+              address1: customerInfo.address,
+              address2: customerInfo.apartment || '',
+              city: customerInfo.city,
+              province: customerInfo.state,
+              zip: customerInfo.postcode,
+              country: customerInfo.country,
+              phone: customerInfo.phone,
+            },
+            note: `Order ${orderId}. Billplz payment.`,
+            tags: ['billplz', 'online-order'],
+            customAttributes: [
+              { key: 'internal_order_id', value: orderId },
+              { key: 'payment_gateway', value: 'Billplz' },
+            ],
+          }),
+        })
+        if (draftRes.ok) {
+          const draftData = await draftRes.json()
+          if (draftData.draftOrderId) {
+            draftOrderId = draftData.draftOrderId
+            console.log('[Checkout] Shopify draft order created:', draftOrderId)
+          }
+        } else {
+          console.warn('[Checkout] Draft order creation failed (Shopify order will not be created):', draftRes.status, await draftRes.text())
+        }
+      } catch (draftErr) {
+        console.warn('[Checkout] Draft order creation error (payment will still proceed):', draftErr)
+      }
+
+      // Create Billplz bill with bank code (and draftOrderId so callback can complete order in Shopify)
       console.log('[Checkout] Creating Billplz bill with bank code:', bankDetails.code, 'for bank:', bankDetails.name)
       
       const response = await fetch('/api/billplz/create-bill', {
@@ -678,6 +733,7 @@ export function CheckoutPageClient() {
           orderId,
           phone: customerInfo.phone,
           bankCode: bankDetails.code, // Pass the Billplz bank code
+          draftOrderId: draftOrderId || undefined, // So payment callback can complete draft → order in Shopify
         }),
       })
 

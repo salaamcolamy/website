@@ -101,13 +101,11 @@ async function handler(request: NextRequest) {
       description,
       callbackUrl,
       redirectUrl,
-      // If bankCode is provided, use it for direct payment gateway (FPX bank selection)
-      // Otherwise, use orderId as reference_1
       bankCode: bankCode || undefined,
-      reference_1_label: bankCode ? undefined : 'Order ID',
-      reference_1: bankCode ? undefined : orderId,
+      reference_1_label: 'Order ID',
+      reference_1: orderId,
       reference_2_label: draftOrderId ? 'Draft Order ID' : 'Phone',
-      reference_2: draftOrderId || phone || '',
+      reference_2: draftOrderId ? `${draftOrderId}|${orderId}` : orderId,
     })
 
     logger.info('Billplz bill created successfully', {

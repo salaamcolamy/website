@@ -1,9 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBillplzClient } from '@/lib/billplz/client'
 import { getOrder, markOrderPaid, markOrderFailed } from '@/lib/orders/orderService'
-import { isShopifyAdminConfigured } from '@/lib/shopify/admin-client'
+import { isShopifyAdminConfigured, completeDraftOrder, markOrderAsPaid } from '@/lib/shopify/admin-client'
 import { logger } from '@/lib/logger'
 import crypto from 'crypto'
+
+const DRAFT_ORDER_PREFIX = 'gid://shopify/DraftOrder/'
+
+function parseReference2(reference2: string | null): { orderId: string; draftOrderId: string | null } {
+  if (!reference2 || typeof reference2 !== 'string') return { orderId: 'unknown', draftOrderId: null }
+  const pipe = reference2.indexOf('|')
+  if (pipe > 0) {
+    const draftOrderId = reference2.slice(0, pipe).trim()
+    const orderId = reference2.slice(pipe + 1).trim() || 'unknown'
+    return {
+      orderId,
+      draftOrderId: draftOrderId.startsWith(DRAFT_ORDER_PREFIX) ? draftOrderId : null,
+    }
+  }
+  return {
+    orderId: reference2,
+    draftOrderId: reference2.startsWith(DRAFT_ORDER_PREFIX) ? reference2 : null,
+  }
+}
+
+async function completeShopifyOrderFromDraft(draftOrderId: string, amount: string): Promise<void> {
+  const order = await completeDraftOrder(draftOrderId)
+  await markOrderAsPaid(order.id, amount)
+  logger.info('Shopify order created and marked paid', { shopifyOrderId: order.id, shopifyOrderName: order.name })
+}
 
 function verifyXSignature(formData: FormData, signature: string): boolean {
   const xSignatureKey = process.env.BILLPLZ_XSIGNATURE_KEY
@@ -34,10 +59,12 @@ export async function POST(request: NextRequest) {
     const billId = formData.get('id') as string
     const paid = formData.get('paid') as string
     const state = formData.get('state') as string
-    const orderId = formData.get('reference_1') as string
+    const reference1 = (formData.get('reference_1') as string) || ''
+    const reference2 = (formData.get('reference_2') as string) || ''
     const signature = request.headers.get('x-signature') || ''
 
-    logger.debug('Billplz callback received', { orderId, paid, state })
+    const { orderId, draftOrderId } = parseReference2(reference2 || reference1)
+    logger.debug('Billplz callback received', { orderId, draftOrderId: !!draftOrderId, paid, state })
 
     const isValid = verifyXSignature(formData, signature)
     if (!isValid) {
@@ -45,16 +72,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
-    if (!orderId) {
-      logger.error('No order ID in Billplz callback')
+    if (!orderId || orderId === 'unknown') {
+      logger.error('No order ID in Billplz callback', { reference_1: reference1, reference_2: reference2 })
       return NextResponse.json({ error: 'Missing order ID' }, { status: 400 })
     }
 
     if (paid === 'true' && state === 'paid') {
-      logger.info('Payment successful', { orderId })
+      logger.info('Payment successful', { orderId, hasDraftOrderId: !!draftOrderId })
       try {
-        if (isShopifyAdminConfigured()) {
-          await markOrderPaid(orderId, billId)
+        if (isShopifyAdminConfigured() && draftOrderId) {
+          await completeShopifyOrderFromDraft(draftOrderId, (formData.get('paid_amount') as string) || '0')
+        } else if (isShopifyAdminConfigured()) {
+          const orderData = getOrder(orderId)
+          if (orderData) {
+            await markOrderPaid(orderId, billId)
+          } else {
+            logger.warn('Payment paid but no draftOrderId and no order data on server – Shopify order not created', { orderId })
+          }
         } else {
           const orderData = getOrder(orderId)
           if (orderData) {
@@ -66,7 +100,8 @@ export async function POST(request: NextRequest) {
       }
     } else {
       logger.info('Payment failed or incomplete', { orderId })
-      markOrderFailed(orderId)
+      const orderData = getOrder(orderId)
+      if (orderData) markOrderFailed(orderId)
     }
 
     return NextResponse.json({ success: true })
@@ -113,18 +148,13 @@ export async function GET(request: NextRequest) {
         const billplz = getBillplzClient()
         const bill = await billplz.getBill(billplzId)
 
-        const orderId = bill.reference_1 || 'unknown'
-        const draftOrderId = bill.reference_2
+        const { orderId, draftOrderId } = parseReference2(bill.reference_2 || bill.reference_1)
 
-        if (bill.paid) {
-          if (isShopifyAdminConfigured() && draftOrderId?.startsWith('gid://shopify/DraftOrder/')) {
-            try {
-              const { completeDraftOrder, markOrderAsPaid } = await import('@/lib/shopify/admin-client')
-              const order = await completeDraftOrder(draftOrderId)
-              await markOrderAsPaid(order.id, bill.amount.toString())
-            } catch (orderError) {
-              logger.error('Error completing order', orderError)
-            }
+        if (bill.paid && isShopifyAdminConfigured() && draftOrderId) {
+          try {
+            await completeShopifyOrderFromDraft(draftOrderId, String(bill.paid_amount ?? bill.amount ?? 0))
+          } catch (orderError) {
+            logger.error('Error completing order on redirect', orderError)
           }
         }
 
