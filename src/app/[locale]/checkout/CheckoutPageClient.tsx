@@ -17,7 +17,7 @@ import {
   MapPin,
   Truck,
 } from 'lucide-react'
-import { generateOrderId, saveOrder, type OrderData } from '@/lib/orders/orderService'
+import { saveOrder, type OrderData } from '@/lib/orders/orderService'
 
 type Step = 'information' | 'shipping' | 'payment'
 type PaymentMethod = 'fpx'
@@ -296,36 +296,7 @@ export function CheckoutPageClient() {
         throw new Error('Invalid bank selection')
       }
 
-      // Generate order ID
-      const orderId = generateOrderId()
-
-      // Create order data
-      const orderData: OrderData = {
-        id: orderId,
-        items: cart?.items.map(item => ({
-          id: item.id,
-          variantId: item.variantId || '',
-          title: item.title,
-          variantTitle: item.variantTitle || '',
-          quantity: item.quantity,
-          price: item.price,
-          image: item.image,
-        })) || [],
-        subtotal: cart?.subtotal || 0,
-        shipping: shippingCost,
-        total: orderTotal,
-        customerInfo,
-        paymentMethod: 'billplz',
-        paymentStatus: 'pending',
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-      }
-
-      // Save order before creating bill
-      saveOrder(orderData)
-
-      // Create Shopify draft order — this MUST succeed so the order appears in Shopify
-      let draftOrderId: string | null = null
+      // Create Shopify draft order FIRST — get Shopify's order name as our order ID
       const draftRes = await fetch('/api/orders/create-draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -357,10 +328,9 @@ export function CheckoutPageClient() {
             country: customerInfo.country,
             phone: customerInfo.phone,
           },
-          note: `Order ${orderId}. Billplz payment. Shipping: RM${(shippingCost ?? 0).toFixed(2)}`,
+          note: `Billplz payment. Shipping: RM${(shippingCost ?? 0).toFixed(2)}`,
           tags: ['billplz', 'online-order'],
           customAttributes: [
-            { key: 'internal_order_id', value: orderId },
             { key: 'payment_gateway', value: 'Billplz' },
             { key: 'shipping_cost', value: String(shippingCost ?? 0) },
           ],
@@ -379,12 +349,38 @@ export function CheckoutPageClient() {
         throw new Error('Order was not created properly. Please try again.')
       }
 
-      draftOrderId = draftData.draftOrderId
-      console.log('[Checkout] Shopify draft order created:', draftOrderId)
+      const draftOrderId = draftData.draftOrderId
+      const orderId = draftData.draftOrderName || draftOrderId
+      console.log('[Checkout] Shopify draft order created:', draftOrderId, 'Order ID:', orderId)
+
+      // Create order data using Shopify's order name
+      const orderData: OrderData = {
+        id: orderId,
+        shopifyDraftOrderId: draftOrderId,
+        items: cart?.items.map(item => ({
+          id: item.id,
+          variantId: item.variantId || '',
+          title: item.title,
+          variantTitle: item.variantTitle || '',
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+        })) || [],
+        subtotal: cart?.subtotal || 0,
+        shipping: shippingCost,
+        total: orderTotal,
+        customerInfo,
+        paymentMethod: 'billplz',
+        paymentStatus: 'pending',
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      }
+
+      saveOrder(orderData)
 
       // Create Billplz bill with bank code (and draftOrderId so callback can complete order in Shopify)
       console.log('[Checkout] Creating Billplz bill with bank code:', bankDetails.code, 'for bank:', bankDetails.name)
-      
+
       const response = await fetch('/api/billplz/create-bill', {
         method: 'POST',
         headers: {
@@ -397,8 +393,8 @@ export function CheckoutPageClient() {
           description: `Order ${orderId} - ${cart?.items.length || 0} item(s)`,
           orderId,
           phone: customerInfo.phone,
-          bankCode: bankDetails.code, // Pass the Billplz bank code
-          draftOrderId: draftOrderId || undefined, // So payment callback can complete draft → order in Shopify
+          bankCode: bankDetails.code,
+          draftOrderId: draftOrderId,
         }),
       })
 
