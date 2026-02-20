@@ -73,8 +73,6 @@ export function CheckoutPageClient() {
     totalWeightKg: number
     baseRate: number
     additionalWeightCharge: number
-    cartonProtection: number
-    totalCartons: number
   } | null>(null)
   const shippingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof CustomerInfo | 'bank', string>>>({})

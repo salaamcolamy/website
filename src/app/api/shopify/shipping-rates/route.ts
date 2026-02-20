@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         shippingCost: 0,
-        breakdown: { region: 'unknown', totalWeightKg: 0, baseRate: 0, additionalWeightCharge: 0, cartonProtection: 0, totalCartons: 0 },
+        breakdown: { region: 'unknown', totalWeightKg: 0, baseRate: 0, additionalWeightCharge: 0 },
         error: 'Failed to calculate shipping. Please try again.',
       },
       { status: 500 }

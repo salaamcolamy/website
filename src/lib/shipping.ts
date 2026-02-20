@@ -9,7 +9,6 @@
  *
  * Currently shipping from Peninsular Malaysia → routes 1 & 2 active.
  * Product weights: 6-pack = 2.5kg, 24-pack = 8kg
- * Outer carton protection & bubble wrap already included in shipping fee.
  */
 
 const PENINSULAR_STATES = [
@@ -42,8 +41,6 @@ export interface ShippingResult {
     totalWeightKg: number
     baseRate: number
     additionalWeightCharge: number
-    cartonProtection: number
-    totalCartons: number
   }
   error?: string
 }
@@ -56,7 +53,6 @@ function classifyRegion(state: string): Region {
   if (PENINSULAR_STATES.some(s => norm.includes(s))) return 'peninsular'
   if (EAST_MALAYSIA_STATES.some(s => norm.includes(s))) return 'east_malaysia'
 
-  // Common alternate spellings
   if (norm.includes('penang')) return 'peninsular'
   if (norm.includes('malacca')) return 'peninsular'
   if (norm.includes('n. sembilan')) return 'peninsular'
@@ -78,64 +74,30 @@ function estimateItemWeight(item: CartItemForShipping): number {
   if (combined.includes('6-pack') || combined.includes('6 pack') || combined.includes('6-cans') || combined.includes('6s')) {
     return 2.5
   }
-  // Single can fallback
   return 0.4
-}
-
-function countCartons(item: CartItemForShipping): number {
-  const title = (item.title || '').toLowerCase()
-  const handle = (item.productHandle || '').toLowerCase()
-  const variant = (item.variantTitle || '').toLowerCase()
-  const combined = `${title} ${handle} ${variant}`
-
-  // 24-pack has 4 inner cartons of 6
-  if (combined.includes('24-pack') || combined.includes('24 pack') || combined.includes('24-cans') || combined.includes('24s')) {
-    return 4
-  }
-  // 6-pack is 1 carton
-  if (combined.includes('6-pack') || combined.includes('6 pack') || combined.includes('6-cans') || combined.includes('6s')) {
-    return 1
-  }
-  return 1
 }
 
 export function calculateShipping(state: string, cartItems: CartItemForShipping[]): ShippingResult {
   const region = classifyRegion(state)
+  const emptyBreakdown = { region: 'unknown', totalWeightKg: 0, baseRate: 0, additionalWeightCharge: 0 }
 
   if (region === 'blocked') {
-    return {
-      success: false,
-      shippingCost: 0,
-      breakdown: { region: 'blocked', totalWeightKg: 0, baseRate: 0, additionalWeightCharge: 0, cartonProtection: 0, totalCartons: 0 },
-      error: 'Shipping to Labuan is currently not available.',
-    }
+    return { success: false, shippingCost: 0, breakdown: { ...emptyBreakdown, region: 'blocked' }, error: 'Shipping to Labuan is currently not available.' }
   }
 
   if (region === 'unknown') {
-    return {
-      success: false,
-      shippingCost: 0,
-      breakdown: { region: 'unknown', totalWeightKg: 0, baseRate: 0, additionalWeightCharge: 0, cartonProtection: 0, totalCartons: 0 },
-      error: 'Unable to determine shipping region. Please check your state/province.',
-    }
+    return { success: false, shippingCost: 0, breakdown: emptyBreakdown, error: 'Unable to determine shipping region. Please check your state/province.' }
   }
 
   if (!cartItems || cartItems.length === 0) {
-    return {
-      success: false,
-      shippingCost: 0,
-      breakdown: { region, totalWeightKg: 0, baseRate: 0, additionalWeightCharge: 0, cartonProtection: 0, totalCartons: 0 },
-      error: 'Cart is empty.',
-    }
+    return { success: false, shippingCost: 0, breakdown: { ...emptyBreakdown, region }, error: 'Cart is empty.' }
   }
 
-  // Calculate total weight
   let totalWeightKg = 0
   for (const item of cartItems) {
     totalWeightKg += estimateItemWeight(item) * item.quantity
   }
 
-  // Round weight up to nearest kg
   const weightCeiled = Math.ceil(totalWeightKg)
 
   let baseRate = 0
@@ -143,29 +105,20 @@ export function calculateShipping(state: string, cartItems: CartItemForShipping[
   let regionLabel = ''
 
   if (region === 'peninsular') {
-    // Within Peninsular: RM 8.50 (first 2kg) + RM 2.00 per additional 1kg
     baseRate = 8.50
     additionalWeightCharge = Math.max(0, weightCeiled - 2) * 2.00
     regionLabel = 'Peninsular Malaysia'
   } else {
-    // Peninsular → East Malaysia: RM 11.50 (first 1kg) + RM 11.00 per additional 1kg
     baseRate = 11.50
     additionalWeightCharge = Math.max(0, weightCeiled - 1) * 11.00
     regionLabel = 'East Malaysia'
   }
 
-  const shippingCost = baseRate + additionalWeightCharge
+  const shippingCost = Math.round((baseRate + additionalWeightCharge) * 100) / 100
 
   return {
     success: true,
-    shippingCost: Math.round(shippingCost * 100) / 100,
-    breakdown: {
-      region: regionLabel,
-      totalWeightKg,
-      baseRate,
-      additionalWeightCharge,
-      cartonProtection: 0,
-      totalCartons: 0,
-    },
+    shippingCost,
+    breakdown: { region: regionLabel, totalWeightKg, baseRate, additionalWeightCharge },
   }
 }
