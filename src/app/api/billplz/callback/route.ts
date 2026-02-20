@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBillplzClient } from '@/lib/billplz/client'
-import { getOrder, markOrderPaid, markOrderFailed } from '@/lib/orders/orderService'
 import { isShopifyAdminConfigured, completeDraftOrder, markOrderAsPaid } from '@/lib/shopify/admin-client'
 import { logger } from '@/lib/logger'
 import crypto from 'crypto'
@@ -78,30 +77,35 @@ export async function POST(request: NextRequest) {
     }
 
     if (paid === 'true' && state === 'paid') {
-      logger.info('Payment successful', { orderId, hasDraftOrderId: !!draftOrderId })
+      logger.info('Payment successful', { orderId, billId, hasDraftOrderId: !!draftOrderId })
       try {
         if (isShopifyAdminConfigured() && draftOrderId) {
+          // Happy path: draft order was created at checkout, now complete it
           await completeShopifyOrderFromDraft(draftOrderId, (formData.get('paid_amount') as string) || '0')
+          logger.info('Order completed in Shopify via draft order', { orderId, draftOrderId })
         } else if (isShopifyAdminConfigured()) {
-          const orderData = getOrder(orderId)
-          if (orderData) {
-            await markOrderPaid(orderId, billId)
-          } else {
-            logger.warn('Payment paid but no draftOrderId and no order data on server – Shopify order not created', { orderId })
-          }
-        } else {
-          const orderData = getOrder(orderId)
-          if (orderData) {
-            markOrderPaid(orderId, billId).catch(err => logger.error('Failed to mark order as paid', err))
+          // Fallback: no draft order — try to get bill details and complete from Billplz data
+          logger.warn('Payment paid but no draftOrderId — attempting to create order from bill data', { orderId, billId })
+          try {
+            const billplz = getBillplzClient()
+            const bill = await billplz.getBill(billId)
+            // Re-parse in case reference_2 has a draft order ID we missed
+            const reparsed = parseReference2(bill.reference_2 || bill.reference_1)
+            if (reparsed.draftOrderId) {
+              await completeShopifyOrderFromDraft(reparsed.draftOrderId, String(bill.paid_amount ?? bill.amount ?? 0))
+              logger.info('Order completed via re-parsed draft order ID', { orderId, draftOrderId: reparsed.draftOrderId })
+            } else {
+              logger.error('No draft order ID found — Shopify order cannot be created. Check checkout flow.', { orderId, billId })
+            }
+          } catch (billError) {
+            logger.error('Failed to retrieve bill for fallback order creation', billError)
           }
         }
       } catch (error) {
-        logger.error('Error processing successful payment', error)
+        logger.error('Error processing successful payment', error, { orderId, draftOrderId })
       }
     } else {
-      logger.info('Payment failed or incomplete', { orderId })
-      const orderData = getOrder(orderId)
-      if (orderData) markOrderFailed(orderId)
+      logger.info('Payment failed or incomplete', { orderId, state, paid })
     }
 
     return NextResponse.json({ success: true })

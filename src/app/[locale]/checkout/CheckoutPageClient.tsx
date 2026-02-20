@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
-import { Link, useRouter } from '@/i18n/routing'
+import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 import {
   CreditCard,
@@ -18,7 +18,6 @@ import {
   Truck,
 } from 'lucide-react'
 import { generateOrderId, saveOrder, type OrderData } from '@/lib/orders/orderService'
-import { getCart } from '@/lib/shopify/queries/cart'
 
 type Step = 'information' | 'shipping' | 'payment'
 type PaymentMethod = 'fpx'
@@ -61,18 +60,23 @@ const fpxBanks = [
 ]
 
 export function CheckoutPageClient() {
-  const router = useRouter()
-  const { cart, clearCart } = useCart()
-  const [isMigratingCart, setIsMigratingCart] = useState(false)
+  const { cart } = useCart()
   const [currentStep, setCurrentStep] = useState<Step>('information')
   const [paymentMethod] = useState<PaymentMethod>('fpx')
   const [selectedBank, setSelectedBank] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [shopifyShippingCost, setShopifyShippingCost] = useState<number | null>(null)
+  const [shippingCostValue, setShippingCostValue] = useState<number | null>(null)
   const [shippingLoading, setShippingLoading] = useState(false)
   const [shippingError, setShippingError] = useState<string | null>(null)
-  const [shopifyConfigured, setShopifyConfigured] = useState<boolean | null>(null)
-  const [selectedShippingOption, setSelectedShippingOption] = useState<{ title: string; cost: number; isAdvancedShipping?: boolean } | null>(null)
+  const [shippingBreakdown, setShippingBreakdown] = useState<{
+    region: string
+    totalWeightKg: number
+    baseRate: number
+    additionalWeightCharge: number
+    cartonProtection: number
+    totalCartons: number
+  } | null>(null)
+  const shippingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     email: '',
@@ -105,7 +109,6 @@ export function CheckoutPageClient() {
     else if (currentStep === 'shipping') setCurrentStep('information')
   }
 
-  const isShopifyCart = cart?.id?.startsWith('gid://shopify/Cart')
   const hasMinAddress = Boolean(
     customerInfo.address?.trim() &&
     customerInfo.city?.trim() &&
@@ -115,430 +118,113 @@ export function CheckoutPageClient() {
     customerInfo.lastName?.trim()
   )
 
-  const fetchShopifyShippingRates = useCallback(async () => {
-    if (!hasMinAddress) {
-      // If incomplete address, reset shipping
-      setShopifyShippingCost(null)
+  const fetchShippingRates = useCallback(async () => {
+    if (!customerInfo.state) {
+      setShippingCostValue(null)
       setShippingError(null)
+      setShippingBreakdown(null)
       setShippingLoading(false)
       return
     }
 
-    if (!cart?.id) {
-      console.warn('[Checkout] Cannot calculate shipping: No cart ID')
-      setShippingError('Cart is not ready. Please add items to your cart and try again.')
-      setShopifyShippingCost(null)
+    if (!cart?.items || cart.items.length === 0) {
+      setShippingError('Your cart is empty.')
+      setShippingCostValue(null)
+      setShippingBreakdown(null)
       setShippingLoading(false)
       return
     }
 
-    // Check if cart has items
-    if (!cart.items || cart.items.length === 0) {
-      console.warn('[Checkout] Cannot calculate shipping: Cart has no items')
-      setShippingError('Your cart is empty. Please add items to your cart before calculating shipping.')
-      setShopifyShippingCost(null)
-      setShippingLoading(false)
-      return
-    }
-
-    // Check if we have a valid Shopify cart ID
-    const isShopifyCartId = cart.id.startsWith('gid://shopify/Cart')
-    if (!isShopifyCartId) {
-      console.error('[Checkout] ❌ Cannot calculate shipping: Cart is not a Shopify cart', { 
-        cartId: cart.id,
-        cartItems: cart.items?.length || 0,
-        cartType: cart.id.includes('demo') || cart.id.includes('mock') ? 'demo/mock' : 'unknown',
-      })
-      
-      // NO MORE DEMO CART MIGRATION - Clear demo cart and redirect to shop
-      if (cart.id.includes('demo') || cart.id.includes('mock')) {
-        console.log('[Checkout] Demo cart detected - clearing and redirecting to shop')
-        
-        // Clear demo cart from localStorage
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem('salaamcola-demo-cart')
-          localStorage.removeItem('salaamcola-cart-id')
-        }
-        
-        // Clear cart context
-        clearCart()
-        
-        // Show error and redirect
-        setShippingError('Demo cart detected. Please add items from the shop page to create a real cart. Redirecting...')
-        setShopifyShippingCost(null)
-        setShippingLoading(false)
-        
-        // Redirect to shop after 2 seconds
-        setTimeout(() => {
-          router.push('/shop')
-        }, 2000)
-        return
-      }
-      
-      // For any other invalid cart format
-      setShippingError('Invalid cart format. Please add items from the shop page to create a Shopify cart.')
-      setShopifyShippingCost(null)
-      setShippingLoading(false)
-      return
-    }
-    
-    // If we reach here, we have a valid Shopify cart - proceed with shipping calculation
-    
     setShippingLoading(true)
     setShippingError(null)
-    
-    // Reload cart from Shopify before calculating shipping so weight/items are up to date for Shopify backend rates
-    let currentCartId = cart.id
-    let currentCart = cart
-    
-    // Try to reload cart from Shopify to ensure latest state; if reload fails, still proceed with current cart
+
     try {
-      console.log('[Checkout] Reloading cart before calculating shipping...', {
-        cartId: cart.id,
-        itemsCount: cart.items?.length || 0,
+      const cartItems = cart.items.map(item => ({
+        title: item.title,
+        variantTitle: item.variantTitle || '',
+        quantity: item.quantity,
+        productHandle: (item as any).productHandle || '',
+      }))
+
+      console.log('[Checkout] Calculating shipping (Tranz rate card):', {
+        state: customerInfo.state,
+        items: cartItems.map(i => `${i.title} x${i.quantity}`),
       })
-      
-      const cartResponse = await fetch(`/api/cart?id=${encodeURIComponent(cart.id)}`)
-      if (cartResponse.ok) {
-        const refreshedCart = await cartResponse.json()
-        if (refreshedCart?.id && refreshedCart.items?.length > 0) {
-          const itemsDetail = refreshedCart.items.map((item: any) => ({
-            title: item.title,
-            variantTitle: item.variantTitle,
-            quantity: item.quantity,
-            variantId: item.variantId?.substring(0, 50) + '...',
-            is6Pack: item.title?.toLowerCase().includes('6-pack') || item.title?.toLowerCase().includes('6 pack'),
-            is24Pack: item.title?.toLowerCase().includes('24-pack') || item.title?.toLowerCase().includes('24 pack'),
-          }))
-          currentCart = refreshedCart
-          currentCartId = refreshedCart.id
-          console.log('[Checkout] ✓ Cart reloaded for shipping:', {
-            cartId: currentCartId,
-            itemsCount: refreshedCart.items.length,
-            totalQuantity: refreshedCart.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
-            items: itemsDetail,
-          })
-        } else {
-          console.warn('[Checkout] Reloaded cart empty or invalid, using current cart state')
-        }
-      } else {
-        const errorText = await cartResponse.text().catch(() => 'Unknown error')
-        console.warn('[Checkout] Cart reload failed, using current cart for shipping:', {
-          status: cartResponse.status,
-          statusText: cartResponse.statusText,
-          error: errorText?.slice(0, 200),
-        })
-      }
-    } catch (reloadError) {
-      // Don't block shipping: proceed with current cart so we can still try to get rates
-      console.warn('[Checkout] Cart reload error (proceeding with current cart):', reloadError)
-    }
-    
-    // CRITICAL: Verify cart has items before calculating shipping
-    // This is especially important when multiple products (6-pack + 24-pack) are added
-    if (!currentCart.items || currentCart.items.length === 0) {
-      console.error('[Checkout] ❌ Cart has no items after reload, cannot calculate shipping')
-      setShippingError('Cart appears to be empty. Please add items to your cart and try again.')
-      setShopifyShippingCost(null)
-      setShippingLoading(false)
-      return
-    }
-    
-    // Log detailed cart state for debugging multiple products
-    const itemsSummary = currentCart.items.map((item: any) => ({
-      title: item.title,
-      variantTitle: item.variantTitle,
-      quantity: item.quantity,
-    }))
-    
-    console.log('[Checkout] ✓ Fetching shipping rates with verified cart:', {
-      cartId: currentCartId,
-      address: customerInfo.address,
-      city: customerInfo.city,
-      state: customerInfo.state,
-      postcode: customerInfo.postcode,
-      itemsCount: currentCart.items.length,
-      totalQuantity: currentCart.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
-      items: itemsSummary,
-      note: 'Cart verified - all items present. Shopify will sum weights automatically.'
-    })
-    
-    try {
-      const countryCode = customerInfo.country === 'Malaysia' ? 'MY' : customerInfo.country?.slice(0, 2).toUpperCase() || 'MY'
+
       const res = await fetch('/api/shopify/shipping-rates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cartId: currentCartId,
+          cartItems,
           address: {
-            address1: customerInfo.address,
-            address2: customerInfo.apartment || undefined,
-            city: customerInfo.city,
             province: customerInfo.state,
-            countryCode,
+            city: customerInfo.city,
             zip: customerInfo.postcode,
-            firstName: customerInfo.firstName,
-            lastName: customerInfo.lastName,
-            phone: customerInfo.phone || undefined,
           },
         }),
       })
-      
-      // Check HTTP response status
-      if (!res.ok) {
-        const errorText = await res.text()
-        let errorMessage = `HTTP ${res.status}: ${res.statusText}`
-        try {
-          const errorData = JSON.parse(errorText)
-          errorMessage = errorData.error || errorMessage
-          console.error('[Checkout] Shipping API error response:', errorData)
-        } catch {
-          errorMessage = errorText || errorMessage
-          console.error('[Checkout] Shipping API error (non-JSON):', errorText)
-        }
-        throw new Error(errorMessage)
-      }
-      
+
       const data = await res.json()
-      
-      // COMPREHENSIVE SHIPPING VERIFICATION LOG
-      console.group('🚚 SHIPPING CALCULATION VERIFICATION')
-      console.log('📍 Address:', {
-        state: customerInfo.state,
-        city: customerInfo.city,
-        postcode: customerInfo.postcode,
-        region: customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' ? 'East Malaysia' : 'West Malaysia'
-      })
-      console.log('🛒 Cart:', {
-        cartId: currentCartId.substring(0, 50) + '...',
-        itemsCount: currentCart.items.length,
-        totalQuantity: currentCart.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
-        items: currentCart.items.map((item: any) => `${item.title} x${item.quantity}`)
-      })
-      console.log('💰 Shipping Response:', {
-        shippingCost: data.shippingCost,
-        currencyCode: data.currencyCode,
-        optionsCount: data.options?.length || 0,
-        hasError: !!data.error,
-        error: data.error || 'None'
-      })
-      console.log('📋 Available Options:', data.options?.map((o: any, idx: number) => ({
-        index: idx + 1,
-        title: o.title,
-        handle: o.handle,
-        cost: o.estimatedCost?.amount,
-        currency: o.estimatedCost?.currencyCode,
-        isAdvancedShipping: o.handle?.toLowerCase().includes('advanced') || o.title?.toLowerCase().includes('advanced'),
-        isWeightBased: o.handle?.toLowerCase().includes('weight') || o.title?.toLowerCase().includes('weight')
-      })) || [])
-      
-      console.log('[Checkout] ✓ Shipping API response received:', {
-        shippingCost: data.shippingCost,
-        optionsCount: data.options?.length || 0,
-        options: data.options?.map((o: any) => ({
-          title: o.title,
-          handle: o.handle,
-          cost: o.estimatedCost?.amount,
-          currency: o.estimatedCost?.currencyCode,
-        })),
-        error: data.error,
-        currencyCode: data.currencyCode,
-        hasOptions: !!(data.options && data.options.length > 0),
-      })
-      
-      if (data.error) {
-        console.error('❌ SHIPPING CALCULATION FAILED:', data.error)
-        if (data.debug) {
-          console.error('[Checkout] Failure cause (data.debug):', data.debug)
-        }
-        console.log('💡 TROUBLESHOOTING: Check Shopify Admin → Settings → Shipping and delivery; set variant weights; add zone for this region.')
-        console.groupEnd()
-        const errorMsg = data.error || 'Failed to calculate shipping rates'
+
+      if (!res.ok || !data.success) {
+        const errorMsg = data.error || 'Failed to calculate shipping.'
         setShippingError(errorMsg)
-        setShopifyShippingCost(null)
-        setSelectedShippingOption(null)
-        console.error('[Checkout] Shipping API error. Full response:', data)
+        setShippingCostValue(null)
+        setShippingBreakdown(null)
+        console.error('[Checkout] Shipping error:', errorMsg)
       } else {
-        // Check if we got valid shipping options
-        if (data.options && data.options.length > 0) {
-          const calculatedCost = data.shippingCost ?? 0
-          const selectedOption = data.options.find(
-            (opt: any) => parseFloat(opt.estimatedCost?.amount || '0') === calculatedCost
-          ) || data.options[0]
-          
-          console.log('[Checkout] ✓ Shipping (Shopify):', selectedOption?.title, 'RM' + calculatedCost.toFixed(2))
-          
-          setShopifyShippingCost(calculatedCost)
-          setSelectedShippingOption({
-            title: selectedOption?.title || 'Standard Delivery',
-            cost: calculatedCost,
-            isAdvancedShipping: false
-          })
-          setShippingError(null)
-          setTimeout(() => {}, 100)
-          console.groupEnd()
-        } else {
-          console.warn('⚠️ No shipping options from Shopify. Check Admin → Shipping and delivery; set variant weights.')
-          console.groupEnd()
-          // No options returned - provide detailed error message
-          const errorMsg = data.error
-            ? data.error
-            : `No shipping rates for ${customerInfo.state}. Check your address and that we deliver to your area, or contact support.`
-          setShippingError(errorMsg)
-          setShopifyShippingCost(null)
-          setSelectedShippingOption(null)
-          console.warn('[Checkout] No shipping options returned. Response:', data, 'Address sent:', {
-            state: customerInfo.state,
-            city: customerInfo.city,
-            postcode: customerInfo.postcode,
-          })
-        }
+        setShippingCostValue(data.shippingCost)
+        setShippingBreakdown(data.breakdown)
+        setShippingError(null)
+        console.log('[Checkout] Shipping calculated:', {
+          cost: data.shippingCost,
+          region: data.breakdown.region,
+          weight: data.breakdown.totalWeightKg + 'kg',
+        })
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Could not load shipping rates'
-      setShippingError(`Unable to calculate shipping. ${errorMessage} Check your address and try again, or contact support.`)
-      setShopifyShippingCost(null)
-      setSelectedShippingOption(null)
-      console.error('[Checkout] Shipping calculation error (network or server exception):', error)
+      setShippingError(`Unable to calculate shipping. ${errorMessage}`)
+      setShippingCostValue(null)
+      setShippingBreakdown(null)
+      console.error('[Checkout] Shipping calculation error:', error)
     } finally {
       setShippingLoading(false)
     }
-  }, [cart?.id, hasMinAddress, customerInfo.address, customerInfo.apartment, customerInfo.city, customerInfo.state, customerInfo.country, customerInfo.postcode, customerInfo.firstName, customerInfo.lastName, customerInfo.phone])
+  }, [cart?.items, customerInfo.state, customerInfo.city, customerInfo.postcode])
 
-  // On checkout mount: clear any invalid/demo cart IDs from localStorage so only Shopify carts are used
-  useEffect(() => {
-    if (typeof localStorage === 'undefined') return
-    const storedId = localStorage.getItem('salaamcola-cart-id')
-    const invalid =
-      !storedId ||
-      !storedId.startsWith('gid://shopify/Cart') ||
-      !storedId.includes('key=')
-    if (storedId && invalid) {
-      console.warn('[Checkout] Clearing invalid or keyless cart ID from localStorage:', storedId.substring(0, 50))
-      localStorage.removeItem('salaamcola-cart-id')
-      localStorage.removeItem('salaamcola-demo-cart')
+  // Debounced shipping calculation
+  const debouncedFetchShipping = useCallback(() => {
+    if (shippingDebounceRef.current) {
+      clearTimeout(shippingDebounceRef.current)
     }
-  }, [])
+    shippingDebounceRef.current = setTimeout(() => {
+      fetchShippingRates()
+    }, 500)
+  }, [fetchShippingRates])
 
-  // Check Shopify configuration on mount
+  // Recalculate shipping when state, cart items, or quantities change (debounced)
   useEffect(() => {
-    async function checkShopifyConfig() {
-      try {
-        const res = await fetch('/api/shopify/check-config')
-        const data = await res.json()
-        setShopifyConfigured(data.configured ?? false)
-      } catch (error) {
-        console.error('[Checkout] Failed to check Shopify config:', error)
-        setShopifyConfigured(false)
-      }
-    }
-    checkShopifyConfig()
-  }, [])
-
-  // Fetch shipping rates when address is complete AND when cart changes (items, quantities, etc.)
-  // CRITICAL: Recalculate shipping when cart items or quantities change (for weight-based rates)
-  // Always calculate shipping based on customer input - no fallback/demo rates
-  // Let fetchShopifyShippingRates handle cart migration internally
-  useEffect(() => {
-    // Only calculate if we have minimum address AND valid cart
-    if (!hasMinAddress) {
-      console.log('[Checkout] Address incomplete, skipping shipping calculation')
+    if (!customerInfo.state || !cart?.items || cart.items.length === 0) {
+      setShippingCostValue(null)
+      setShippingError(null)
+      setShippingBreakdown(null)
       return
     }
-    
-    if (!cart?.id) {
-      console.log('[Checkout] No cart ID, skipping shipping calculation')
-      return
+    debouncedFetchShipping()
+    return () => {
+      if (shippingDebounceRef.current) clearTimeout(shippingDebounceRef.current)
     }
-    
-    if (!cart.items || cart.items.length === 0) {
-      console.log('[Checkout] Cart has no items, skipping shipping calculation')
-      return
-    }
-    
-    // Check if cart is Shopify cart
-    const isShopifyCart = cart.id.startsWith('gid://shopify/Cart')
-    if (!isShopifyCart) {
-      console.warn('[Checkout] Cart is not a Shopify cart, cannot calculate shipping:', cart.id)
-      return
-    }
-    
-    // Calculate total quantity to detect quantity changes (not just item count)
-    const totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0)
-    
-    // Always call fetchShopifyShippingRates - it will handle migration if needed
-    // This ensures shipping updates as user fills in address OR when cart quantities change
-    console.log('[Checkout] ✓ Conditions met, calculating shipping...', {
-      cartId: cart.id,
-      itemsCount: cart.items.length,
-      totalQuantity: totalQuantity,
-      isShopifyCart: true,
-      items: cart.items.map(item => `${item.title} x${item.quantity}`),
-      address: {
-        state: customerInfo.state,
-        city: customerInfo.city,
-        postcode: customerInfo.postcode,
-      }
-    })
-    
-      // Calculate shipping immediately - Shopify automatically uses cart weight
-    // No delay needed - Shopify has weight information when items are in cart
-    fetchShopifyShippingRates()
-  }, [
-    hasMinAddress, 
-    cart?.id, 
-    cart?.items?.length,
-    // Track total quantity to detect quantity changes (critical for weight-based shipping)
-    cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
-    fetchShopifyShippingRates
-  ])
+  }, [customerInfo.state, cart?.items, debouncedFetchShipping])
 
-  // Also fetch when explicitly on shipping step (in case it wasn't triggered before)
-  // Recalculate shipping when step changes to ensure rates reflect current cart state
+  // Also recalculate when entering shipping step
   useEffect(() => {
-    if (currentStep === 'shipping' && hasMinAddress && cart?.id && cart.items && cart.items.length > 0) {
-      const totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0)
-      console.log('[Checkout] On shipping step, recalculating shipping rates...', {
-        cartId: cart.id,
-        itemsCount: cart.items.length,
-        totalQuantity: totalQuantity,
-        items: cart.items.map(item => `${item.title} x${item.quantity}`),
-      })
-      
-      // Calculate shipping immediately - Shopify automatically uses cart weight
-      // No delay needed - Shopify calculates weight automatically when items are in cart
-      fetchShopifyShippingRates()
+    if (currentStep === 'shipping' && customerInfo.state && cart?.items && cart.items.length > 0) {
+      fetchShippingRates()
     }
-  }, [
-    currentStep, 
-    hasMinAddress, 
-    cart?.id, 
-    cart?.items?.length,
-    // Track total quantity to detect quantity changes
-    cart?.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
-    fetchShopifyShippingRates
-  ])
+  }, [currentStep, fetchShippingRates, customerInfo.state, cart?.items])
 
-  // Shipping cost: Always calculated from customer address input via Shopify API
-  // No fallback rates - shipping must be calculated based on actual address
-  const shippingCost = shippingLoading
-    ? null // Show loading state, don't show a cost yet
-    : (shopifyShippingCost !== null && !shippingError ? shopifyShippingCost : null)
-  
-  // Debug logging for shipping calculation
-  useEffect(() => {
-    if (customerInfo.state) {
-      console.log('[Checkout] Shipping calculation (customer input only):', {
-        state: customerInfo.state,
-        city: customerInfo.city,
-        postcode: customerInfo.postcode,
-        shopifyShippingCost,
-        shippingLoading,
-        shippingError,
-        finalShippingCost: shippingCost,
-      })
-    }
-  }, [customerInfo.state, customerInfo.city, customerInfo.postcode, shopifyShippingCost, shippingLoading, shippingError, shippingCost])
+  const shippingCost = shippingLoading ? null : (shippingCostValue !== null && !shippingError ? shippingCostValue : null)
   
   const orderTotal = (cart?.subtotal ?? 0) + (shippingCost ?? 0)
 
@@ -596,60 +282,63 @@ export function CheckoutPageClient() {
       // Save order before creating bill
       saveOrder(orderData)
 
-      // Create Shopify draft order first so we can complete it when payment succeeds (orders appear in Shopify)
+      // Create Shopify draft order — this MUST succeed so the order appears in Shopify
       let draftOrderId: string | null = null
-      try {
-        const draftRes = await fetch('/api/orders/create-draft', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: customerInfo.email,
-            lineItems: (cart?.items || []).map(item => ({
-              variantId: item.variantId,
-              quantity: item.quantity,
-            })),
-            billingAddress: {
-              firstName: customerInfo.firstName,
-              lastName: customerInfo.lastName,
-              address1: customerInfo.address,
-              address2: customerInfo.apartment || '',
-              city: customerInfo.city,
-              province: customerInfo.state,
-              zip: customerInfo.postcode,
-              country: customerInfo.country,
-              phone: customerInfo.phone,
-            },
-            shippingAddress: {
-              firstName: customerInfo.firstName,
-              lastName: customerInfo.lastName,
-              address1: customerInfo.address,
-              address2: customerInfo.apartment || '',
-              city: customerInfo.city,
-              province: customerInfo.state,
-              zip: customerInfo.postcode,
-              country: customerInfo.country,
-              phone: customerInfo.phone,
-            },
-            note: `Order ${orderId}. Billplz payment.`,
-            tags: ['billplz', 'online-order'],
-            customAttributes: [
-              { key: 'internal_order_id', value: orderId },
-              { key: 'payment_gateway', value: 'Billplz' },
-            ],
-          }),
-        })
-        if (draftRes.ok) {
-          const draftData = await draftRes.json()
-          if (draftData.draftOrderId) {
-            draftOrderId = draftData.draftOrderId
-            console.log('[Checkout] Shopify draft order created:', draftOrderId)
-          }
-        } else {
-          console.warn('[Checkout] Draft order creation failed (Shopify order will not be created):', draftRes.status, await draftRes.text())
-        }
-      } catch (draftErr) {
-        console.warn('[Checkout] Draft order creation error (payment will still proceed):', draftErr)
+      const draftRes = await fetch('/api/orders/create-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: customerInfo.email,
+          lineItems: (cart?.items || []).map(item => ({
+            variantId: item.variantId,
+            quantity: item.quantity,
+          })),
+          billingAddress: {
+            firstName: customerInfo.firstName,
+            lastName: customerInfo.lastName,
+            address1: customerInfo.address,
+            address2: customerInfo.apartment || '',
+            city: customerInfo.city,
+            province: customerInfo.state,
+            zip: customerInfo.postcode,
+            country: customerInfo.country,
+            phone: customerInfo.phone,
+          },
+          shippingAddress: {
+            firstName: customerInfo.firstName,
+            lastName: customerInfo.lastName,
+            address1: customerInfo.address,
+            address2: customerInfo.apartment || '',
+            city: customerInfo.city,
+            province: customerInfo.state,
+            zip: customerInfo.postcode,
+            country: customerInfo.country,
+            phone: customerInfo.phone,
+          },
+          note: `Order ${orderId}. Billplz payment. Shipping: RM${(shippingCost ?? 0).toFixed(2)}`,
+          tags: ['billplz', 'online-order'],
+          customAttributes: [
+            { key: 'internal_order_id', value: orderId },
+            { key: 'payment_gateway', value: 'Billplz' },
+            { key: 'shipping_cost', value: String(shippingCost ?? 0) },
+          ],
+        }),
+      })
+
+      if (!draftRes.ok) {
+        const errorText = await draftRes.text()
+        console.error('[Checkout] Draft order creation failed:', draftRes.status, errorText)
+        throw new Error('Unable to create order in Shopify. Please try again or contact support.')
       }
+
+      const draftData = await draftRes.json()
+      if (!draftData.draftOrderId) {
+        console.error('[Checkout] Draft order response missing ID:', draftData)
+        throw new Error('Order was not created properly. Please try again.')
+      }
+
+      draftOrderId = draftData.draftOrderId
+      console.log('[Checkout] Shopify draft order created:', draftOrderId)
 
       // Create Billplz bill with bank code (and draftOrderId so callback can complete order in Shopify)
       console.log('[Checkout] Creating Billplz bill with bank code:', bankDetails.code, 'for bank:', bankDetails.name)
@@ -1023,46 +712,45 @@ export function CheckoutPageClient() {
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">
-                                {(() => {
-                                  // Determine if this is East or West Malaysia based on customer address
-                                  // East Malaysia: Sabah and Sarawak only (Labuan excluded - no shipping available)
-                                  const isEastMalaysia = customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak'
-                                  const regionLabel = isEastMalaysia ? 'East Malaysia' : 'West Malaysia'
-                                  
-                                  // Get the base title from Shopify
-                                  const baseTitle = selectedShippingOption?.title || 'Standard Delivery'
-                                  
-                                  // If title doesn't already indicate region, add it
-                                  const titleLower = baseTitle.toLowerCase()
-                                  const hasRegionInTitle = titleLower.includes('east') || titleLower.includes('west') || 
-                                                          titleLower.includes('peninsular') || titleLower.includes('sabah') || 
-                                                          titleLower.includes('sarawak')
-                                  
-                                  if (hasRegionInTitle) {
-                                    // Title already has region info, use as-is
-                                    return baseTitle
-                                  } else {
-                                    // Add region label to make it clear
-                                    return `${baseTitle} - ${regionLabel}`
-                                  }
-                                })()}
+                                Tranz Alliance Express - {shippingBreakdown?.region || (customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' ? 'East Malaysia' : 'Peninsular Malaysia')}
                               </p>
                               <p className="text-sm text-gray-500">
-                                {customerInfo.state 
+                                {customerInfo.state
                                   ? `3-5 business days${customerInfo.state === 'Sabah' || customerInfo.state === 'Sarawak' ? ' (East Malaysia)' : ' (West Malaysia)'}`
                                   : '3-5 business days'}
                               </p>
                             </div>
                           </div>
                           <span className="font-bold text-salaam-red-500">
-                            {shippingCost === null 
-                              ? (shippingLoading ? 'Calculating...' : '—')
-                              : shippingCost === 0 
-                                ? 'FREE' 
+                            {shippingCost === null
+                              ? (shippingLoading ? 'Calculating...' : '\u2014')
+                              : shippingCost === 0
+                                ? 'FREE'
                                 : `RM${shippingCost.toFixed(2)}`
                             }
                           </span>
                         </div>
+                        {/* Shipping breakdown */}
+                        {shippingBreakdown && shippingCost !== null && (
+                          <div className="mt-3 pt-3 border-t border-salaam-red-200 text-xs text-gray-600 space-y-1">
+                            <div className="flex justify-between">
+                              <span>Weight: {shippingBreakdown.totalWeightKg}kg</span>
+                              <span>Base rate: RM{shippingBreakdown.baseRate.toFixed(2)}</span>
+                            </div>
+                            {shippingBreakdown.additionalWeightCharge > 0 && (
+                              <div className="flex justify-between">
+                                <span>Additional weight</span>
+                                <span>RM{shippingBreakdown.additionalWeightCharge.toFixed(2)}</span>
+                              </div>
+                            )}
+                            {shippingBreakdown.cartonProtection > 0 && (
+                              <div className="flex justify-between">
+                                <span>Carton protection ({shippingBreakdown.totalCartons} pcs)</span>
+                                <span>RM{shippingBreakdown.cartonProtection.toFixed(2)}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       {shippingError && (
                         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -1074,12 +762,7 @@ export function CheckoutPageClient() {
                           </p>
                         </div>
                       )}
-                      {isMigratingCart && (
-                        <p className="text-sm text-blue-600 italic mt-2">
-                          Migrating cart to Shopify... Please wait.
-                        </p>
-                      )}
-                      {shippingLoading && !isMigratingCart && (
+                      {shippingLoading && (
                         <p className="text-sm text-gray-500 italic mt-2">
                           Calculating shipping based on your address...
                         </p>
@@ -1089,33 +772,19 @@ export function CheckoutPageClient() {
                           Shipping cost will be calculated based on your delivery address
                         </p>
                       )}
-                      {customerInfo.state && !isShopifyCart && cart?.id && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-sm text-red-800 font-medium mb-1">
-                            ❌ Invalid Cart Detected
-                          </p>
-                          <p className="text-xs text-red-700">
-                            Your cart is not a valid Shopify cart. Please add items from the shop page to create a real cart.
-                            <br />
-                            <Link href="/shop" className="text-salaam-red-500 underline mt-2 inline-block">
-                              Go to Shop →
-                            </Link>
-                          </p>
-                        </div>
-                      )}
-                      {customerInfo.state && isShopifyCart && shippingCost !== null && !shippingError && (
+                      {customerInfo.state && shippingCost !== null && !shippingError && (
                         <p className="text-sm text-green-600 italic mt-2">
-                          ✓ Shipping calculated for {customerInfo.city}, {customerInfo.state}
+                          Shipping calculated for {customerInfo.city}, {customerInfo.state}
                         </p>
                       )}
-                      {customerInfo.state && hasMinAddress && isShopifyCart && (shippingError || (shippingCost === null && !shippingLoading)) && (
+                      {customerInfo.state && (shippingError || (shippingCost === null && !shippingLoading)) && (
                         <button
                           type="button"
-                          onClick={() => fetchShopifyShippingRates()}
+                          onClick={() => fetchShippingRates()}
                           disabled={shippingLoading}
                           className="mt-3 text-sm font-medium text-salaam-red-500 hover:text-salaam-red-600 underline disabled:opacity-50"
                         >
-                          {shippingLoading ? 'Calculating…' : 'Calculate shipping again'}
+                          {shippingLoading ? 'Calculating...' : 'Calculate shipping again'}
                         </button>
                       )}
                     </div>
