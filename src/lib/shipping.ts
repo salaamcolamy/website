@@ -1,11 +1,13 @@
 /**
- * Tranz Alliance Weight-Based Shipping Calculator
- * Ship from: Peninsular Malaysia
+ * TASB Domestic Express Rate Card — Weight-Based Shipping Calculator
  *
- * Rate Card:
- * - Within Peninsular: RM 8.50 (first 2kg) + RM 2.00 per additional 1kg
- * - Peninsular → East MY: RM 11.00 (first 1kg) + RM 11.00 per additional 1kg
- * - Outer carton protection: RM 2.50 per piece
+ * Routes:
+ * 1. Within Peninsular:        RM 8.50 (first 2kg) + RM 2.00 per additional 1kg
+ * 2. Peninsular → East MY:     RM 11.00 (first 1kg) + RM 11.00 per additional 1kg
+ * 3. Within Sabah / Sarawak:   RM 17.50 (first 3kg) + RM 6.00 per additional 1kg
+ *
+ * Product weights: 6-pack = 2.5kg, 24-pack = 8kg
+ * Outer carton protection: RM 2.50 per piece
  */
 
 const PENINSULAR_STATES = [
@@ -72,7 +74,7 @@ function estimateItemWeight(item: CartItemForShipping): number {
     return 8.0
   }
   if (combined.includes('6-pack') || combined.includes('6 pack') || combined.includes('6-cans') || combined.includes('6s')) {
-    return 2.0
+    return 2.5
   }
   // Single can fallback
   return 0.4
@@ -138,17 +140,18 @@ export function calculateShipping(state: string, cartItems: CartItemForShipping[
 
   let baseRate = 0
   let additionalWeightCharge = 0
+  let regionLabel = ''
 
   if (region === 'peninsular') {
     // Within Peninsular: RM 8.50 (first 2kg) + RM 2.00 per additional 1kg
     baseRate = 8.50
-    const additionalKg = Math.max(0, weightCeiled - 2)
-    additionalWeightCharge = additionalKg * 2.00
+    additionalWeightCharge = Math.max(0, weightCeiled - 2) * 2.00
+    regionLabel = 'Peninsular Malaysia'
   } else {
     // Peninsular → East Malaysia: RM 11.00 (first 1kg) + RM 11.00 per additional 1kg
     baseRate = 11.00
-    const additionalKg = Math.max(0, weightCeiled - 1)
-    additionalWeightCharge = additionalKg * 11.00
+    additionalWeightCharge = Math.max(0, weightCeiled - 1) * 11.00
+    regionLabel = 'East Malaysia'
   }
 
   // Outer carton protection: RM 2.50 per piece
@@ -160,7 +163,7 @@ export function calculateShipping(state: string, cartItems: CartItemForShipping[
     success: true,
     shippingCost: Math.round(shippingCost * 100) / 100,
     breakdown: {
-      region: region === 'peninsular' ? 'Peninsular Malaysia' : 'East Malaysia',
+      region: regionLabel,
       totalWeightKg,
       baseRate,
       additionalWeightCharge,
