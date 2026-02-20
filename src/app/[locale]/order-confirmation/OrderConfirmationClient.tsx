@@ -8,6 +8,7 @@ import Image from 'next/image'
 import confetti from 'canvas-confetti'
 import {
   CheckCircle2,
+  XCircle,
   Package,
   Truck,
   Mail,
@@ -17,6 +18,7 @@ import {
   ArrowRight,
   Copy,
   Check,
+  RefreshCw,
 } from 'lucide-react'
 
 interface OrderData {
@@ -53,28 +55,28 @@ export function OrderConfirmationClient() {
   const [order, setOrder] = useState<OrderData | null>(null)
   const [copied, setCopied] = useState(false)
   const searchParams = useSearchParams()
+  const paid = searchParams.get('paid') !== 'false'
 
   useEffect(() => {
-    // Load order from localStorage
     const storedOrder = localStorage.getItem('salaamcola-last-order')
     if (storedOrder) {
       const parsed = JSON.parse(storedOrder)
-      // Use Shopify order name from URL if available (set by Billplz callback after payment)
       const urlOrderId = searchParams.get('orderId')
       if (urlOrderId && urlOrderId !== parsed.id) {
         parsed.id = urlOrderId
       }
       setOrder(parsed)
 
-      // Trigger confetti
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#c21316', '#ffffff', '#ffd700'],
-      })
+      if (paid) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#c21316', '#ffffff', '#ffd700'],
+        })
+      }
     }
-  }, [searchParams])
+  }, [searchParams, paid])
 
   const copyOrderId = () => {
     if (order) {
@@ -92,7 +94,7 @@ export function OrderConfirmationClient() {
             <ShoppingBag className="w-24 h-24 text-gray-300 mx-auto mb-6" />
             <h1 className="text-2xl font-bold text-gray-900 mb-4">No order found</h1>
             <p className="text-gray-600 mb-8">
-              We couldn't find your order details. Please check your email for confirmation.
+              We couldn&apos;t find your order details. Please check your email for confirmation.
             </p>
             <Link
               href="/shop"
@@ -106,6 +108,154 @@ export function OrderConfirmationClient() {
     )
   }
 
+  // Payment Failed State
+  if (!paid) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-24">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-3xl mx-auto">
+            {/* Failed Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center mb-8"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', delay: 0.2 }}
+                className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6"
+              >
+                <XCircle className="w-12 h-12 text-red-600" />
+              </motion.div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Unsuccessful</h1>
+              <p className="text-gray-600">
+                Your payment was not completed. Your order has been saved and you can try again.
+              </p>
+            </motion.div>
+
+            {/* Order Number */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-2xl shadow-sm p-6 mb-6"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Order Reference</p>
+                  <p className="text-2xl font-bold text-gray-900">{order.id}</p>
+                </div>
+                <div className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                  Payment Failed
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Order Summary */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-2xl shadow-sm p-6 mb-6"
+            >
+              <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
+              <div className="space-y-4">
+                {order.items.map((item) => (
+                  <div key={item.id} className="flex gap-4">
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      {item.image ? (
+                        <Image
+                          src={item.image.url}
+                          alt={item.image.altText || item.title}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <ShoppingBag className="w-6 h-6" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{item.title}</p>
+                      <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                    </div>
+                    <p className="font-medium text-gray-900">
+                      RM{(item.price * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-gray-100 mt-6 pt-4 space-y-2">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>RM{order.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Shipping</span>
+                  <span>{order.shipping === 0 ? 'FREE' : `RM${order.shipping.toFixed(2)}`}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-100">
+                  <span>Total</span>
+                  <span>RM{order.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* What to do next */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6"
+            >
+              <h3 className="font-bold text-gray-900 mb-3">What happened?</h3>
+              <ul className="text-gray-600 space-y-2 text-sm">
+                <li>Your bank may have declined the transaction</li>
+                <li>The payment session may have timed out</li>
+                <li>There may have been a temporary issue with FPX</li>
+              </ul>
+              <p className="text-gray-600 text-sm mt-3">
+                No charges have been made to your account. You can try placing your order again.
+              </p>
+            </motion.div>
+
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Link
+                href="/checkout"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-salaam-red-500 text-white rounded-full font-semibold hover:bg-salaam-red-600 transition-colors"
+              >
+                <RefreshCw className="w-5 h-5" />
+                Try Again
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Contact Support
+              </Link>
+              <Link
+                href="/shop"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Continue Shopping
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Payment Success State
   return (
     <div className="min-h-screen bg-gray-50 pt-24">
       <div className="container mx-auto px-4 py-8">
@@ -164,14 +314,12 @@ export function OrderConfirmationClient() {
           >
             <h2 className="text-lg font-bold text-gray-900 mb-6">Order Status</h2>
             <div className="relative">
-              {/* Progress Line */}
               <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />
               <div
                 className="absolute left-6 top-0 w-0.5 bg-salaam-red-500 transition-all duration-500"
                 style={{ height: '25%' }}
               />
 
-              {/* Timeline Steps */}
               <div className="space-y-8">
                 <div className="flex items-start gap-4 relative">
                   <div className="w-12 h-12 bg-salaam-red-500 rounded-full flex items-center justify-center z-10">
@@ -214,7 +362,7 @@ export function OrderConfirmationClient() {
                   </div>
                   <div className="flex-1 pt-2">
                     <p className="font-semibold text-gray-400">Delivered</p>
-                    <p className="text-sm text-gray-400">We'll notify you when delivered</p>
+                    <p className="text-sm text-gray-400">We&apos;ll notify you when delivered</p>
                   </div>
                 </div>
               </div>
@@ -223,7 +371,6 @@ export function OrderConfirmationClient() {
 
           {/* Order Details Grid */}
           <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {/* Shipping Info */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -246,7 +393,6 @@ export function OrderConfirmationClient() {
               </p>
             </motion.div>
 
-            {/* Payment Info */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -258,11 +404,7 @@ export function OrderConfirmationClient() {
                 <h3 className="font-bold text-gray-900">Payment Method</h3>
               </div>
               <p className="text-gray-600">
-                {order.paymentMethod === 'card' ? (
-                  <>Credit/Debit Card<br />**** **** **** 4242</>
-                ) : (
-                  <>FPX Online Banking<br />{order.selectedBank}</>
-                )}
+                FPX Online Banking<br />{order.selectedBank}
               </p>
             </motion.div>
           </div>
@@ -333,7 +475,7 @@ export function OrderConfirmationClient() {
               <div>
                 <p className="font-medium text-gray-900">Confirmation email sent</p>
                 <p className="text-sm text-gray-600">
-                  We've sent a confirmation email to {order.customerInfo.email}
+                  We&apos;ve sent a confirmation email to {order.customerInfo.email}
                 </p>
               </div>
             </div>
