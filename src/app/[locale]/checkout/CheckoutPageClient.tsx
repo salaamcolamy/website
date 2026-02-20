@@ -190,11 +190,16 @@ export function CheckoutPageClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          cartId: cart.id,
           cartItems,
           address: {
             province: customerInfo.state,
             city: customerInfo.city,
             zip: customerInfo.postcode,
+            address1: customerInfo.address,
+            firstName: customerInfo.firstName,
+            lastName: customerInfo.lastName,
+            phone: customerInfo.phone,
           },
         }),
       })
