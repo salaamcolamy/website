@@ -1,13 +1,9 @@
 /**
- * TASB Domestic Express Rate Card — Weight-Based Shipping Calculator
+ * Shipping Calculator — Matches Shopify shipping zones configuration
  *
- * Routes (Non-Documents):
- * 1. Within Peninsular:          First 2kg = RM 8.50,  additional per 1kg = RM 2.00
- * 2. Peninsular → East MY:      First 1kg = RM 11.50, additional per 1kg = RM 11.00
- * 3. Between Sabah & Sarawak:   First 1kg = RM 14.50, additional per 1kg = RM 13.00
- * 4. Within Sarawak or Sabah:   First 1kg = RM 17.50, additional per 1kg = RM 6.00
+ * Peninsular Malaysia: RM 10.50 for first 3kg, RM 2.00 per additional kg
+ * East Malaysia:       RM 11.00 per kg (flat rate)
  *
- * Currently shipping from Peninsular Malaysia → routes 1 & 2 active.
  * Product weights: 6-pack = 2.5kg, 24-pack = 8kg
  */
 
@@ -105,12 +101,14 @@ export function calculateShipping(state: string, cartItems: CartItemForShipping[
   let regionLabel = ''
 
   if (region === 'peninsular') {
-    baseRate = 8.50
-    additionalWeightCharge = Math.max(0, weightCeiled - 2) * 2.00
+    // Peninsular: RM 10.50 for first 3kg, then RM 2.00 per additional kg
+    baseRate = 10.50
+    additionalWeightCharge = Math.max(0, weightCeiled - 3) * 2.00
     regionLabel = 'Peninsular Malaysia'
   } else {
-    baseRate = 11.50
-    additionalWeightCharge = Math.max(0, weightCeiled - 1) * 11.00
+    // East Malaysia: RM 11.00 per kg (flat rate)
+    baseRate = 0
+    additionalWeightCharge = weightCeiled * 11.00
     regionLabel = 'East Malaysia'
   }
 
