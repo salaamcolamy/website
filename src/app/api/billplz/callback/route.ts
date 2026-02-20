@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBillplzClient } from '@/lib/billplz/client'
-import { isShopifyAdminConfigured, completeDraftOrder, markOrderAsPaid, deleteDraftOrder, type ShopifyOrder } from '@/lib/shopify/admin-client'
+import { isShopifyAdminConfigured, completeDraftOrder, markOrderAsPaid, updateDraftOrder, type ShopifyOrder } from '@/lib/shopify/admin-client'
 import { logger } from '@/lib/logger'
 import crypto from 'crypto'
 
@@ -107,13 +107,16 @@ export async function POST(request: NextRequest) {
       }
     } else {
       logger.info('Payment failed or incomplete', { orderId, state, paid })
-      // Delete the draft order so only the abandoned checkout remains in Shopify Admin
+      // Tag the draft order as payment-failed so admin can see it in Shopify Drafts
       if (isShopifyAdminConfigured() && draftOrderId) {
         try {
-          await deleteDraftOrder(draftOrderId)
-          logger.info('Draft order deleted after failed payment (abandoned checkout preserved)', { orderId, draftOrderId })
-        } catch (deleteError) {
-          logger.error('Failed to delete draft order after failed payment', deleteError, { orderId, draftOrderId })
+          await updateDraftOrder(draftOrderId, {
+            tags: ['payment-failed', 'billplz'],
+            note: `Payment failed via Billplz. Bill ID: ${billId}. State: ${state}. Date: ${new Date().toISOString()}`,
+          })
+          logger.info('Draft order tagged as payment-failed', { orderId, draftOrderId })
+        } catch (tagError) {
+          logger.error('Failed to tag draft order as payment-failed', tagError, { orderId, draftOrderId })
         }
       }
     }
@@ -176,12 +179,15 @@ export async function GET(request: NextRequest) {
             logger.error('Error completing order on redirect', orderError)
           }
         } else if (!bill.paid && isShopifyAdminConfigured() && draftOrderId) {
-          // Payment failed — delete draft order, abandoned checkout stays in Shopify Admin
+          // Payment failed — tag draft order so admin can see it in Shopify Drafts
           try {
-            await deleteDraftOrder(draftOrderId)
-            logger.info('Draft order deleted on failed redirect (abandoned checkout preserved)', { orderId, draftOrderId })
-          } catch (deleteError) {
-            logger.error('Failed to delete draft order on redirect', deleteError, { orderId, draftOrderId })
+            await updateDraftOrder(draftOrderId, {
+              tags: ['payment-failed', 'billplz'],
+              note: `Payment failed via Billplz. Bill ID: ${billplzId}. Date: ${new Date().toISOString()}`,
+            })
+            logger.info('Draft order tagged as payment-failed on redirect', { orderId, draftOrderId })
+          } catch (tagError) {
+            logger.error('Failed to tag draft order on redirect', tagError, { orderId, draftOrderId })
           }
         }
 

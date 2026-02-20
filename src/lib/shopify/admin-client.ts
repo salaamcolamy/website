@@ -316,3 +316,110 @@ export async function getShopifyOrder(orderId: string): Promise<ShopifyOrder | n
     return null
   }
 }
+
+/**
+ * Create a Shopify checkout via REST Admin API.
+ * Incomplete checkouts appear in Shopify Admin → Orders → Abandoned checkouts.
+ */
+export async function createAbandonableCheckout(input: CreateOrderInput & { shippingLine?: { title: string; price: number } }): Promise<{ token: string; name: string }> {
+  const restEndpoint = `https://${domain}/admin/api/2024-10/checkouts.json`
+
+  const lineItems = input.lineItems.map(item => ({
+    variant_id: item.variantId.replace('gid://shopify/ProductVariant/', ''),
+    quantity: item.quantity,
+  }))
+
+  const body = {
+    checkout: {
+      email: input.email,
+      line_items: lineItems,
+      shipping_address: {
+        first_name: input.shippingAddress.firstName,
+        last_name: input.shippingAddress.lastName,
+        address1: input.shippingAddress.address1,
+        address2: input.shippingAddress.address2 || '',
+        city: input.shippingAddress.city,
+        province: input.shippingAddress.province,
+        zip: input.shippingAddress.zip,
+        country: input.shippingAddress.country,
+        phone: input.shippingAddress.phone || '',
+      },
+      billing_address: {
+        first_name: input.billingAddress.firstName,
+        last_name: input.billingAddress.lastName,
+        address1: input.billingAddress.address1,
+        address2: input.billingAddress.address2 || '',
+        city: input.billingAddress.city,
+        province: input.billingAddress.province,
+        zip: input.billingAddress.zip,
+        country: input.billingAddress.country,
+        phone: input.billingAddress.phone || '',
+      },
+    },
+  }
+
+  const response = await fetch(restEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Access-Token': adminAccessToken,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Shopify checkout creation failed:', response.status, errorText)
+    throw new Error(`Failed to create Shopify checkout: ${response.status}`)
+  }
+
+  const data = await response.json()
+  return {
+    token: data.checkout.token,
+    name: data.checkout.name || `#${data.checkout.order_id || data.checkout.token.substring(0, 8)}`,
+  }
+}
+
+/**
+ * Delete a draft order (cleanup after payment fails or checkout is used instead)
+ */
+export async function deleteDraftOrder(draftOrderId: string): Promise<void> {
+  const mutation = `
+    mutation draftOrderDelete($input: DraftOrderDeleteInput!) {
+      draftOrderDelete(input: $input) {
+        deletedId
+        userErrors { field message }
+      }
+    }
+  `
+
+  await shopifyAdminFetch<{
+    draftOrderDelete: { deletedId: string; userErrors: Array<{ field: string[]; message: string }> }
+  }>({ query: mutation, variables: { input: { id: draftOrderId } } })
+}
+
+/**
+ * Update a draft order's tags and note (e.g. mark as payment-failed)
+ */
+export async function updateDraftOrder(draftOrderId: string, updates: { tags?: string[]; note?: string }): Promise<void> {
+  const mutation = `
+    mutation draftOrderUpdate($id: ID!, $input: DraftOrderInput!) {
+      draftOrderUpdate(id: $id, input: $input) {
+        draftOrder { id }
+        userErrors { field message }
+      }
+    }
+  `
+
+  const input: Record<string, unknown> = {}
+  if (updates.tags) input.tags = updates.tags
+  if (updates.note) input.note = updates.note
+
+  const result = await shopifyAdminFetch<{
+    draftOrderUpdate: { draftOrder: { id: string }; userErrors: Array<{ field: string[]; message: string }> }
+  }>({ query: mutation, variables: { id: draftOrderId, input } })
+
+  if (result.draftOrderUpdate.userErrors?.length > 0) {
+    throw new Error(result.draftOrderUpdate.userErrors[0].message)
+  }
+}
