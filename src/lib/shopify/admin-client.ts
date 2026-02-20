@@ -113,6 +113,7 @@ export interface CreateOrderInput {
   note?: string
   tags?: string[]
   customAttributes?: Array<{ key: string; value: string }>
+  shippingLine?: { title: string; price: number }
 }
 
 export interface ShopifyOrder {
@@ -161,20 +162,27 @@ export async function createDraftOrder(input: CreateOrderInput): Promise<Shopify
     }
   `
 
-  const variables = {
-    input: {
-      email: input.email,
-      lineItems: input.lineItems.map(item => ({
-        variantId: item.variantId,
-        quantity: item.quantity,
-      })),
-      billingAddress: input.billingAddress,
-      shippingAddress: input.shippingAddress,
-      note: input.note,
-      tags: input.tags,
-      customAttributes: input.customAttributes,
-    },
+  const draftInput: Record<string, unknown> = {
+    email: input.email,
+    lineItems: input.lineItems.map(item => ({
+      variantId: item.variantId,
+      quantity: item.quantity,
+    })),
+    billingAddress: input.billingAddress,
+    shippingAddress: input.shippingAddress,
+    note: input.note,
+    tags: input.tags,
+    customAttributes: input.customAttributes,
   }
+
+  if (input.shippingLine) {
+    draftInput.shippingLine = {
+      title: input.shippingLine.title,
+      price: input.shippingLine.price,
+    }
+  }
+
+  const variables = { input: draftInput }
 
   const result = await shopifyAdminFetch<{
     draftOrderCreate: {

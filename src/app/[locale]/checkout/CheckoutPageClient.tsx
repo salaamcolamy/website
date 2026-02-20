@@ -260,8 +260,11 @@ export function CheckoutPageClient() {
   }, [currentStep, fetchShippingRates, customerInfo.state, cart?.items])
 
   const shippingCost = shippingLoading ? null : (shippingCostValue !== null && !shippingError ? shippingCostValue : null)
-  
-  const orderTotal = (cart?.subtotal ?? 0) + (shippingCost ?? 0)
+
+  // SST 10% on product subtotal (Shopify products are taxable with taxesIncluded=false)
+  const subtotal = cart?.subtotal ?? 0
+  const sst = Math.round(subtotal * 0.10 * 100) / 100
+  const orderTotal = subtotal + sst + (shippingCost ?? 0)
 
   const handlePlaceOrder = async () => {
     if (!selectedBank) {
@@ -330,6 +333,10 @@ export function CheckoutPageClient() {
           },
           note: `Billplz payment. Shipping: RM${(shippingCost ?? 0).toFixed(2)}`,
           tags: ['billplz', 'online-order'],
+          shippingLine: {
+            title: 'TASB Domestic Express',
+            price: shippingCost ?? 0,
+          },
           customAttributes: [
             { key: 'payment_gateway', value: 'Billplz' },
             { key: 'shipping_cost', value: String(shippingCost ?? 0) },
@@ -984,6 +991,10 @@ export function CheckoutPageClient() {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span>RM{cart.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>SST (10%)</span>
+                    <span>RM{sst.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>

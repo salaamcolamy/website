@@ -18,7 +18,7 @@ async function handler(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email, lineItems, billingAddress, shippingAddress, note, tags, customAttributes } = body
+    const { email, lineItems, billingAddress, shippingAddress, note, tags, customAttributes, shippingLine } = body
 
     if (!email || !lineItems || !billingAddress || !shippingAddress) {
       return createValidationError('Missing required fields: email, lineItems, billingAddress, or shippingAddress')
@@ -42,7 +42,7 @@ async function handler(request: NextRequest) {
     }
 
     const orderInput: CreateOrderInput = {
-      email, lineItems, billingAddress, shippingAddress, note, tags, customAttributes,
+      email, lineItems, billingAddress, shippingAddress, note, tags, customAttributes, shippingLine,
     }
 
     const draftOrder = await createDraftOrder(orderInput)
