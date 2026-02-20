@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBillplzClient } from '@/lib/billplz/client'
-import { isShopifyAdminConfigured, completeDraftOrder, markOrderAsPaid, type ShopifyOrder } from '@/lib/shopify/admin-client'
+import { isShopifyAdminConfigured, completeDraftOrder, markOrderAsPaid, deleteDraftOrder, type ShopifyOrder } from '@/lib/shopify/admin-client'
 import { logger } from '@/lib/logger'
 import crypto from 'crypto'
 
@@ -107,6 +107,15 @@ export async function POST(request: NextRequest) {
       }
     } else {
       logger.info('Payment failed or incomplete', { orderId, state, paid })
+      // Delete the draft order so only the abandoned checkout remains in Shopify Admin
+      if (isShopifyAdminConfigured() && draftOrderId) {
+        try {
+          await deleteDraftOrder(draftOrderId)
+          logger.info('Draft order deleted after failed payment (abandoned checkout preserved)', { orderId, draftOrderId })
+        } catch (deleteError) {
+          logger.error('Failed to delete draft order after failed payment', deleteError, { orderId, draftOrderId })
+        }
+      }
     }
 
     return NextResponse.json({ success: true })
@@ -165,6 +174,14 @@ export async function GET(request: NextRequest) {
             }
           } catch (orderError) {
             logger.error('Error completing order on redirect', orderError)
+          }
+        } else if (!bill.paid && isShopifyAdminConfigured() && draftOrderId) {
+          // Payment failed — delete draft order, abandoned checkout stays in Shopify Admin
+          try {
+            await deleteDraftOrder(draftOrderId)
+            logger.info('Draft order deleted on failed redirect (abandoned checkout preserved)', { orderId, draftOrderId })
+          } catch (deleteError) {
+            logger.error('Failed to delete draft order on redirect', deleteError, { orderId, draftOrderId })
           }
         }
 
