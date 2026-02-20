@@ -257,6 +257,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
           }
 
+          const quantityNum = Math.max(1, Number(quantity) || 1)
+
           // Use API route for adding items
           const addResponse = await fetch('/api/cart?action=add', {
             method: 'POST',
@@ -264,7 +266,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({
               cartId,
               variantId,
-              quantity,
+              quantity: quantityNum,
             }),
           })
           
@@ -277,7 +279,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
           
           // CRITICAL: Ensure cart is properly updated with latest state
           if (updatedCart && updatedCart.id && updatedCart.id.startsWith('gid://shopify/Cart')) {
-            // Update localStorage with latest cart ID
+            // Normalize quantities so header/drawer show correct count (fixes 24-pack etc. showing 0)
+            const normalizedItems = (updatedCart.items || []).map((item: CartItem) => ({
+              ...item,
+              quantity: Math.max(0, Number(item.quantity) || 0),
+            }))
+            const totalQty = normalizedItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0)
+            const normalizedCart = {
+              ...updatedCart,
+              items: normalizedItems,
+              totalQuantity: totalQty > 0 ? totalQty : (updatedCart.totalQuantity ?? 0),
+            }
+
             if (typeof localStorage !== 'undefined') {
               localStorage.setItem(CART_ID_KEY, updatedCart.id)
               localStorage.removeItem(DEMO_CART_KEY)
@@ -285,12 +298,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
             
             console.log('[Cart] Item added successfully:', {
               cartId: updatedCart.id,
-              itemsCount: updatedCart.items?.length || 0,
-              totalQuantity: updatedCart.items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0,
-              items: updatedCart.items?.map((item: any) => `${item.title} x${item.quantity}`) || [],
+              itemsCount: normalizedCart.items.length,
+              totalQuantity: normalizedCart.totalQuantity,
+              items: normalizedCart.items.map((item: CartItem) => `${item.title} x${item.quantity}`),
             })
             
-            dispatch({ type: 'SET_CART', payload: updatedCart })
+            dispatch({ type: 'SET_CART', payload: normalizedCart })
             dispatch({ type: 'OPEN_CART' })
             dispatch({ type: 'SET_LOADING', payload: false })
             return

@@ -63,25 +63,30 @@ const CART_FRAGMENT = `
 `
 
 function transformCart(shopifyCart: ShopifyCart): Cart {
-  return {
-    id: shopifyCart.id,
-    checkoutUrl: shopifyCart.checkoutUrl,
-    totalQuantity: shopifyCart.totalQuantity,
-    subtotal: parseFloat(shopifyCart.cost.subtotalAmount.amount),
-    total: parseFloat(shopifyCart.cost.totalAmount.amount),
-    currencyCode: shopifyCart.cost.totalAmount.currencyCode,
-    items: shopifyCart.lines.edges.map((edge): CartItem => ({
+  const items: CartItem[] = shopifyCart.lines.edges.map((edge): CartItem => {
+    const qty = Number(edge.node.quantity) || 0
+    return {
       id: edge.node.id,
       variantId: edge.node.merchandise.id,
       productId: edge.node.merchandise.product.id,
       productHandle: edge.node.merchandise.product.handle,
       title: edge.node.merchandise.product.title,
       variantTitle: edge.node.merchandise.title,
-      quantity: edge.node.quantity,
+      quantity: qty,
       price: parseFloat(edge.node.merchandise.price.amount),
       currencyCode: edge.node.merchandise.price.currencyCode,
       image: edge.node.merchandise.product.featuredImage,
-    })),
+    }
+  })
+  const totalQuantityFromLines = items.reduce((sum, item) => sum + item.quantity, 0)
+  return {
+    id: shopifyCart.id,
+    checkoutUrl: shopifyCart.checkoutUrl,
+    totalQuantity: totalQuantityFromLines > 0 ? totalQuantityFromLines : (shopifyCart.totalQuantity ?? 0),
+    subtotal: parseFloat(shopifyCart.cost.subtotalAmount.amount),
+    total: parseFloat(shopifyCart.cost.totalAmount.amount),
+    currencyCode: shopifyCart.cost.totalAmount.currencyCode,
+    items,
   }
 }
 
