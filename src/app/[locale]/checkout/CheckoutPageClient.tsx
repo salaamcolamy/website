@@ -261,10 +261,7 @@ export function CheckoutPageClient() {
 
   const shippingCost = shippingLoading ? null : (shippingCostValue !== null && !shippingError ? shippingCostValue : null)
 
-  // SST 10% on product subtotal (Shopify products are taxable with taxesIncluded=false)
-  const subtotal = cart?.subtotal ?? 0
-  const sst = Math.round(subtotal * 0.10 * 100) / 100
-  const orderTotal = subtotal + sst + (shippingCost ?? 0)
+  const orderTotal = (cart?.subtotal ?? 0) + (shippingCost ?? 0)
 
   const handlePlaceOrder = async () => {
     if (!selectedBank) {
@@ -991,10 +988,6 @@ export function CheckoutPageClient() {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span>RM{cart.subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>SST (10%)</span>
-                    <span>RM{sst.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
