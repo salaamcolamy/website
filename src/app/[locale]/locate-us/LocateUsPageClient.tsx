@@ -7,11 +7,18 @@ import { X } from 'lucide-react'
 
 const IMAGE_COUNT = 18
 const IMAGE_BASE = '/images/locate%20us'
-const FEATURED_IMAGE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
+const GRID_IMAGE_1 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
+
+function getGridImageSrc(num: number) {
+  return num === 1 ? GRID_IMAGE_1 : `${IMAGE_BASE}/${num}.png`
+}
+function getGridImageAlt(num: number) {
+  return num === 1 ? 'Riverside Cafe, WTCKL — Level 2, World Trade Centre Kuala Lumpur, 41 Jalan Tun Ismail, Chow Kit, KL. Contact: 03-26146701' : `Location ${num}`
+}
 
 export function LocateUsPageClient() {
   const images = Array.from({ length: IMAGE_COUNT }, (_, i) => i + 1)
-  const [enlarged, setEnlarged] = useState<number | 'featured' | null>(null)
+  const [enlarged, setEnlarged] = useState<number | null>(null)
 
   useEffect(() => {
     if (enlarged !== null) {
@@ -57,38 +64,7 @@ export function LocateUsPageClient() {
         </motion.div>
       </section>
 
-      {/* Featured location — Riverside Cafe, WTCKL */}
-      <section className="container-padding pb-12">
-        <motion.div
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          className="max-w-4xl mx-auto"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-            Riverside Cafe, WTCKL
-          </h2>
-          <motion.article
-            variants={fadeInUp}
-            className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
-            onClick={() => setEnlarged('featured')}
-            onKeyDown={(e) => e.key === 'Enter' && setEnlarged('featured')}
-            tabIndex={0}
-            role="button"
-            aria-label="View Riverside Cafe WTCKL location enlarged"
-          >
-            <img
-              src={FEATURED_IMAGE}
-              alt="Riverside Cafe, World Trade Centre Kuala Lumpur — Level 2, 41 Jalan Tun Ismail, Chow Kit, KL. Contact: 03-26146701"
-              className="w-full h-auto block"
-              loading="eager"
-            />
-          </motion.article>
-        </motion.div>
-      </section>
-
-      {/* Images grid — number order 1–18, cell matches each image */}
+      {/* Images grid — slot 1: Riverside Cafe WTCKL (Lokasi Salaam Cola-2.png), slots 2–18: 2.png–18.png */}
       <section className="container-padding pb-20">
         <motion.div
           variants={staggerContainer}
@@ -106,13 +82,13 @@ export function LocateUsPageClient() {
               onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
               tabIndex={0}
               role="button"
-              aria-label={`View location ${num} enlarged`}
+              aria-label={num === 1 ? 'View Riverside Cafe WTCKL enlarged' : `View location ${num} enlarged`}
             >
               <img
-                src={`${IMAGE_BASE}/${num}.png`}
-                alt={`Location ${num}`}
+                src={getGridImageSrc(num)}
+                alt={getGridImageAlt(num)}
                 className="w-full h-auto block"
-                loading="lazy"
+                loading={num === 1 ? 'eager' : 'lazy'}
               />
             </motion.article>
           ))}
@@ -153,8 +129,8 @@ export function LocateUsPageClient() {
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={enlarged === 'featured' ? FEATURED_IMAGE : `${IMAGE_BASE}/${enlarged}.png`}
-                alt={enlarged === 'featured' ? 'Riverside Cafe, WTCKL' : `Location ${enlarged}`}
+                src={getGridImageSrc(enlarged)}
+                alt={getGridImageAlt(enlarged)}
                 className="max-w-full max-h-[90vh] w-auto h-auto object-contain"
               />
             </motion.div>
