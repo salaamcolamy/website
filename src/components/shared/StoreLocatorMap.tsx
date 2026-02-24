@@ -10,6 +10,15 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 const storeLocations = [
   // Kuala Lumpur
   {
+    id: 21,
+    name: 'Riverside Cafe',
+    address: 'World Trade Centre Kuala Lumpur, 41, Jalan Tun Ismail, Chow Kit',
+    contact: '+603-26146701',
+    state: 'MY14', // KL
+    x: 127,
+    y: 192,
+  },
+  {
     id: 10,
     name: 'Fennel & Co',
     address: 'Bukit Tunku, Kuala Lumpur',
