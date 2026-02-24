@@ -157,15 +157,15 @@ const storeLocations = [
     y: 228,
     comingSoon: true,
   },
-  // Langkawi (island northwest of mainland Kedah – pin on the island, not inside Kedah)
+  // Langkawi (island northwest of mainland – pin on the island, west of Perlis/Kedah)
   {
     id: 19,
     name: 'Koperasi Kakitangan Tropical Charters Berhad',
     address: 'Langkawi Boulevard Langkawi City, Langkawi',
     contact: '+604-952-3641',
     state: 'MY02', // Langkawi (administered under Kedah but geographically on the island)
-    x: 66,
-    y: 48,
+    x: 56,
+    y: 54,
   },
   {
     id: 20,
@@ -173,8 +173,8 @@ const storeLocations = [
     address: 'Langkawi',
     contact: '+604-952-3641',
     state: 'MY02',
-    x: 68,
-    y: 50,
+    x: 58,
+    y: 56,
   },
 ]
 
