@@ -7,13 +7,14 @@ import { X } from 'lucide-react'
 
 const IMAGE_COUNT = 18
 const IMAGE_BASE = '/images/locate%20us'
+const FEATURED_IMAGE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
 
 export function LocateUsPageClient() {
   const images = Array.from({ length: IMAGE_COUNT }, (_, i) => i + 1)
-  const [enlargedNum, setEnlargedNum] = useState<number | null>(null)
+  const [enlarged, setEnlarged] = useState<number | 'featured' | null>(null)
 
   useEffect(() => {
-    if (enlargedNum !== null) {
+    if (enlarged !== null) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -21,11 +22,11 @@ export function LocateUsPageClient() {
     return () => {
       document.body.style.overflow = ''
     }
-  }, [enlargedNum])
+  }, [enlarged])
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setEnlargedNum(null)
+      if (e.key === 'Escape') setEnlarged(null)
     }
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
@@ -56,6 +57,37 @@ export function LocateUsPageClient() {
         </motion.div>
       </section>
 
+      {/* Featured location — Riverside Cafe, WTCKL */}
+      <section className="container-padding pb-12">
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+          className="max-w-4xl mx-auto"
+        >
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+            Riverside Cafe, WTCKL
+          </h2>
+          <motion.article
+            variants={fadeInUp}
+            className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
+            onClick={() => setEnlarged('featured')}
+            onKeyDown={(e) => e.key === 'Enter' && setEnlarged('featured')}
+            tabIndex={0}
+            role="button"
+            aria-label="View Riverside Cafe WTCKL location enlarged"
+          >
+            <img
+              src={FEATURED_IMAGE}
+              alt="Riverside Cafe, World Trade Centre Kuala Lumpur — Level 2, 41 Jalan Tun Ismail, Chow Kit, KL. Contact: 03-26146701"
+              className="w-full h-auto block"
+              loading="eager"
+            />
+          </motion.article>
+        </motion.div>
+      </section>
+
       {/* Images grid — number order 1–18, cell matches each image */}
       <section className="container-padding pb-20">
         <motion.div
@@ -70,8 +102,8 @@ export function LocateUsPageClient() {
               key={num}
               variants={fadeInUp}
               className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
-              onClick={() => setEnlargedNum(num)}
-              onKeyDown={(e) => e.key === 'Enter' && setEnlargedNum(num)}
+              onClick={() => setEnlarged(num)}
+              onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
               tabIndex={0}
               role="button"
               aria-label={`View location ${num} enlarged`}
@@ -89,14 +121,14 @@ export function LocateUsPageClient() {
 
       {/* Lightbox — click photo to enlarge */}
       <AnimatePresence>
-        {enlargedNum !== null && (
+        {enlarged !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90"
-            onClick={() => setEnlargedNum(null)}
+            onClick={() => setEnlarged(null)}
             role="dialog"
             aria-modal="true"
             aria-label="Enlarged location photo"
@@ -105,7 +137,7 @@ export function LocateUsPageClient() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                setEnlargedNum(null)
+                setEnlarged(null)
               }}
               className="absolute top-4 right-4 z-10 p-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Close"
@@ -121,8 +153,8 @@ export function LocateUsPageClient() {
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={`${IMAGE_BASE}/${enlargedNum}.png`}
-                alt={`Location ${enlargedNum}`}
+                src={enlarged === 'featured' ? FEATURED_IMAGE : `${IMAGE_BASE}/${enlarged}.png`}
+                alt={enlarged === 'featured' ? 'Riverside Cafe, WTCKL' : `Location ${enlarged}`}
                 className="max-w-full max-h-[90vh] w-auto h-auto object-contain"
               />
             </motion.div>
