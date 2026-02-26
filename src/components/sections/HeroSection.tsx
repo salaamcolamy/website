@@ -6,7 +6,7 @@ import { Link } from '@/i18n/routing'
 import { ArrowRight } from 'lucide-react'
 
 const BANNER_IMAGE = '/images/Website Banner.png'
-const MOBILE_BANNER_IMAGE = '/images/mobile-banner.png'
+const MOBILE_BANNER_IMAGE = '/images/Mobile Website Banner.png'
 
 export function HeroSection() {
   return (
@@ -33,20 +33,20 @@ export function HeroSection() {
         />
       </div>
 
-      {/* Centered text */}
-      <div className="relative z-10 container mx-auto px-4 pt-24 md:pt-28 pb-20 min-h-screen flex flex-col items-center justify-start md:justify-end md:pb-12 lg:pb-14 xl:pb-16">
+      {/* CTAs: on mobile at bottom, on desktop centered toward bottom */}
+      <div className="relative z-10 container mx-auto px-4 pt-24 md:pt-28 min-h-screen flex flex-col items-center justify-end pb-10 md:pb-12 lg:pb-14 xl:pb-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="text-white text-center"
+          className="text-white text-center w-full"
         >
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="pt-40 md:pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
           >
             <Link
               href="/shop"
