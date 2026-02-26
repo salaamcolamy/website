@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { ArrowRight } from 'lucide-react'
 
-const BANNER_IMAGE = '/images/[No Font] SALAM COLA FEEDS_pict.png'
+const BANNER_IMAGE = '/images/Website Banner.png'
 const MOBILE_BANNER_IMAGE = '/images/mobile-banner.png'
 
 export function HeroSection() {
@@ -48,13 +48,20 @@ export function HeroSection() {
             Rasai Kebebasan
           </p>
           
-          {/* What is Salaam Cola Button */}
+          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="pt-56 md:pt-6"
+            className="pt-56 md:pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
           >
+            <Link
+              href="/shop"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-white text-salaam-red-500 rounded-full font-semibold hover:bg-white/95 transition-all duration-300 shadow-lg border-2 border-white"
+            >
+              Shop Now
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+            </Link>
             <Link
               href="/about"
               className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white rounded-full font-semibold hover:bg-white/20 hover:border-white/50 transition-all duration-300 shadow-lg"
