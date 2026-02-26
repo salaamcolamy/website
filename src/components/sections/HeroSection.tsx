@@ -39,21 +39,14 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="text-white text-center space-y-0 md:space-y-1 pt-2 md:pt-0 md:mt-0"
+          className="text-white text-center"
         >
-          <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-loubag font-black leading-tight tracking-wide text-salaam-red-500 md:text-white">
-            Taste the Freedom
-          </h1>
-          <p className="text-lg md:text-3xl lg:text-4xl font-poppins font-bold tracking-wide leading-tight text-center -mt-[30px] md:mt-0 text-salaam-red-500 md:text-white">
-            Rasai Kebebasan
-          </p>
-          
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="pt-56 md:pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
+            className="pt-40 md:pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
           >
             <Link
               href="/shop"
