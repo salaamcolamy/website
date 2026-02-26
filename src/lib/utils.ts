@@ -37,19 +37,8 @@ export function getProductPackCategory(handle: string, title: string): '6-pack' 
   return null
 }
 
-/** Tags to display for a product; includes Ramadhan/carton tags for 6-pack, carton and 24-pack products. */
+/** Tags to display for a product. Excludes Ramadan Preorder / Order Starts tag. */
 export function getDisplayTags(handle: string, title: string, tags: string[]): string[] {
-  const preOrderTag = 'Ramadhan Pre-Order Starts 19th Feb'
-  const orderStartsTag = 'Order Starts 19th Feb'
-  const orderStarts24PackTag = 'ORDER STARTS 19TH FEB'
-  if (is6Pack(handle, title)) {
-    return tags.includes(preOrderTag) ? tags : [preOrderTag, ...tags]
-  }
-  if (is24Pack(handle, title)) {
-    return tags.includes(orderStarts24PackTag) ? tags : [orderStarts24PackTag, ...tags]
-  }
-  if (isCarton(handle, title)) {
-    return tags.includes(orderStartsTag) ? tags : [orderStartsTag, ...tags]
-  }
-  return tags
+  const hidePattern = /ramadan|ramadhan|pre-?order starts|order starts\s+\d|order starts\s+\d/i
+  return tags.filter((t) => !hidePattern.test(t))
 }
