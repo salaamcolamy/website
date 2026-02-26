@@ -57,9 +57,9 @@ export function HeroSection() {
             </Link>
             <Link
               href="/about"
-              className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white rounded-full font-semibold hover:bg-white/20 hover:border-white/50 transition-all duration-300 shadow-lg"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-white text-salaam-red-500 rounded-full font-semibold hover:bg-white/95 transition-all duration-300 shadow-lg border-2 border-white"
             >
-              What is Salaam Cola
+              What is Salaam Cola?
               <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
             </Link>
           </motion.div>
