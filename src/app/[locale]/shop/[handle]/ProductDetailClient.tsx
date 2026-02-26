@@ -149,9 +149,24 @@ export function ProductDetailClient({
 
             </div>
 
-            {/* Description */}
-            <div className="prose prose-gray max-w-none">
-              <p className="text-gray-600 leading-relaxed">{product.description}</p>
+            {/* Description — Shopify format: HTML (with bullets) or plain text as list */}
+            <div className="prose prose-gray max-w-none prose-p:text-gray-600 prose-ul:pl-6 prose-li:text-gray-600 prose-li:leading-relaxed prose-li:my-1">
+              {product.descriptionHtml ? (
+                <div
+                  className="text-gray-600 leading-relaxed [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_li]:my-1"
+                  dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+                />
+              ) : product.description ? (
+                <ul className="list-disc pl-6 space-y-1 text-gray-600 leading-relaxed">
+                  {product.description
+                    .split(/\n+/)
+                    .map((line) => line.trim())
+                    .filter(Boolean)
+                    .map((line, i) => (
+                      <li key={i}>{line}</li>
+                    ))}
+                </ul>
+              ) : null}
             </div>
 
             {/* Add to Cart */}
