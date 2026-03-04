@@ -91,6 +91,24 @@ const storeLocations = [
     x: 124,
     y: 192,
   },
+  {
+    id: 22,
+    name: 'Nasi Kerabu Keramat',
+    address: 'Sri Rampai, Kuala Lumpur',
+    contact: '',
+    state: 'MY14',
+    x: 121,
+    y: 185,
+  },
+  {
+    id: 23,
+    name: 'Nasi Kerabu Keramat',
+    address: 'Wangsa Maju, Kuala Lumpur',
+    contact: '',
+    state: 'MY14',
+    x: 123,
+    y: 187,
+  },
   // Selangor
   {
     id: 6,
