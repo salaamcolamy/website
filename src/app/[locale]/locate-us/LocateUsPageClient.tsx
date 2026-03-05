@@ -5,15 +5,20 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import { X } from 'lucide-react'
 
-const IMAGE_COUNT = 18
+const IMAGE_COUNT = 19
 const IMAGE_BASE = '/images/locate%20us'
-const GRID_IMAGE_1 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
+const GRID_IMAGE_RIVERSIDE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
+const GRID_IMAGE_2026 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026.png`
 
 function getGridImageSrc(num: number) {
-  return num === 1 ? GRID_IMAGE_1 : `${IMAGE_BASE}/${num}.png`
+  if (num === 1) return GRID_IMAGE_2026
+  if (num === 2) return GRID_IMAGE_RIVERSIDE
+  return `${IMAGE_BASE}/${num - 1}.png`
 }
 function getGridImageAlt(num: number) {
-  return num === 1 ? 'Riverside Cafe, WTCKL — Level 2, World Trade Centre Kuala Lumpur, 41 Jalan Tun Ismail, Chow Kit, KL. Contact: 03-26146701' : `Location ${num}`
+  if (num === 1) return 'Nasi Kerabu Keramat — Sri Rampai (7-9 Jln 46B/26, Taman Sri Rampai, KL) and Season Garden, Seksyen 10, Wangsa Maju, KL. Contact: 011-6316 1661'
+  if (num === 2) return 'Riverside Cafe, WTCKL — Level 2, World Trade Centre Kuala Lumpur, 41 Jalan Tun Ismail, Chow Kit, KL. Contact: 03-26146701'
+  return `Location ${num}`
 }
 
 export function LocateUsPageClient() {
@@ -64,7 +69,7 @@ export function LocateUsPageClient() {
         </motion.div>
       </section>
 
-      {/* Images grid — slot 1: Riverside Cafe WTCKL (Lokasi Salaam Cola-2.png), slots 2–18: 2.png–18.png */}
+      {/* Images grid — slot 1: Lokasi Salaam Cola 2026.png, slot 2: Riverside Cafe (Lokasi Salaam Cola-2.png), slots 3–19: 2.png–18.png */}
       <section className="container-padding pb-20">
         <motion.div
           variants={staggerContainer}
@@ -82,7 +87,7 @@ export function LocateUsPageClient() {
               onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
               tabIndex={0}
               role="button"
-              aria-label={num === 1 ? 'View Riverside Cafe WTCKL enlarged' : `View location ${num} enlarged`}
+              aria-label={num === 1 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 2 ? 'View Riverside Cafe WTCKL enlarged' : `View location ${num} enlarged`}
             >
               <img
                 src={getGridImageSrc(num)}
