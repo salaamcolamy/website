@@ -12,7 +12,7 @@ const GRID_IMAGE_2026 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-2.png`
 // State order matches the map list: Kuala Lumpur → Selangor → Negeri Sembilan → Langkawi
 const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi'] as const
 
-// Each slot (1–19) mapped to state; distribution aligned with map store counts (KL 9, Selangor 4, NS 4, Langkawi 2)
+// Each slot (1–19) mapped to state. Aligned with map: Sahra Savor (KL), Kopi & Kita (NS), Putrajaya Distributor (Selangor).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   1: 'Kuala Lumpur',
   2: 'Kuala Lumpur',
@@ -23,15 +23,15 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   7: 'Kuala Lumpur',
   8: 'Kuala Lumpur',
   9: 'Kuala Lumpur',
-  10: 'Selangor',
+  10: 'Kuala Lumpur',   // Sahra Savor
   11: 'Selangor',
   12: 'Selangor',
   13: 'Selangor',
-  14: 'Negeri Sembilan',
+  14: 'Selangor',       // Putrajaya Distributor
   15: 'Negeri Sembilan',
   16: 'Negeri Sembilan',
   17: 'Negeri Sembilan',
-  18: 'Langkawi',
+  18: 'Negeri Sembilan', // Kopi & Kita (Kopi dan Kita Kafe)
   19: 'Langkawi',
 }
 
