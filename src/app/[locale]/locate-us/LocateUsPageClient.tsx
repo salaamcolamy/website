@@ -1,14 +1,39 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import { X } from 'lucide-react'
 
-const IMAGE_COUNT = 19
 const IMAGE_BASE = '/images/locate%20us'
 const GRID_IMAGE_RIVERSIDE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
-const GRID_IMAGE_2026 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026.png`
+const GRID_IMAGE_2026 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-2.png`
+
+// State order matches the map list: Kuala Lumpur → Selangor → Negeri Sembilan → Langkawi
+const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi'] as const
+
+// Each slot (1–19) mapped to state; distribution aligned with map store counts (KL 9, Selangor 4, NS 4, Langkawi 2)
+const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
+  1: 'Kuala Lumpur',
+  2: 'Kuala Lumpur',
+  3: 'Kuala Lumpur',
+  4: 'Kuala Lumpur',
+  5: 'Kuala Lumpur',
+  6: 'Kuala Lumpur',
+  7: 'Kuala Lumpur',
+  8: 'Kuala Lumpur',
+  9: 'Kuala Lumpur',
+  10: 'Selangor',
+  11: 'Selangor',
+  12: 'Selangor',
+  13: 'Selangor',
+  14: 'Negeri Sembilan',
+  15: 'Negeri Sembilan',
+  16: 'Negeri Sembilan',
+  17: 'Negeri Sembilan',
+  18: 'Langkawi',
+  19: 'Langkawi',
+}
 
 function getGridImageSrc(num: number) {
   if (num === 1) return GRID_IMAGE_2026
@@ -22,7 +47,15 @@ function getGridImageAlt(num: number) {
 }
 
 export function LocateUsPageClient() {
-  const images = Array.from({ length: IMAGE_COUNT }, (_, i) => i + 1)
+  const slotsByState = useMemo(() => {
+    const grouped: Record<string, number[]> = {}
+    for (const state of STATE_ORDER) grouped[state] = []
+    for (let slot = 1; slot <= 19; slot++) {
+      const state = SLOT_STATE[slot]
+      if (state) grouped[state].push(slot)
+    }
+    return grouped
+  }, [])
   const [enlarged, setEnlarged] = useState<number | null>(null)
 
   useEffect(() => {
@@ -69,35 +102,47 @@ export function LocateUsPageClient() {
         </motion.div>
       </section>
 
-      {/* Images grid — slot 1: Lokasi Salaam Cola 2026.png, slot 2: Riverside Cafe (Lokasi Salaam Cola-2.png), slots 3–19: 2.png–18.png */}
-      <section className="container-padding pb-20">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {images.map((num) => (
-            <motion.article
-              key={num}
-              variants={fadeInUp}
-              className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
-              onClick={() => setEnlarged(num)}
-              onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
-              tabIndex={0}
-              role="button"
-              aria-label={num === 1 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 2 ? 'View Riverside Cafe WTCKL enlarged' : `View location ${num} enlarged`}
+      {/* Images grouped by state (same order as map list) */}
+      <section className="container-padding pb-20 space-y-16">
+        {STATE_ORDER.map((stateName) => {
+          const slots = slotsByState[stateName] ?? []
+          if (slots.length === 0) return null
+          return (
+            <motion.div
+              key={stateName}
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              className="space-y-6"
             >
-              <img
-                src={getGridImageSrc(num)}
-                alt={getGridImageAlt(num)}
-                className="w-full h-auto block"
-                loading={num === 1 ? 'eager' : 'lazy'}
-              />
-            </motion.article>
-          ))}
-        </motion.div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 border-b-2 border-salaam-red-500 pb-2 w-fit">
+                {stateName}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {slots.map((num) => (
+                  <motion.article
+                    key={num}
+                    variants={fadeInUp}
+                    className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
+                    onClick={() => setEnlarged(num)}
+                    onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={num === 1 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 2 ? 'View Riverside Cafe WTCKL enlarged' : `View location ${num} enlarged`}
+                  >
+                    <img
+                      src={getGridImageSrc(num)}
+                      alt={getGridImageAlt(num)}
+                      className="w-full h-auto block"
+                      loading={num === 1 ? 'eager' : 'lazy'}
+                    />
+                  </motion.article>
+                ))}
+              </div>
+            </motion.div>
+          )
+        })}
       </section>
 
       {/* Lightbox — click photo to enlarge */}
