@@ -6,15 +6,16 @@ import { staggerContainer, fadeInUp } from '@/lib/animations'
 import { X } from 'lucide-react'
 
 const IMAGE_BASE = '/images/locate%20us'
+const GRID_IMAGE_2026_3 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-3.png` // Kunafa Crisp (KL) — first in row
+const GRID_IMAGE_2026_2 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-2.png`
 const GRID_IMAGE_RIVERSIDE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
-const GRID_IMAGE_2026 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-2.png`
 
 // State order matches the map list: Kuala Lumpur → Selangor → Negeri Sembilan → Langkawi
 const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi'] as const
 
-// Each slot (1–19) mapped to state. Aligned with map: Sahra Savor (KL), Kopi & Kita (NS), Putrajaya Distributor (Selangor).
+// Each slot (1–20) mapped to state. KL first image: Kunafa Crisp (2026-3). Sahra Savor (KL), Kopi & Kita (NS), Putrajaya Distributor (Selangor).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
-  1: 'Kuala Lumpur',
+  1: 'Kuala Lumpur',    // Kunafa Crisp
   2: 'Kuala Lumpur',
   3: 'Kuala Lumpur',
   4: 'Kuala Lumpur',
@@ -23,26 +24,29 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   7: 'Kuala Lumpur',
   8: 'Kuala Lumpur',
   9: 'Kuala Lumpur',
-  10: 'Kuala Lumpur',   // Sahra Savor
-  11: 'Selangor',
+  10: 'Kuala Lumpur',
+  11: 'Kuala Lumpur',  // Sahra Savor
   12: 'Selangor',
   13: 'Selangor',
-  14: 'Selangor',       // Putrajaya Distributor
-  15: 'Negeri Sembilan',
+  14: 'Selangor',
+  15: 'Selangor',      // Putrajaya Distributor
   16: 'Negeri Sembilan',
   17: 'Negeri Sembilan',
-  18: 'Negeri Sembilan', // Kopi & Kita (Kopi dan Kita Kafe)
-  19: 'Langkawi',
+  18: 'Negeri Sembilan',
+  19: 'Negeri Sembilan', // Kopi & Kita
+  20: 'Langkawi',
 }
 
 function getGridImageSrc(num: number) {
-  if (num === 1) return GRID_IMAGE_2026
-  if (num === 2) return GRID_IMAGE_RIVERSIDE
-  return `${IMAGE_BASE}/${num - 1}.png`
+  if (num === 1) return GRID_IMAGE_2026_3
+  if (num === 2) return GRID_IMAGE_2026_2
+  if (num === 3) return GRID_IMAGE_RIVERSIDE
+  return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 20 → 18.png
 }
 function getGridImageAlt(num: number) {
-  if (num === 1) return 'Nasi Kerabu Keramat — Sri Rampai (7-9 Jln 46B/26, Taman Sri Rampai, KL) and Season Garden, Seksyen 10, Wangsa Maju, KL. Contact: 011-6316 1661'
-  if (num === 2) return 'Riverside Cafe, WTCKL — Level 2, World Trade Centre Kuala Lumpur, 41 Jalan Tun Ismail, Chow Kit, KL. Contact: 03-26146701'
+  if (num === 1) return 'Kunafa Crisp — 51 Jln Sultan Ismail, Bukit Bintang, KL and 44-2G Bangunan Bintang, 51 Jln Sultan Ismail, Bukit Bintang, KL. Contact: 011-5155 9488'
+  if (num === 2) return 'Nasi Kerabu Keramat — Sri Rampai (7-9 Jln 46B/26, Taman Sri Rampai, KL) and Season Garden, Seksyen 10, Wangsa Maju, KL. Contact: 011-6316 1661'
+  if (num === 3) return 'Riverside Cafe, WTCKL — Level 2, World Trade Centre Kuala Lumpur, 41 Jalan Tun Ismail, Chow Kit, KL. Contact: 03-26146701'
   return `Location ${num}`
 }
 
@@ -50,7 +54,7 @@ export function LocateUsPageClient() {
   const slotsByState = useMemo(() => {
     const grouped: Record<string, number[]> = {}
     for (const state of STATE_ORDER) grouped[state] = []
-    for (let slot = 1; slot <= 19; slot++) {
+    for (let slot = 1; slot <= 20; slot++) {
       const state = SLOT_STATE[slot]
       if (state) grouped[state].push(slot)
     }
@@ -129,7 +133,7 @@ export function LocateUsPageClient() {
                     onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
                     tabIndex={0}
                     role="button"
-                    aria-label={num === 1 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 2 ? 'View Riverside Cafe WTCKL enlarged' : `View location ${num} enlarged`}
+                    aria-label={num === 1 ? 'View Kunafa Crisp locations enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : `View location ${num} enlarged`}
                   >
                     <img
                       src={getGridImageSrc(num)}
