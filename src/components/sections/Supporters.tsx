@@ -109,6 +109,15 @@ const storeLocations = [
     x: 123,
     y: 187,
   },
+  {
+    id: 24,
+    name: 'Kunafa Crisp',
+    address: '51, Jln Sultan Ismail, Bukit Bintang, Kuala Lumpur',
+    contact: '011-5155 9488',
+    state: 'MY14',
+    x: 129,
+    y: 193,
+  },
   // Selangor
   {
     id: 6,
