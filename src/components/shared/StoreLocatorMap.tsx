@@ -10,6 +10,15 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 const storeLocations = [
   // Kuala Lumpur
   {
+    id: 25,
+    name: 'Sssetel Mart, Parlimen Malaysia',
+    address: 'Blok Utama Parlimen Malaysia, Jln Parlimen, Kuala Lumpur',
+    contact: '017-855 9205',
+    state: 'MY14',
+    x: 125,
+    y: 191,
+  },
+  {
     id: 21,
     name: 'Riverside Cafe',
     address: 'World Trade Centre Kuala Lumpur, 41, Jalan Tun Ismail, Chow Kit',
