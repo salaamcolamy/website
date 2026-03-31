@@ -137,15 +137,6 @@ const storeLocations = [
     y: 205,
   },
   {
-    id: 9,
-    name: 'Selera Nate',
-    address: 'Glenmarie, Shah Alam, Selangor',
-    contact: '+603-5555-0125',
-    state: 'MY10', // Selangor
-    x: 137,
-    y: 208,
-  },
-  {
     id: 16,
     name: 'Hadramawt Restaurant',
     address: 'Neo Damansara, Petaling Jaya, Selangor',
