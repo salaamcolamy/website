@@ -41,8 +41,8 @@ function getGridImageSrc(num: number) {
   if (num === 1) return GRID_IMAGE_KL_FIRST
   if (num === 2) return GRID_IMAGE_2026_2
   if (num === 3) return GRID_IMAGE_RIVERSIDE
-  // Skip 11.png (previously Selera Nate) so it no longer appears in the Selangor row.
-  if (num === 13) return `${IMAGE_BASE}/12.png`
+  // Use 11.png explicitly for slot 13 so 12.png is not duplicated in the Selangor row.
+  if (num === 13) return `${IMAGE_BASE}/11.png`
   return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 20 → 18.png
 }
 function getGridImageAlt(num: number) {
