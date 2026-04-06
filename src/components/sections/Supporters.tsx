@@ -127,6 +127,15 @@ const storeLocations = [
     x: 129,
     y: 193,
   },
+  {
+    id: 26,
+    name: 'High Street Art Cafe',
+    address: '8, Lebuh Pudu, Kuala Lumpur',
+    contact: '010-2390255',
+    state: 'MY14',
+    x: 127,
+    y: 195,
+  },
   // Selangor
   {
     id: 6,

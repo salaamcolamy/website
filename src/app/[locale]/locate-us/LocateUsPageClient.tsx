@@ -6,16 +6,18 @@ import { staggerContainer, fadeInUp } from '@/lib/animations'
 import { X } from 'lucide-react'
 
 const IMAGE_BASE = '/images/locate%20us'
-const GRID_IMAGE_KL_FIRST = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026%20%281%29.png` // Sssetel Mart, Parlimen Malaysia — first KL slot
+const GRID_IMAGE_KL_FIRST = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-4.png` // High Street Art Cafe — first KL slot
 const GRID_IMAGE_2026_2 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-2.png`
 const GRID_IMAGE_RIVERSIDE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
+const GRID_IMAGE_KUNAFA_CRISP = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-3.png`
+const GRID_IMAGE_SSSETEL_PARLIMEN = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026%20%281%29.png`
 
 // State order matches the map list: Kuala Lumpur → Selangor → Negeri Sembilan → Langkawi
 const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi'] as const
 
-// Each slot (1–20) mapped to state. KL first image: Sssetel Mart, Parlimen (2026 (1)). Sahra Savor (KL), Kopi & Kita (NS), Putrajaya Distributor (Selangor).
+// Each slot (1–22) mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22). Sahra Savor (KL), Kopi & Kita (NS), Putrajaya Distributor (Selangor).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
-  1: 'Kuala Lumpur',    // Sssetel Mart, Parlimen Malaysia
+  1: 'Kuala Lumpur',    // High Street Art Cafe, Lebuh Pudu
   2: 'Kuala Lumpur',
   3: 'Kuala Lumpur',
   4: 'Kuala Lumpur',
@@ -35,20 +37,28 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   18: 'Negeri Sembilan',
   19: 'Negeri Sembilan', // Kopi & Kita
   20: 'Langkawi',
+  21: 'Kuala Lumpur', // Kunafa Crisp, Bukit Bintang
+  22: 'Kuala Lumpur', // Sssetel Mart, Parlimen Malaysia
 }
 
 function getGridImageSrc(num: number) {
   if (num === 1) return GRID_IMAGE_KL_FIRST
   if (num === 2) return GRID_IMAGE_2026_2
   if (num === 3) return GRID_IMAGE_RIVERSIDE
+  if (num === 21) return GRID_IMAGE_KUNAFA_CRISP
+  if (num === 22) return GRID_IMAGE_SSSETEL_PARLIMEN
   // Use 11.png explicitly for slot 13 so 12.png is not duplicated in the Selangor row.
   if (num === 13) return `${IMAGE_BASE}/11.png`
   return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 20 → 18.png
 }
 function getGridImageAlt(num: number) {
-  if (num === 1) return 'Sssetel Mart, Parlimen Malaysia — Blok Utama Parlimen Malaysia, Jln Parlimen, Kuala Lumpur. Contact: 017-855 9205'
+  if (num === 1) return 'High Street Art Cafe — 8, Lebuh Pudu, Kuala Lumpur. Contact: 010-2390255'
   if (num === 2) return 'Nasi Kerabu Keramat — Sri Rampai (7-9 Jln 46B/26, Taman Sri Rampai, KL) and Season Garden, Seksyen 10, Wangsa Maju, KL. Contact: 011-6316 1661'
   if (num === 3) return 'Riverside Cafe, WTCKL — Level 2, World Trade Centre Kuala Lumpur, 41 Jalan Tun Ismail, Chow Kit, KL. Contact: 03-26146701'
+  if (num === 21)
+    return 'Kunafa Crisp — Branch 1: 51, Jln Sultan Ismail, Bukit Bintang, KL. Branch 2: 44-2G, Bangunan Bintang, 51, Jln Sultan Ismail, Bukit Bintang, KL. Contact: 011-5155 9488'
+  if (num === 22)
+    return 'Sssetel Mart, Parlimen Malaysia — Blok Utama Parlimen Malaysia, Jln Parlimen, Kuala Lumpur. Contact: 017-855 9205'
   return `Location ${num}`
 }
 
@@ -56,7 +66,7 @@ export function LocateUsPageClient() {
   const slotsByState = useMemo(() => {
     const grouped: Record<string, number[]> = {}
     for (const state of STATE_ORDER) grouped[state] = []
-    for (let slot = 1; slot <= 20; slot++) {
+    for (let slot = 1; slot <= 22; slot++) {
       const state = SLOT_STATE[slot]
       if (state) grouped[state].push(slot)
     }
@@ -135,7 +145,7 @@ export function LocateUsPageClient() {
                     onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
                     tabIndex={0}
                     role="button"
-                    aria-label={num === 1 ? 'View Sssetel Mart Parlimen enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : `View location ${num} enlarged`}
+                    aria-label={num === 1 ? 'View High Street Art Cafe enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : num === 21 ? 'View Kunafa Crisp enlarged' : num === 22 ? 'View Sssetel Mart Parlimen enlarged' : `View location ${num} enlarged`}
                   >
                     <img
                       src={getGridImageSrc(num)}
