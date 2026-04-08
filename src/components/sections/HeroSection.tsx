@@ -5,29 +5,19 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { ArrowRight } from 'lucide-react'
 
-const BANNER_IMAGE = '/images/Website Banner.png'
-const MOBILE_BANNER_IMAGE = '/images/Mobile Website Banner.png'
+const HERO_BANNER_IMAGE =
+  '/images/hero/Website%20Banner%20Aidilfitri.png'
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-white md:bg-black">
-      {/* Full-bleed banner image */}
+    <section className="relative min-h-screen overflow-hidden bg-salaam-red-500">
+      {/* Full-bleed banner — same asset on mobile and desktop */}
       <div className="absolute inset-0">
-        {/* Mobile banner image */}
         <Image
-          src={MOBILE_BANNER_IMAGE}
-          alt="Salaam Cola"
+          src={HERO_BANNER_IMAGE}
+          alt="Salaam Aidilfitri — Salaam Cola festive offers"
           fill
-          className="object-cover md:hidden"
-          priority
-          sizes="100vw"
-        />
-        {/* Desktop banner image */}
-        <Image
-          src={BANNER_IMAGE}
-          alt="Salaam Cola"
-          fill
-          className="hidden md:block object-cover"
+          className="object-cover object-center"
           priority
           sizes="100vw"
         />
