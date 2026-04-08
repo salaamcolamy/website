@@ -99,15 +99,15 @@ export function ProgramsPageClient() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-80px' }}
-            className="max-w-5xl mx-auto space-y-4"
+            className="max-w-5xl mx-auto"
           >
-            <p className="text-center text-sm font-medium text-salaam-red-500 uppercase tracking-wide">
-              Salaam Charity Tahfiz
-            </p>
-            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-gray-900/10 ring-1 ring-black/5 bg-black">
+            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-gray-900/10">
               <video
                 className="w-full h-auto max-h-[85vh] mx-auto"
                 controls
+                autoPlay
+                muted
+                loop
                 playsInline
                 preload="metadata"
                 aria-label="Salaam Charity Tahfiz video"
