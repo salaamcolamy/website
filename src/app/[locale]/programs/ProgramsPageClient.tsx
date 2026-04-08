@@ -251,6 +251,34 @@ export function ProgramsPageClient() {
           </motion.div>
         </div>
       </section>
+
+      {/* Salaam Charity Tahfiz video */}
+      <section className="py-16 md:py-20 bg-gray-50 border-t border-gray-100" aria-label="Salaam Charity Tahfiz">
+        <div className="container mx-auto px-4 sm:px-6">
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            className="max-w-5xl mx-auto space-y-4"
+          >
+            <p className="text-center text-sm font-medium text-salaam-red-500 uppercase tracking-wide">
+              Salaam Charity Tahfiz
+            </p>
+            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-gray-900/10 ring-1 ring-black/5 bg-black">
+              <video
+                className="w-full h-auto max-h-[85vh] mx-auto"
+                controls
+                playsInline
+                preload="metadata"
+                aria-label="Salaam Charity Tahfiz video"
+              >
+                <source src="/videos/Salaam%20Charity%20Tahfiz.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </motion.div>
+        </div>
+      </section>
     </div>
   )
 }
