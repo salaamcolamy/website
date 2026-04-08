@@ -59,7 +59,7 @@ export function ProgramsPageClient() {
             </motion.h1>
 
             <motion.p variants={fadeInUp} className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-              Every bottle of Salaam Cola contributes to meaningful change. 10% of our profits support global
+              Every can of Salaam Cola contributes to meaningful change. 10% of our profits support global
               humanitarian causes.
             </motion.p>
           </motion.div>
