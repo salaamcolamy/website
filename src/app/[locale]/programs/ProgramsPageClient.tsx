@@ -66,6 +66,31 @@ export function ProgramsPageClient() {
         </div>
       </section>
 
+      {/* Donation certificate banner */}
+      <section className="relative pb-12 md:pb-16 -mt-2" aria-label="Charity donation certificate">
+        <div className="container mx-auto px-4 sm:px-6">
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            className="max-w-6xl mx-auto"
+          >
+            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-gray-900/10 ring-1 ring-black/5 bg-white">
+              <Image
+                src="/images/certificate_mockup.png"
+                alt="Certificate of donation received: Salaam Cola recognised by Muslims in Need for humanitarian contributions across global relief projects."
+                width={1800}
+                height={1201}
+                className="w-full h-auto"
+                sizes="(max-width: 1280px) 100vw, 1152px"
+                priority
+              />
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Global Mission Section */}
       <section className="py-20 relative">
         <div className="container mx-auto px-4">
