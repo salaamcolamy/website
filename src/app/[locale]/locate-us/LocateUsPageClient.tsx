@@ -11,11 +11,13 @@ const GRID_IMAGE_2026_2 = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-2.png`
 const GRID_IMAGE_RIVERSIDE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
 const GRID_IMAGE_KUNAFA_CRISP = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-3.png`
 const GRID_IMAGE_SSSETEL_PARLIMEN = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026%20%281%29.png`
+const GRID_IMAGE_WOP = '/images/WOP.png'
+const TOTAL_SLOTS = 23
 
 // State order matches the map list: Kuala Lumpur → Selangor → Negeri Sembilan → Langkawi
 const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi'] as const
 
-// Each slot (1–22) mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22). Sahra Savor (KL), Kopi & Kita (NS), Putrajaya Distributor (Selangor).
+// Each slot mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22), WOP Pizzeria (23). Sahra Savor (KL), Kopi & Kita (NS), Putrajaya Distributor (Selangor).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   1: 'Kuala Lumpur',    // High Street Art Cafe, Lebuh Pudu
   2: 'Kuala Lumpur',
@@ -39,6 +41,7 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   20: 'Langkawi',
   21: 'Kuala Lumpur', // Kunafa Crisp, Bukit Bintang
   22: 'Kuala Lumpur', // Sssetel Mart, Parlimen Malaysia
+  23: 'Kuala Lumpur', // WOP Pizzeria, Sri Hartamas
 }
 
 function getGridImageSrc(num: number) {
@@ -47,6 +50,7 @@ function getGridImageSrc(num: number) {
   if (num === 3) return GRID_IMAGE_RIVERSIDE
   if (num === 21) return GRID_IMAGE_KUNAFA_CRISP
   if (num === 22) return GRID_IMAGE_SSSETEL_PARLIMEN
+  if (num === 23) return GRID_IMAGE_WOP
   // Use 11.png explicitly for slot 13 so 12.png is not duplicated in the Selangor row.
   if (num === 13) return `${IMAGE_BASE}/11.png`
   return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 20 → 18.png
@@ -59,6 +63,8 @@ function getGridImageAlt(num: number) {
     return 'Kunafa Crisp — Branch 1: 51, Jln Sultan Ismail, Bukit Bintang, KL. Branch 2: 44-2G, Bangunan Bintang, 51, Jln Sultan Ismail, Bukit Bintang, KL. Contact: 011-5155 9488'
   if (num === 22)
     return 'Sssetel Mart, Parlimen Malaysia — Blok Utama Parlimen Malaysia, Jln Parlimen, Kuala Lumpur. Contact: 017-855 9205'
+  if (num === 23)
+    return 'WOP Pizzeria — H-0-8, Plaza Damas, 60, Jalan Sri Hartamas 1, Sri Hartamas, Kuala Lumpur. Contact: 03-64197530'
   return `Location ${num}`
 }
 
@@ -66,7 +72,7 @@ export function LocateUsPageClient() {
   const slotsByState = useMemo(() => {
     const grouped: Record<string, number[]> = {}
     for (const state of STATE_ORDER) grouped[state] = []
-    for (let slot = 1; slot <= 22; slot++) {
+    for (let slot = 1; slot <= TOTAL_SLOTS; slot++) {
       const state = SLOT_STATE[slot]
       if (state) grouped[state].push(slot)
     }
@@ -145,7 +151,7 @@ export function LocateUsPageClient() {
                     onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
                     tabIndex={0}
                     role="button"
-                    aria-label={num === 1 ? 'View High Street Art Cafe enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : num === 21 ? 'View Kunafa Crisp enlarged' : num === 22 ? 'View Sssetel Mart Parlimen enlarged' : `View location ${num} enlarged`}
+                    aria-label={num === 1 ? 'View High Street Art Cafe enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : num === 21 ? 'View Kunafa Crisp enlarged' : num === 22 ? 'View Sssetel Mart Parlimen enlarged' : num === 23 ? 'View WOP Pizzeria enlarged' : `View location ${num} enlarged`}
                   >
                     <img
                       src={getGridImageSrc(num)}
