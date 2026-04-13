@@ -135,6 +135,15 @@ const storeLocations = [
     x: 127,
     y: 195,
   },
+  {
+    id: 27,
+    name: 'WOP Pizzeria',
+    address: 'H-0-8, Plaza Damas, 60, Jalan Sri Hartamas 1, Sri Hartamas, Kuala Lumpur',
+    contact: '03 - 64197530',
+    state: 'MY14',
+    x: 124,
+    y: 191,
+  },
   // Selangor
   {
     id: 6,
