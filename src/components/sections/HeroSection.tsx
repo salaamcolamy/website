@@ -5,13 +5,13 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { ArrowRight } from 'lucide-react'
 
-const HERO_BANNER_DESKTOP = '/images/hero/Website%20Banner%20Aidilfitri.png'
+const HERO_BANNER_DESKTOP = '/images/RAYA10%20Hero%20Website-2.png'
 const HERO_BANNER_MOBILE =
   '/images/hero/Mobile%20Website%20Banner%20%281%29.png'
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-salaam-red-500">
+    <section className="relative min-h-screen overflow-hidden bg-white md:bg-neutral-100">
       {/* Full-bleed banner — portrait on mobile, landscape on md+ */}
       <div className="absolute inset-0">
         <Image
@@ -24,7 +24,7 @@ export function HeroSection() {
         />
         <Image
           src={HERO_BANNER_DESKTOP}
-          alt="Salaam Aidilfitri — Salaam Cola festive offers"
+          alt="Raya-End Sales — 10% off with code RAYA10, 18–30 April"
           fill
           className="hidden md:block object-cover object-center"
           priority

@@ -9,6 +9,7 @@ import { fadeInUp, fadeInLeft, fadeInRight, staggerContainer } from '@/lib/anima
 import { ChevronLeft, Shield, RefreshCw, Star, ShoppingBag, Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
 import { GlassButton } from '@/components/ui/GlassButton'
+import { RayaPromoBanner } from '@/components/shop/RayaPromoBanner'
 import { useCart } from '@/context/CartContext'
 import type { Product } from '@/lib/shopify/types'
 
@@ -51,6 +52,7 @@ export function ProductDetailClient({
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
       <div className="container mx-auto px-4 py-12">
+        <RayaPromoBanner />
         {/* Back button */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}

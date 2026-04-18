@@ -8,6 +8,7 @@ import { formatPrice, getDisplayTags, getProductPackCategory } from '@/lib/utils
 import { fadeInUp, staggerContainer, scaleIn } from '@/lib/animations'
 import { Grid, List, Star } from 'lucide-react'
 import Image from 'next/image'
+import { RayaPromoBanner } from '@/components/shop/RayaPromoBanner'
 import type { Product } from '@/lib/shopify/types'
 
 interface ShopPageClientProps {
@@ -28,6 +29,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
       <div className="container mx-auto px-4 py-12">
+        <RayaPromoBanner />
         <motion.div
           variants={staggerContainer}
           initial="hidden"
