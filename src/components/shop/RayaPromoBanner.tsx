@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 
-const BANNER_SRC = '/images/RAYA10%20Hero%20Website-2.png'
+const BANNER_SRC = '/images/hero/RAYA10%20Hero%20Website-4.png'
 
 /** Raya-End Sales promo — used on shop listing and product detail pages */
 export function RayaPromoBanner() {
