@@ -16,6 +16,7 @@ interface ShopPageClientProps {
 }
 
 type CategoryFilter = 'all' | '6-pack' | '24-pack'
+const DISCOUNT_RATE = 0.1
 
 export function ShopPageClient({ products }: ShopPageClientProps) {
   const t = useTranslations('shop')
@@ -114,6 +115,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
               {filteredProducts.map((product, index) => {
                 const imageUrl = product.featuredImage?.url || '/images/products/placeholder.webp'
                 const tag = getDisplayTags(product.handle, product.title, product.tags)[0]
+                const discountedPrice = product.price * (1 - DISCOUNT_RATE)
 
                 return (
                   <motion.div key={product.id} variants={scaleIn} custom={index}>
@@ -127,6 +129,9 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                             fill
                             className="object-contain p-4 sm:p-8 transition-transform duration-500 group-hover:scale-105"
                           />
+                          <div className="absolute inset-x-0 top-4 bg-salaam-red-500/95 text-white text-xs font-bold tracking-wide py-1.5 shadow-sm">
+                            10% OFF
+                          </div>
                         </div>
 
                         {/* Rating */}
@@ -143,9 +148,15 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                         <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
                           {product.title}
                         </h3>
-                        <p className="text-salaam-red-500 font-semibold mb-1">
-                          {formatPrice(product.price, product.currencyCode)}
-                        </p>
+                        <div className="mb-1">
+                          <p className="text-salaam-red-500 font-semibold">
+                            {formatPrice(discountedPrice, product.currencyCode)}
+                          </p>
+                          <p className="text-xs text-gray-400 line-through">
+                            {formatPrice(product.price, product.currencyCode)}
+                          </p>
+                        </div>
+                        <p className="text-xs font-semibold text-green-600 mb-1">10% OFF</p>
                         {tag && (
                           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
                             {tag}
