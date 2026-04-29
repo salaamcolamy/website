@@ -87,7 +87,7 @@ export function ProductDetailClient({
                 className="object-contain p-8"
                 priority={selectedImageIndex === 0}
               />
-              <div className="absolute inset-x-0 top-6 bg-salaam-red-500/95 text-white text-sm font-bold tracking-wide py-2 text-center shadow-sm">
+              <div className="absolute top-4 right-4 bg-salaam-red-500/95 text-white text-sm font-bold tracking-wide px-3 py-1.5 rounded-md shadow-sm">
                 10% OFF
               </div>
             </div>
@@ -453,7 +453,7 @@ export function ProductDetailClient({
                           fill
                           className="object-contain p-8 transition-transform duration-500 group-hover:scale-105"
                         />
-                        <div className="absolute inset-x-0 top-4 bg-salaam-red-500/95 text-white text-xs font-bold tracking-wide py-1.5 shadow-sm">
+                        <div className="absolute top-3 right-3 bg-salaam-red-500/95 text-white text-[11px] font-bold tracking-wide px-2.5 py-1 rounded-md shadow-sm">
                           10% OFF
                         </div>
                       </div>
