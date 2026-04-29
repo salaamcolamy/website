@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { ArrowRight } from 'lucide-react'
 
-const HERO_BANNER_DESKTOP = '/images/RAYA10%20Hero%20Website-3.png'
+const HERO_BANNER_DESKTOP = '/images/hero/RAYA10%20Hero%20Website-4.png'
 const HERO_BANNER_MOBILE = '/images/1.png'
 
 export function HeroSection() {
