@@ -98,6 +98,9 @@ export interface ShopifyCart {
     totalAmount: ShopifyMoney
     totalTaxAmount: ShopifyMoney | null
   }
+  discountAllocations?: Array<{
+    allocatedAmount: ShopifyMoney
+  }>
   lines: {
     edges: Array<{
       node: ShopifyCartLine
@@ -135,7 +138,10 @@ export interface CartItem {
   title: string
   variantTitle: string
   quantity: number
+  /** Unit price from variant (before cart-level discount). */
   price: number
+  /** Line total from Shopify (quantity × price after cart-level discount allocation). */
+  lineTotal: number
   currencyCode: string
   image: ShopifyImage | null
 }
@@ -144,8 +150,12 @@ export interface Cart {
   id: string
   checkoutUrl: string
   totalQuantity: number
+  /** Merchandise subtotal before cart-level discounts (Shopify). */
   subtotal: number
+  /** Cart total from Shopify (merchandise after discounts, including tax if applicable). */
   total: number
+  /** Sum of cart discount allocations (Shopify), 0 if none. */
+  discountTotal: number
   currencyCode: string
   items: CartItem[]
 }

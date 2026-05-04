@@ -116,10 +116,26 @@
     "empty": "سلتك فارغة",
     "continueShopping": "مواصلة التسوق",
     "subtotal": "المجموع الفرعي",
+    "retailSubtotal": "المجموع قبل الخصم",
+    "discount": "الخصم",
+    "itemsTotal": "الإجمالي",
     "shipping": "يتم حساب الشحن عند الدفع",
     "checkout": "المتابعة إلى الدفع",
     "remove": "إزالة",
     "itemAdded": "تمت إضافة المنتج إلى السلة"
+  },
+  "checkout": {
+    "orderSummary": "ملخص الطلب",
+    "subtotal": "المجموع الفرعي",
+    "discount": "الخصم",
+    "merchandiseTotal": "إجمالي المنتجات",
+    "shipping": "الشحن",
+    "total": "الإجمالي",
+    "qty": "الكمية",
+    "enterAddress": "أدخل العنوان",
+    "calculatingShipping": "جاري الحساب...",
+    "freeShipping": "مجاناً",
+    "placeOrder": "إتمام الطلب - RM{amount}"
   },
   "shop": {
     "title": "المتجر قريباً",

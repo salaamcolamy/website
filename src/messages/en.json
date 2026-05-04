@@ -126,10 +126,26 @@
     "empty": "Your cart is empty",
     "continueShopping": "Continue Shopping",
     "subtotal": "Subtotal",
+    "retailSubtotal": "Retail subtotal",
+    "discount": "Discount",
+    "itemsTotal": "Total",
     "shipping": "Shipping calculated at checkout",
     "checkout": "Proceed to Checkout",
     "remove": "Remove",
     "itemAdded": "Item added to cart"
+  },
+  "checkout": {
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "merchandiseTotal": "Merchandise total",
+    "shipping": "Shipping",
+    "total": "Total",
+    "qty": "Qty",
+    "enterAddress": "Enter address",
+    "calculatingShipping": "Calculating...",
+    "freeShipping": "FREE",
+    "placeOrder": "Place Order - RM{amount}"
   },
   "shop": {
     "title": "Shop",

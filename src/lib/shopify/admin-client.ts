@@ -109,6 +109,13 @@ export interface CreateOrderInput {
   lineItems: ShopifyLineItem[]
   billingAddress: ShopifyAddress
   shippingAddress: ShopifyAddress
+  /**
+   * When true (default), Shopify applies eligible automatic discounts (e.g. PAYDAY10) to the draft.
+   * Set false only if you need draft totals without automatic promos.
+   */
+  acceptAutomaticDiscounts?: boolean
+  /** Customer-facing discount codes (e.g. RAYA10); must exist in Shopify Admin. */
+  discountCodes?: string[]
   financialStatus?: 'PENDING' | 'AUTHORIZED' | 'PAID' | 'PARTIALLY_PAID' | 'REFUNDED' | 'VOIDED'
   note?: string
   tags?: string[]
@@ -181,6 +188,12 @@ export async function createDraftOrder(input: CreateOrderInput): Promise<Shopify
       price: input.shippingLine.price,
     }
   }
+
+  if (input.discountCodes?.length) {
+    draftInput.discountCodes = input.discountCodes
+  }
+
+  draftInput.acceptAutomaticDiscounts = input.acceptAutomaticDiscounts !== false
 
   const variables = { input: draftInput }
 

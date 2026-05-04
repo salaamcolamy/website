@@ -36,13 +36,20 @@ async function handler(request: NextRequest) {
     if (draftOrderId && isShopifyAdminConfigured()) {
       try {
         const result = await shopifyAdminFetch<{
-          draftOrder: { totalPrice: string } | null
+          draftOrder: {
+            totalPriceSet?: { shopMoney?: { amount: string } | null } | null
+          } | null
         }>({
-          query: `query getDraftOrder($id: ID!) { draftOrder(id: $id) { totalPrice } }`,
+          query: `query getDraftOrder($id: ID!) {
+            draftOrder(id: $id) {
+              totalPriceSet { shopMoney { amount } }
+            }
+          }`,
           variables: { id: draftOrderId },
         })
-        if (result.draftOrder?.totalPrice) {
-          const shopifyTotal = parseFloat(result.draftOrder.totalPrice)
+        const amountStr = result.draftOrder?.totalPriceSet?.shopMoney?.amount
+        if (amountStr) {
+          const shopifyTotal = parseFloat(amountStr)
           if (Math.abs(shopifyTotal - numAmount) > 0.01) {
             logger.warn('Amount mismatch detected', { clientAmount: numAmount, shopifyAmount: shopifyTotal, orderId })
             verifiedAmount = shopifyTotal

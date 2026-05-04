@@ -10,6 +10,7 @@ import {
   createValidationError,
 } from '@/lib/error-handler'
 import { withSecurity } from '@/lib/security'
+import { getShopifyPromoDiscountCodes } from '@/lib/shopify/promoDiscountCodes'
 
 async function handler(request: NextRequest) {
   try {
@@ -42,7 +43,16 @@ async function handler(request: NextRequest) {
     }
 
     const orderInput: CreateOrderInput = {
-      email, lineItems, billingAddress, shippingAddress, note, tags, customAttributes, shippingLine,
+      email,
+      lineItems,
+      billingAddress,
+      shippingAddress,
+      note,
+      tags,
+      customAttributes,
+      shippingLine,
+      acceptAutomaticDiscounts: true,
+      discountCodes: getShopifyPromoDiscountCodes(),
     }
 
     // Create draft order — completed after successful payment, tagged if payment fails

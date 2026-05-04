@@ -193,6 +193,11 @@ SHOPIFY_STORE_DOMAIN=27ut15-e9.myshopify.com
 SHOPIFY_STOREFRONT_ACCESS_TOKEN=<stored in .env.local>
 ```
 
+### Promotions (automatic + codes)
+- **Automatic discounts** (e.g. PAYDAY10 in Admin): Storefront cart re-evaluates after `POST /api/cart?action=buyer-identity` with `countryCode: MY` (see `refreshCart` in `CartContext`). Draft orders for Billplz use **`acceptAutomaticDiscounts: true`** so Shopify applies the same eligible automatic discounts to the draft total.
+- **Discount codes on cart/draft**: set `SHOPIFY_CART_DISCOUNT_CODE` (comma-separated; optional alias `SHOPIFY_DISCOUNT_CODE`). Leave **unset** when you rely only on automatic discounts so the app does not call `cartDiscountCodesUpdate` with a code.
+- **Admin token**: `write_draft_orders` is required for draft creation (and automatic discounts on drafts).
+
 ### What's Connected
 | Feature | Status | Notes |
 |---------|--------|-------|
@@ -201,7 +206,7 @@ SHOPIFY_STOREFRONT_ACCESS_TOKEN=<stored in .env.local>
 | Landing page best sellers | ✓ Live | Shows 3 products |
 | Cart creation | ✓ Live | Shopify Cart API |
 | Add to cart | ✓ Live | Creates real cart |
-| Checkout | ✓ Live | Redirects to Shopify checkout |
+| Checkout | ✓ Live | Custom checkout + Billplz; draft orders use Shopify Admin |
 
 ### API Version
 Using Storefront API `2026-01`

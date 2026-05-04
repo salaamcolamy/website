@@ -6,6 +6,7 @@ import {
   addToCart,
   updateCartLine,
   removeFromCart,
+  updateCartBuyerIdentity,
 } from '@/lib/shopify/queries/cart'
 
 async function handler(req: NextRequest) {
@@ -42,6 +43,16 @@ async function handler(req: NextRequest) {
       const { cartId, lineIds } = await req.json()
       if (!cartId || !lineIds) return Response.json({ error: 'Missing required fields' }, { status: 400 })
       cart = await removeFromCart(cartId, lineIds)
+    } else if (req.method === 'POST' && action === 'buyer-identity') {
+      const body = await req.json()
+      const { cartId, countryCode } = body
+      if (!cartId || !countryCode || typeof countryCode !== 'string') {
+        return Response.json({ error: 'Missing cartId or countryCode' }, { status: 400 })
+      }
+      if (countryCode.length !== 2) {
+        return Response.json({ error: 'countryCode must be ISO 3166-1 alpha-2 (e.g. MY)' }, { status: 400 })
+      }
+      cart = await updateCartBuyerIdentity(cartId, countryCode.toUpperCase())
     } else {
       return Response.json({ error: 'Invalid action', method: req.method, action }, { status: 400 })
     }

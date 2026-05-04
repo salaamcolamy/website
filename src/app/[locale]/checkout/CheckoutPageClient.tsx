@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import { Link } from '@/i18n/routing'
@@ -60,7 +61,8 @@ const fpxBanks = [
 ]
 
 export function CheckoutPageClient() {
-  const { cart } = useCart()
+  const t = useTranslations('checkout')
+  const { cart, refreshCart } = useCart()
   const [currentStep, setCurrentStep] = useState<Step>('information')
   const [paymentMethod] = useState<PaymentMethod>('fpx')
   const [selectedBank, setSelectedBank] = useState<string>('')
@@ -174,6 +176,10 @@ export function CheckoutPageClient() {
     setShippingError(null)
 
     try {
+      if (cart?.id?.startsWith('gid://shopify/Cart')) {
+        await refreshCart()
+      }
+
       const cartItems = cart.items.map(item => ({
         title: item.title,
         variantTitle: item.variantTitle || '',
@@ -231,7 +237,7 @@ export function CheckoutPageClient() {
     } finally {
       setShippingLoading(false)
     }
-  }, [cart?.items, customerInfo.state, customerInfo.city, customerInfo.postcode])
+  }, [cart?.id, cart?.items, customerInfo.state, customerInfo.city, customerInfo.postcode, refreshCart])
 
   // Debounced shipping calculation
   const debouncedFetchShipping = useCallback(() => {
@@ -264,9 +270,18 @@ export function CheckoutPageClient() {
     }
   }, [currentStep, fetchShippingRates, customerInfo.state, cart?.items])
 
+  // Re-sync Storefront cart (buyer MY + automatic discounts) when opening payment
+  useEffect(() => {
+    if (currentStep !== 'payment') return
+    if (!cart?.id?.startsWith('gid://shopify/Cart')) return
+    void refreshCart()
+  }, [currentStep, cart?.id, refreshCart])
+
   const shippingCost = shippingLoading ? null : (shippingCostValue !== null && !shippingError ? shippingCostValue : null)
 
-  const orderTotal = (cart?.subtotal ?? 0) + (shippingCost ?? 0)
+  /** Shopify cart total (merchandise after promo/tax); shipping is added separately. */
+  const merchandiseTotal = cart?.total ?? 0
+  const orderTotal = merchandiseTotal + (shippingCost ?? 0)
 
   const handlePlaceOrder = async () => {
     if (!selectedBank) {
@@ -373,10 +388,12 @@ export function CheckoutPageClient() {
           variantTitle: item.variantTitle || '',
           quantity: item.quantity,
           price: item.price,
-          image: item.image,
+          image: item.image
+            ? { url: item.image.url, altText: item.image.altText ?? undefined }
+            : undefined,
         })) || [],
-        subtotal: cart?.subtotal || 0,
-        shipping: shippingCost,
+        subtotal: cart?.subtotal ?? 0,
+        shipping: shippingCost ?? 0,
         total: orderTotal,
         customerInfo,
         paymentMethod: 'billplz',
@@ -943,7 +960,7 @@ export function CheckoutPageClient() {
                         ) : (
                           <>
                             <Lock className="w-4 h-4" />
-                            Place Order - RM{orderTotal.toFixed(2)}
+                            {t('placeOrder', { amount: orderTotal.toFixed(2) })}
                           </>
                         )}
                       </button>
@@ -956,7 +973,7 @@ export function CheckoutPageClient() {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-28">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">{t('orderSummary')}</h2>
 
                 <div className="space-y-4 mb-6">
                   {cart.items.map((item) => (
@@ -980,10 +997,13 @@ export function CheckoutPageClient() {
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-gray-900 text-sm">{item.title}</p>
-                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                        <p className="text-sm text-gray-500">
+                          {t('qty')}: {item.quantity}
+                        </p>
                       </div>
                       <p className="font-medium text-gray-900">
-                        RM{(item.price * item.quantity).toFixed(2)}
+                        RM
+                        {(item.lineTotal ?? item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   ))}
@@ -991,30 +1011,40 @@ export function CheckoutPageClient() {
 
                 <div className="border-t border-gray-100 pt-4 space-y-3">
                   <div className="flex justify-between text-gray-600">
-                    <span>Subtotal</span>
+                    <span>{t('subtotal')}</span>
                     <span>RM{cart.subtotal.toFixed(2)}</span>
                   </div>
+                  {(cart.discountTotal ?? 0) > 0.005 && (
+                    <div className="flex justify-between text-green-700">
+                      <span>{t('discount')}</span>
+                      <span>−RM{cart.discountTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-600 text-sm">
+                    <span>{t('merchandiseTotal')}</span>
+                    <span>RM{merchandiseTotal.toFixed(2)}</span>
+                  </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>Shipping</span>
+                    <span>{t('shipping')}</span>
                     <span className={shippingCost === 0 ? 'text-green-600 font-medium' : ''}>
                       {!customerInfo.state ? (
-                        <span className="text-gray-400 text-sm">Enter address</span>
+                        <span className="text-gray-400 text-sm">{t('enterAddress')}</span>
                       ) : shippingLoading ? (
-                        <span className="text-gray-400 text-sm">Calculating...</span>
+                        <span className="text-gray-400 text-sm">{t('calculatingShipping')}</span>
                       ) : shippingCost === null ? (
                         <span className="text-gray-400 text-sm">—</span>
                       ) : shippingCost === 0 ? (
-                        'FREE'
+                        t('freeShipping')
                       ) : (
                         `RM${shippingCost.toFixed(2)}`
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-100">
-                    <span>Total</span>
+                    <span>{t('total')}</span>
                     <span>
                       {!customerInfo.state ? (
-                        <span className="text-gray-400">RM{cart.subtotal.toFixed(2)}</span>
+                        <span className="text-gray-400">RM{merchandiseTotal.toFixed(2)}</span>
                       ) : (
                         `RM${orderTotal.toFixed(2)}`
                       )}

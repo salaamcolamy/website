@@ -116,10 +116,26 @@
     "empty": "Troli anda kosong",
     "continueShopping": "Terus Membeli-belah",
     "subtotal": "Jumlah Kecil",
+    "retailSubtotal": "Jumlah runcit",
+    "discount": "Diskaun",
+    "itemsTotal": "Jumlah",
     "shipping": "Penghantaran dikira semasa pembayaran",
     "checkout": "Teruskan ke Pembayaran",
     "remove": "Buang",
     "itemAdded": "Item ditambah ke troli"
+  },
+  "checkout": {
+    "orderSummary": "Ringkasan Pesanan",
+    "subtotal": "Jumlah kecil",
+    "discount": "Diskaun",
+    "merchandiseTotal": "Jumlah barangan",
+    "shipping": "Penghantaran",
+    "total": "Jumlah keseluruhan",
+    "qty": "Kuantiti",
+    "enterAddress": "Masukkan alamat",
+    "calculatingShipping": "Mengira...",
+    "freeShipping": "PERCUMA",
+    "placeOrder": "Buat Pesanan - RM{amount}"
   },
   "shop": {
     "title": "KEDAI TAK LAMA LAGI",

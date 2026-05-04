@@ -68,6 +68,25 @@ const initialState: CartState = {
   isLoading: false,
 }
 
+/** Ensures quantities, line totals, and discount totals are safe after JSON from /api/cart. */
+function normalizeCartPayload(cart: Cart): Cart {
+  const normalizedItems = (cart.items || []).map((item) => {
+    const qty = Math.max(0, Number(item.quantity) || 0)
+    return {
+      ...item,
+      quantity: qty,
+      lineTotal: item.lineTotal ?? item.price * qty,
+    }
+  })
+  const totalQty = normalizedItems.reduce((s, item) => s + item.quantity, 0)
+  return {
+    ...cart,
+    items: normalizedItems,
+    totalQuantity: totalQty > 0 ? totalQty : (cart.totalQuantity ?? 0),
+    discountTotal: cart.discountTotal ?? 0,
+  }
+}
+
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'SET_CART':
@@ -90,6 +109,8 @@ interface CartContextValue extends CartState {
   updateItem: (lineId: string, quantity: number) => Promise<void>
   removeItem: (lineId: string) => Promise<void>
   clearCart: () => void
+  /** Sets buyer country MY and reloads cart so automatic discounts can apply; no-op if no cart. */
+  refreshCart: () => Promise<void>
   openCart: () => void
   closeCart: () => void
   toggleCart: () => void
@@ -136,7 +157,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               if (typeof localStorage !== 'undefined') {
                 localStorage.removeItem(DEMO_CART_KEY)
               }
-              dispatch({ type: 'SET_CART', payload: existingCart })
+              dispatch({ type: 'SET_CART', payload: normalizeCartPayload(existingCart) })
               setIsInitialized(true)
               return
             } else {
@@ -171,7 +192,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               localStorage.removeItem(DEMO_CART_KEY)
               localStorage.setItem(CART_ID_KEY, newCart.id)
             }
-            dispatch({ type: 'SET_CART', payload: newCart })
+            dispatch({ type: 'SET_CART', payload: normalizeCartPayload(newCart as Cart) })
             console.log('[Cart] Shopify cart created:', newCart.id)
             setIsInitialized(true)
             return
@@ -245,7 +266,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 if (typeof localStorage !== 'undefined') {
                   localStorage.setItem(CART_ID_KEY, newCart.id)
                 }
-                dispatch({ type: 'SET_CART', payload: newCart })
+                dispatch({ type: 'SET_CART', payload: normalizeCartPayload(newCart as Cart) })
                 console.log('[Cart] New Shopify cart created:', cartId)
               } else {
                 console.error('[Cart] Failed to create valid Shopify cart:', newCart)
@@ -280,16 +301,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           // CRITICAL: Ensure cart is properly updated with latest state
           if (updatedCart && updatedCart.id && updatedCart.id.startsWith('gid://shopify/Cart')) {
             // Normalize quantities so header/drawer show correct count (fixes 24-pack etc. showing 0)
-            const normalizedItems = (updatedCart.items || []).map((item: CartItem) => ({
-              ...item,
-              quantity: Math.max(0, Number(item.quantity) || 0),
-            }))
-            const totalQty = normalizedItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0)
-            const normalizedCart = {
-              ...updatedCart,
-              items: normalizedItems,
-              totalQuantity: totalQty > 0 ? totalQty : (updatedCart.totalQuantity ?? 0),
-            }
+            const normalizedCart = normalizeCartPayload(updatedCart as Cart)
 
             if (typeof localStorage !== 'undefined') {
               localStorage.setItem(CART_ID_KEY, updatedCart.id)
@@ -376,7 +388,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const getResponse = await fetch(`/api/cart?id=${encodeURIComponent(newCart.id)}`)
           if (getResponse.ok) {
             const updatedCart = await getResponse.json()
-            dispatch({ type: 'SET_CART', payload: updatedCart })
+            dispatch({ type: 'SET_CART', payload: normalizeCartPayload(updatedCart as Cart) })
             if (typeof localStorage !== 'undefined') {
               localStorage.setItem(CART_ID_KEY, updatedCart.id)
               localStorage.removeItem(DEMO_CART_KEY)
@@ -403,8 +415,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         
         const updatedCart = await updateResponse.json()
-        dispatch({ type: 'SET_CART', payload: updatedCart })
-        
+        dispatch({ type: 'SET_CART', payload: normalizeCartPayload(updatedCart as Cart) })
+
         // Ensure demo cart is cleared
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem(DEMO_CART_KEY)
@@ -470,7 +482,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const getResponse = await fetch(`/api/cart?id=${encodeURIComponent(newCart.id)}`)
           if (getResponse.ok) {
             const updatedCart = await getResponse.json()
-            dispatch({ type: 'SET_CART', payload: updatedCart })
+            dispatch({ type: 'SET_CART', payload: normalizeCartPayload(updatedCart as Cart) })
             if (typeof localStorage !== 'undefined') {
               localStorage.setItem(CART_ID_KEY, updatedCart.id)
               localStorage.removeItem(DEMO_CART_KEY)
@@ -496,8 +508,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         
         const updatedCart = await removeResponse.json()
-        dispatch({ type: 'SET_CART', payload: updatedCart })
-        
+        dispatch({ type: 'SET_CART', payload: normalizeCartPayload(updatedCart as Cart) })
+
         // Ensure demo cart is cleared
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem(DEMO_CART_KEY)
@@ -533,7 +545,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           if (typeof localStorage !== 'undefined') {
             localStorage.setItem(CART_ID_KEY, newCart.id)
           }
-          dispatch({ type: 'SET_CART', payload: newCart })
+          dispatch({ type: 'SET_CART', payload: normalizeCartPayload(newCart as Cart) })
           console.log('[Cart] Cleared and created new Shopify cart:', newCart.id)
           return
         }
@@ -558,6 +570,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'TOGGLE_CART' })
   }, [])
 
+  const refreshCart = useCallback(async () => {
+    const cartId = state.cart?.id
+    if (!cartId?.startsWith('gid://shopify/Cart')) return
+    try {
+      const res = await fetch('/api/cart?action=buyer-identity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cartId, countryCode: 'MY' }),
+      })
+      if (!res.ok) return
+      const next = (await res.json()) as Cart
+      if (next?.id?.startsWith('gid://shopify/Cart')) {
+        dispatch({ type: 'SET_CART', payload: normalizeCartPayload(next) })
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(CART_ID_KEY, next.id)
+        }
+      }
+    } catch (e) {
+      console.warn('[Cart] refreshCart failed:', e)
+    }
+  }, [state.cart?.id])
+
   if (!isInitialized) {
     return null
   }
@@ -570,6 +604,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateItem,
         removeItem,
         clearCart,
+        refreshCart,
         openCart,
         closeCart,
         toggleCart,

@@ -168,6 +168,7 @@ export async function createShopifyOrderFromOrderData(
       { key: 'payment_gateway', value: 'Billplz' },
       ...(orderData.billplzBillId ? [{ key: 'billplz_bill_id', value: orderData.billplzBillId }] : []),
     ],
+    acceptAutomaticDiscounts: true,
   }
 
   const draftOrder = await createDraftOrder(orderInput)

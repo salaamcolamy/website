@@ -115,7 +115,10 @@ export function CartDrawer() {
                         <p className="text-sm text-gray-500">{item.variantTitle}</p>
                       )}
                       <p className="text-salaam-red-500 font-semibold mt-1">
-                        {formatPrice(item.price, item.currencyCode)}
+                        {formatPrice(
+                          item.lineTotal ?? item.price * item.quantity,
+                          item.currencyCode,
+                        )}
                       </p>
 
                       {/* Quantity controls */}
@@ -167,12 +170,31 @@ export function CartDrawer() {
             {cart && cart.items.length > 0 && (
               <div className="p-6 border-t border-gray-100 space-y-4">
                 {/* Subtotal */}
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">{t('subtotal')}</span>
-                  <span className="text-xl font-bold text-gray-900">
-                    {formatPrice(cart.subtotal, cart.currencyCode)}
-                  </span>
-                </div>
+                {(cart.discountTotal ?? 0) > 0.005 ? (
+                  <>
+                    <div className="flex justify-between items-center text-sm text-gray-600">
+                      <span>{t('retailSubtotal')}</span>
+                      <span>{formatPrice(cart.subtotal, cart.currencyCode)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm text-green-700">
+                      <span>{t('discount')}</span>
+                      <span>−{formatPrice(cart.discountTotal, cart.currencyCode)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">{t('itemsTotal')}</span>
+                      <span className="text-xl font-bold text-gray-900">
+                        {formatPrice(cart.total, cart.currencyCode)}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">{t('subtotal')}</span>
+                    <span className="text-xl font-bold text-gray-900">
+                      {formatPrice(cart.total, cart.currencyCode)}
+                    </span>
+                  </div>
+                )}
                 <p className="text-sm text-gray-500">{t('shipping')}</p>
 
                 {/* Checkout button */}

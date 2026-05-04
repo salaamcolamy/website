@@ -1,4 +1,5 @@
 import { shopifyFetch, isShopifyConfigured } from '../client'
+import { getShopifyPromoDiscountCodes } from '../promoDiscountCodes'
 import type { ShopifyCart, Cart, CartItem } from '../types'
 
 const CART_FRAGMENT = `
@@ -6,6 +7,12 @@ const CART_FRAGMENT = `
     id
     checkoutUrl
     totalQuantity
+    discountAllocations {
+      allocatedAmount {
+        amount
+        currencyCode
+      }
+    }
     cost {
       subtotalAmount {
         amount
@@ -65,6 +72,8 @@ const CART_FRAGMENT = `
 function transformCart(shopifyCart: ShopifyCart): Cart {
   const items: CartItem[] = shopifyCart.lines.edges.map((edge): CartItem => {
     const qty = Number(edge.node.quantity) || 0
+    const unitPrice = parseFloat(edge.node.merchandise.price.amount)
+    const lineTotal = parseFloat(edge.node.cost.totalAmount.amount)
     return {
       id: edge.node.id,
       variantId: edge.node.merchandise.id,
@@ -73,21 +82,72 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
       title: edge.node.merchandise.product.title,
       variantTitle: edge.node.merchandise.title,
       quantity: qty,
-      price: parseFloat(edge.node.merchandise.price.amount),
+      price: unitPrice,
+      lineTotal,
       currencyCode: edge.node.merchandise.price.currencyCode,
       image: edge.node.merchandise.product.featuredImage,
     }
   })
   const totalQuantityFromLines = items.reduce((sum, item) => sum + item.quantity, 0)
+  const discountTotal = (shopifyCart.discountAllocations ?? []).reduce(
+    (sum, d) => sum + parseFloat(d.allocatedAmount.amount),
+    0,
+  )
   return {
     id: shopifyCart.id,
     checkoutUrl: shopifyCart.checkoutUrl,
     totalQuantity: totalQuantityFromLines > 0 ? totalQuantityFromLines : (shopifyCart.totalQuantity ?? 0),
     subtotal: parseFloat(shopifyCart.cost.subtotalAmount.amount),
     total: parseFloat(shopifyCart.cost.totalAmount.amount),
+    discountTotal,
     currencyCode: shopifyCart.cost.totalAmount.currencyCode,
     items,
   }
+}
+
+/** Re-applies configured promo discount codes so cart totals match Shopify checkout. */
+async function applyPromoDiscountCodesIfConfigured(shopifyCart: ShopifyCart): Promise<ShopifyCart> {
+  const codes = getShopifyPromoDiscountCodes()
+  if (codes.length === 0) {
+    return shopifyCart
+  }
+
+  const query = `
+    mutation cartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]) {
+      cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
+        cart {
+          ...CartFragment
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+    ${CART_FRAGMENT}
+  `
+
+  const data = await shopifyFetch<{
+    cartDiscountCodesUpdate: {
+      cart: ShopifyCart | null
+      userErrors: Array<{ field?: string[]; message: string }>
+    }
+  }>({
+    query,
+    variables: { cartId: shopifyCart.id, discountCodes: codes },
+    cache: 'no-store',
+  })
+
+  const payload = data.cartDiscountCodesUpdate
+  if (payload.userErrors?.length) {
+    console.warn('[Cart] cartDiscountCodesUpdate userErrors:', payload.userErrors)
+  }
+  return payload.cart ?? shopifyCart
+}
+
+export async function finalizeShopifyCart(shopifyCart: ShopifyCart): Promise<Cart> {
+  const withCodes = await applyPromoDiscountCodesIfConfigured(shopifyCart)
+  return transformCart(withCodes)
 }
 
 export async function createCart(): Promise<Cart> {
@@ -133,8 +193,8 @@ export async function createCart(): Promise<Cart> {
       throw error
     }
 
-    const transformedCart = transformCart(data.cartCreate.cart)
-    
+    const transformedCart = await finalizeShopifyCart(data.cartCreate.cart)
+
     // Validate the cart ID format
     if (!transformedCart.id || !transformedCart.id.startsWith('gid://shopify/Cart')) {
       const error = new Error(`Invalid cart ID format: ${transformedCart.id}. Expected gid://shopify/Cart format. Please check Shopify configuration.`)
@@ -158,6 +218,54 @@ export async function createCart(): Promise<Cart> {
   }
 }
 
+/**
+ * Sets cart buyer country so market-specific automatic discounts (e.g. PAYDAY10) can evaluate on the Storefront cart.
+ */
+export async function updateCartBuyerIdentity(
+  cartId: string,
+  countryCode: string,
+): Promise<Cart> {
+  if (!isShopifyConfigured()) {
+    throw new Error('Shopify not configured')
+  }
+
+  const query = `
+    mutation cartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+      cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+        cart {
+          ...CartFragment
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+    ${CART_FRAGMENT}
+  `
+
+  const data = await shopifyFetch<{
+    cartBuyerIdentityUpdate: {
+      cart: ShopifyCart | null
+      userErrors: Array<{ field?: string[]; message: string }>
+    }
+  }>({
+    query,
+    variables: { cartId, buyerIdentity: { countryCode } },
+    cache: 'no-store',
+  })
+
+  const payload = data.cartBuyerIdentityUpdate
+  if (payload.userErrors?.length) {
+    console.warn('[Cart] cartBuyerIdentityUpdate userErrors:', payload.userErrors)
+  }
+  const raw = payload.cart
+  if (!raw) {
+    throw new Error('cartBuyerIdentityUpdate returned no cart')
+  }
+  return await finalizeShopifyCart(raw)
+}
+
 export async function getCart(cartId: string): Promise<Cart | null> {
   if (!isShopifyConfigured()) {
     return null
@@ -178,7 +286,7 @@ export async function getCart(cartId: string): Promise<Cart | null> {
     cache: 'no-store',
   })
 
-  return data.cart ? transformCart(data.cart) : null
+  return data.cart ? await finalizeShopifyCart(data.cart) : null
 }
 
 export async function addToCart(
@@ -212,7 +320,7 @@ export async function addToCart(
     cache: 'no-store',
   })
 
-  return transformCart(data.cartLinesAdd.cart)
+  return await finalizeShopifyCart(data.cartLinesAdd.cart)
 }
 
 export async function updateCartLine(
@@ -246,7 +354,7 @@ export async function updateCartLine(
     cache: 'no-store',
   })
 
-  return transformCart(data.cartLinesUpdate.cart)
+  return await finalizeShopifyCart(data.cartLinesUpdate.cart)
 }
 
 export async function removeFromCart(
@@ -276,5 +384,5 @@ export async function removeFromCart(
     cache: 'no-store',
   })
 
-  return transformCart(data.cartLinesRemove.cart)
+  return await finalizeShopifyCart(data.cartLinesRemove.cart)
 }
