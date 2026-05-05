@@ -304,13 +304,20 @@ export async function addToCart(
         cart {
           ...CartFragment
         }
+        userErrors {
+          field
+          message
+        }
       }
     }
     ${CART_FRAGMENT}
   `
 
   const data = await shopifyFetch<{
-    cartLinesAdd: { cart: ShopifyCart }
+    cartLinesAdd: {
+      cart: ShopifyCart | null
+      userErrors: Array<{ field?: string[]; message: string }>
+    }
   }>({
     query,
     variables: {
@@ -320,6 +327,13 @@ export async function addToCart(
     cache: 'no-store',
   })
 
+  if (data.cartLinesAdd.userErrors?.length) {
+    const msg = data.cartLinesAdd.userErrors.map((e) => e.message).join('; ')
+    throw new Error(`Shopify add-to-cart failed: ${msg}`)
+  }
+  if (!data.cartLinesAdd.cart) {
+    throw new Error('Shopify add-to-cart returned no cart')
+  }
   return await finalizeShopifyCart(data.cartLinesAdd.cart)
 }
 
@@ -338,13 +352,20 @@ export async function updateCartLine(
         cart {
           ...CartFragment
         }
+        userErrors {
+          field
+          message
+        }
       }
     }
     ${CART_FRAGMENT}
   `
 
   const data = await shopifyFetch<{
-    cartLinesUpdate: { cart: ShopifyCart }
+    cartLinesUpdate: {
+      cart: ShopifyCart | null
+      userErrors: Array<{ field?: string[]; message: string }>
+    }
   }>({
     query,
     variables: {
@@ -354,6 +375,13 @@ export async function updateCartLine(
     cache: 'no-store',
   })
 
+  if (data.cartLinesUpdate.userErrors?.length) {
+    const msg = data.cartLinesUpdate.userErrors.map((e) => e.message).join('; ')
+    throw new Error(`Shopify update-cart-line failed: ${msg}`)
+  }
+  if (!data.cartLinesUpdate.cart) {
+    throw new Error('Shopify update-cart-line returned no cart')
+  }
   return await finalizeShopifyCart(data.cartLinesUpdate.cart)
 }
 
@@ -371,18 +399,32 @@ export async function removeFromCart(
         cart {
           ...CartFragment
         }
+        userErrors {
+          field
+          message
+        }
       }
     }
     ${CART_FRAGMENT}
   `
 
   const data = await shopifyFetch<{
-    cartLinesRemove: { cart: ShopifyCart }
+    cartLinesRemove: {
+      cart: ShopifyCart | null
+      userErrors: Array<{ field?: string[]; message: string }>
+    }
   }>({
     query,
     variables: { cartId, lineIds },
     cache: 'no-store',
   })
 
+  if (data.cartLinesRemove.userErrors?.length) {
+    const msg = data.cartLinesRemove.userErrors.map((e) => e.message).join('; ')
+    throw new Error(`Shopify remove-from-cart failed: ${msg}`)
+  }
+  if (!data.cartLinesRemove.cart) {
+    throw new Error('Shopify remove-from-cart returned no cart')
+  }
   return await finalizeShopifyCart(data.cartLinesRemove.cart)
 }

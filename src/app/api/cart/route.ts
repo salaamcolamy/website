@@ -33,7 +33,7 @@ async function handler(req: NextRequest) {
       const { cartId, variantId, quantity } = body
       console.log('[API Cart] Adding to cart:', { cartId, variantId, quantity })
       if (!cartId || !variantId) return Response.json({ error: 'Missing required fields', received: { cartId: !!cartId, variantId: !!variantId } }, { status: 400 })
-      cart = await addToCart(cartId, variantId, quantity || 1)
+      cart = await addToCart(cartId, variantId, Math.max(1, Number(quantity) || 1))
       console.log('[API Cart] Item added, cart now has', cart?.items?.length, 'items')
     } else if (req.method === 'POST' && action === 'update') {
       const { cartId, lineId, quantity } = await req.json()
