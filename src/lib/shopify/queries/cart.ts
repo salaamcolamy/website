@@ -8,7 +8,7 @@ const CART_FRAGMENT = `
     checkoutUrl
     totalQuantity
     discountAllocations {
-      allocatedAmount {
+      discountedAmount {
         amount
         currencyCode
       }
@@ -90,7 +90,7 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
   })
   const totalQuantityFromLines = items.reduce((sum, item) => sum + item.quantity, 0)
   const discountTotal = (shopifyCart.discountAllocations ?? []).reduce(
-    (sum, d) => sum + parseFloat(d.allocatedAmount.amount),
+    (sum, d) => sum + parseFloat(d.discountedAmount.amount),
     0,
   )
   return {

@@ -99,7 +99,7 @@ export interface ShopifyCart {
     totalTaxAmount: ShopifyMoney | null
   }
   discountAllocations?: Array<{
-    allocatedAmount: ShopifyMoney
+    discountedAmount: ShopifyMoney
   }>
   lines: {
     edges: Array<{
