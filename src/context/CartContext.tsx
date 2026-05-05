@@ -9,6 +9,7 @@ import {
   ReactNode,
 } from 'react'
 import type { Cart, CartItem, Product } from '@/lib/shopify/types'
+import { normalizeShopifyVariantId } from '@/lib/utils'
 // Cart restore/add/update/remove always go through /api/cart (server has Shopify credentials).
 
 // Demo products for simulation
@@ -230,7 +231,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     async (variantId: string, quantity: number = 1, product?: Product) => {
       dispatch({ type: 'SET_LOADING', payload: true })
       try {
-        const isShopifyVariant = variantId.startsWith('gid://shopify/ProductVariant')
+        const canonicalVariantId = normalizeShopifyVariantId(variantId)
+        const isShopifyVariant = canonicalVariantId.startsWith(
+          'gid://shopify/ProductVariant/',
+        )
         if (!isShopifyVariant) {
           throw new Error('Invalid variant ID. Only Shopify product variants are supported.')
         }
@@ -274,7 +278,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             cartId,
-            variantId,
+            variantId: canonicalVariantId,
             quantity: quantityNum,
           }),
         })

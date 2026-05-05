@@ -24,7 +24,7 @@ export function ProductDetailClient({
   relatedProducts,
 }: ProductDetailClientProps) {
   const t = useTranslations('products')
-  const { addItem, openCart, isLoading } = useCart()
+  const { addItem, isLoading } = useCart()
   const [activeTab, setActiveTab] = useState<'description' | 'additional' | 'review'>('description')
   const [quantity, setQuantity] = useState(1)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
@@ -38,14 +38,22 @@ export function ProductDetailClient({
   
   const selectedImage = allImages[selectedImageIndex] || product.featuredImage
   const imageUrl = selectedImage?.url || '/images/products/placeholder.webp'
-  const variantId = product.variants[0]?.id
+  const selectedVariant =
+    product.variants.find((v) => v.availableForSale) ?? product.variants[0]
+  const variantId = selectedVariant?.id
   const availableForSale = product.availableForSale && variantId
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
     if (!variantId) return
-    await addItem(variantId, quantity, product)
-    openCart()
+    try {
+      await addItem(variantId, quantity, product)
+    } catch (err) {
+      console.error('[Product] Add to cart failed:', err)
+      const msg =
+        err instanceof Error ? err.message : 'Could not add this item to your cart.'
+      if (typeof window !== 'undefined') window.alert(msg)
+    }
   }
   const displayTags = getDisplayTags(product.handle, product.title, product.tags)
   const category = displayTags[0] || 'PRODUCT'

@@ -5,6 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** Ensures Storefront cart mutations receive a ProductVariant GID. */
+export function normalizeShopifyVariantId(variantId: string): string {
+  const v = variantId.trim()
+  if (v.startsWith('gid://shopify/ProductVariant/')) return v
+  if (/^\d+$/.test(v)) return `gid://shopify/ProductVariant/${v}`
+  return v
+}
+
 export function formatPrice(amount: number, currencyCode: string = 'MYR') {
   return new Intl.NumberFormat('en-MY', {
     style: 'currency',
