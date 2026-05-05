@@ -8,6 +8,8 @@ type ShopifyResponse<T> = {
   errors?: Array<{ message: string }>
 }
 
+const STOREFRONT_FETCH_TIMEOUT_MS = 25_000
+
 export async function shopifyFetch<T>({
   query,
   variables = {},
@@ -27,16 +29,24 @@ export async function shopifyFetch<T>({
     if (tags?.length) nextOptions.tags = tags
     if (revalidate != null) nextOptions.revalidate = revalidate
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': storefrontAccessToken,
-      },
-      body: JSON.stringify({ query, variables }),
-      cache,
-      ...(Object.keys(nextOptions).length > 0 && { next: nextOptions }),
-    })
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), STOREFRONT_FETCH_TIMEOUT_MS)
+    let response: Response
+    try {
+      response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': storefrontAccessToken,
+        },
+        body: JSON.stringify({ query, variables }),
+        cache,
+        signal: controller.signal,
+        ...(Object.keys(nextOptions).length > 0 && { next: nextOptions }),
+      })
+    } finally {
+      clearTimeout(timeoutId)
+    }
 
     const body: ShopifyResponse<T> = await response.json()
 

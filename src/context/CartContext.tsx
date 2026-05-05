@@ -6,14 +6,10 @@ import {
   useReducer,
   useCallback,
   useEffect,
-  useState,
   ReactNode,
 } from 'react'
 import type { Cart, CartItem, Product } from '@/lib/shopify/types'
-import {
-  getCart,
-} from '@/lib/shopify/queries/cart'
-// All cart operations now use Shopify API routes (/api/cart)
+// Cart restore/add/update/remove always go through /api/cart (server has Shopify credentials).
 
 // Demo products for simulation
 export const demoProducts = [
@@ -123,7 +119,6 @@ const DEMO_CART_KEY = 'salaamcola-demo-cart'
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState)
-  const [isInitialized, setIsInitialized] = useState(false)
 
   // DEPRECATED: calculateCartTotals removed - all carts are Shopify carts now
 
@@ -151,22 +146,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         if (storedCartId && storedCartId.startsWith('gid://shopify/Cart')) {
           try {
-            const existingCart = await getCart(storedCartId)
-            if (existingCart && existingCart.id.startsWith('gid://shopify/Cart')) {
-              // Ensure demo cart is cleared
-              if (typeof localStorage !== 'undefined') {
-                localStorage.removeItem(DEMO_CART_KEY)
+            const getResponse = await fetch(
+              `/api/cart?id=${encodeURIComponent(storedCartId)}`,
+            )
+            if (getResponse.ok) {
+              const existingCart = (await getResponse.json()) as Cart
+              if (existingCart?.id?.startsWith('gid://shopify/Cart')) {
+                if (typeof localStorage !== 'undefined') {
+                  localStorage.removeItem(DEMO_CART_KEY)
+                }
+                dispatch({ type: 'SET_CART', payload: normalizeCartPayload(existingCart) })
+                return
               }
-              dispatch({ type: 'SET_CART', payload: normalizeCartPayload(existingCart) })
-              setIsInitialized(true)
-              return
             } else {
-              // Cart ID is invalid or cart doesn't exist, clear it
-              console.warn('[Cart] Invalid cart ID, clearing:', storedCartId)
-              localStorage.removeItem(CART_ID_KEY)
+              console.warn(
+                '[Cart] Could not restore cart HTTP',
+                getResponse.status,
+                storedCartId.slice(0, 40),
+              )
             }
+            localStorage.removeItem(CART_ID_KEY)
           } catch (error) {
-            // Failed to get cart - might be because Shopify isn't configured
             console.warn('[Cart] Failed to get existing Shopify cart:', error)
             localStorage.removeItem(CART_ID_KEY)
           }
@@ -194,7 +194,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
             dispatch({ type: 'SET_CART', payload: normalizeCartPayload(newCart as Cart) })
             console.log('[Cart] Shopify cart created:', newCart.id)
-            setIsInitialized(true)
             return
           } else {
             console.error('[Cart] Failed to create valid Shopify cart:', newCart)
@@ -219,8 +218,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           type: 'SET_CART',
           payload: null,
         })
-      } finally {
-        setIsInitialized(true)
       }
     }
 
@@ -232,106 +229,89 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     async (variantId: string, quantity: number = 1, product?: Product) => {
       dispatch({ type: 'SET_LOADING', payload: true })
+      try {
+        const isShopifyVariant = variantId.startsWith('gid://shopify/ProductVariant')
+        if (!isShopifyVariant) {
+          throw new Error('Invalid variant ID. Only Shopify product variants are supported.')
+        }
 
-      // Check if this is a Shopify variant ID (starts with gid://shopify/ProductVariant)
-      const isShopifyVariant = variantId.startsWith('gid://shopify/ProductVariant')
-      
-      // If it's a Shopify variant, always attempt Shopify operations
-      if (isShopifyVariant) {
-        try {
-          // Always clear demo cart when using Shopify variants
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(DEMO_CART_KEY)
+        }
+
+        let cartId = state.cart?.id
+
+        if (!cartId || !cartId.startsWith('gid://shopify/Cart')) {
+          console.log('[Cart] Creating new Shopify cart for addItem via API...')
+          const createResponse = await fetch('/api/cart?action=create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+
+          if (!createResponse.ok) {
+            const errorData = await createResponse.json().catch(() => ({}))
+            throw new Error(errorData.error || `Failed to create cart: HTTP ${createResponse.status}`)
+          }
+
+          const newCart = await createResponse.json()
+          cartId = newCart.id
+          if (cartId && cartId.startsWith('gid://shopify/Cart')) {
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem(CART_ID_KEY, newCart.id)
+            }
+            dispatch({ type: 'SET_CART', payload: normalizeCartPayload(newCart as Cart) })
+            console.log('[Cart] New Shopify cart created:', cartId)
+          } else {
+            console.error('[Cart] Failed to create valid Shopify cart:', newCart)
+            throw new Error('Failed to create valid Shopify cart')
+          }
+        }
+
+        const quantityNum = Math.max(1, Number(quantity) || 1)
+
+        const addResponse = await fetch('/api/cart?action=add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cartId,
+            variantId,
+            quantity: quantityNum,
+          }),
+        })
+
+        if (!addResponse.ok) {
+          const errorData = await addResponse.json().catch(() => ({}))
+          throw new Error(errorData.error || `Failed to add item: HTTP ${addResponse.status}`)
+        }
+
+        const updatedCart = await addResponse.json()
+
+        if (updatedCart && updatedCart.id && updatedCart.id.startsWith('gid://shopify/Cart')) {
+          const normalizedCart = normalizeCartPayload(updatedCart as Cart)
+
           if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(CART_ID_KEY, updatedCart.id)
             localStorage.removeItem(DEMO_CART_KEY)
           }
 
-          // Ensure we have a valid Shopify cart (create if null or invalid)
-          let cartId = state.cart?.id
-          
-          if (!cartId || !cartId.startsWith('gid://shopify/Cart')) {
-            console.log('[Cart] Creating new Shopify cart for addItem via API...')
-            try {
-              const createResponse = await fetch('/api/cart?action=create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-              })
-              
-              if (!createResponse.ok) {
-                const errorData = await createResponse.json().catch(() => ({}))
-                throw new Error(errorData.error || `Failed to create cart: HTTP ${createResponse.status}`)
-              }
-              
-              const newCart = await createResponse.json()
-              cartId = newCart.id
-              if (cartId && cartId.startsWith('gid://shopify/Cart')) {
-                if (typeof localStorage !== 'undefined') {
-                  localStorage.setItem(CART_ID_KEY, newCart.id)
-                }
-                dispatch({ type: 'SET_CART', payload: normalizeCartPayload(newCart as Cart) })
-                console.log('[Cart] New Shopify cart created:', cartId)
-              } else {
-                console.error('[Cart] Failed to create valid Shopify cart:', newCart)
-                throw new Error('Failed to create valid Shopify cart')
-              }
-            } catch (createError) {
-              console.error('[Cart] Failed to create cart via API:', createError)
-              throw createError
-            }
-          }
-
-          const quantityNum = Math.max(1, Number(quantity) || 1)
-
-          // Use API route for adding items
-          const addResponse = await fetch('/api/cart?action=add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              cartId,
-              variantId,
-              quantity: quantityNum,
-            }),
+          console.log('[Cart] Item added successfully:', {
+            cartId: updatedCart.id,
+            itemsCount: normalizedCart.items.length,
+            totalQuantity: normalizedCart.totalQuantity,
+            items: normalizedCart.items.map((item: CartItem) => `${item.title} x${item.quantity}`),
           })
-          
-          if (!addResponse.ok) {
-            const errorData = await addResponse.json().catch(() => ({}))
-            throw new Error(errorData.error || `Failed to add item: HTTP ${addResponse.status}`)
-          }
-          
-          const updatedCart = await addResponse.json()
-          
-          // CRITICAL: Ensure cart is properly updated with latest state
-          if (updatedCart && updatedCart.id && updatedCart.id.startsWith('gid://shopify/Cart')) {
-            // Normalize quantities so header/drawer show correct count (fixes 24-pack etc. showing 0)
-            const normalizedCart = normalizeCartPayload(updatedCart as Cart)
 
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem(CART_ID_KEY, updatedCart.id)
-              localStorage.removeItem(DEMO_CART_KEY)
-            }
-            
-            console.log('[Cart] Item added successfully:', {
-              cartId: updatedCart.id,
-              itemsCount: normalizedCart.items.length,
-              totalQuantity: normalizedCart.totalQuantity,
-              items: normalizedCart.items.map((item: CartItem) => `${item.title} x${item.quantity}`),
-            })
-            
-            dispatch({ type: 'SET_CART', payload: normalizedCart })
-            dispatch({ type: 'OPEN_CART' })
-            dispatch({ type: 'SET_LOADING', payload: false })
-            return
-          } else {
-            console.error('[Cart] Invalid cart returned after adding item:', updatedCart)
-            throw new Error('Invalid cart returned from Shopify')
-          }
-        } catch (error) {
-          console.error('[Cart] Failed to add item via Shopify:', error)
-          // Don't fall back to demo mode - throw error instead
-          throw error
+          dispatch({ type: 'SET_CART', payload: normalizedCart })
+          dispatch({ type: 'OPEN_CART' })
+        } else {
+          console.error('[Cart] Invalid cart returned after adding item:', updatedCart)
+          throw new Error('Invalid cart returned from Shopify')
         }
-      } else {
-        // Non-Shopify variant ID - this shouldn't happen if products are from Shopify
-        console.error('[Cart] addItem: Non-Shopify variant ID provided:', variantId)
-        throw new Error('Invalid variant ID. Only Shopify product variants are supported.')
+      } catch (error) {
+        console.error('[Cart] Failed to add item via Shopify:', error)
+        throw error
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
     [state.cart]
@@ -591,10 +571,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       console.warn('[Cart] refreshCart failed:', e)
     }
   }, [state.cart?.id])
-
-  if (!isInitialized) {
-    return null
-  }
 
   return (
     <CartContext.Provider

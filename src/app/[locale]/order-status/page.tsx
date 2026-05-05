@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { setRequestLocale } from 'next-intl/server'
 import { OrderStatusClient } from './OrderStatusClient'
 import type { Metadata } from 'next'
@@ -20,5 +21,15 @@ export default async function OrderStatusPage({ params }: OrderStatusPageProps) 
   const { locale } = await params
   setRequestLocale(locale)
 
-  return <OrderStatusClient />
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center text-gray-500">
+          Loading…
+        </div>
+      }
+    >
+      <OrderStatusClient />
+    </Suspense>
+  )
 }

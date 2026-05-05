@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { setRequestLocale } from 'next-intl/server'
 import { OrderConfirmationClient } from './OrderConfirmationClient'
 import type { Metadata } from 'next'
@@ -20,5 +21,15 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
   const { locale } = await params
   setRequestLocale(locale)
 
-  return <OrderConfirmationClient />
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center text-gray-500">
+          Loading…
+        </div>
+      }
+    >
+      <OrderConfirmationClient />
+    </Suspense>
+  )
 }
