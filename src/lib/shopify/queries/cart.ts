@@ -232,6 +232,25 @@ export async function updateCartDiscountCodes(
     throw new Error('Shopify discount update returned no cart')
   }
 
+  // Shopify can return non-applicable codes without userErrors.
+  // Surface this clearly so checkout doesn't appear to "ignore" entered codes.
+  const requestedManualCodes = Array.from(
+    new Set(discountCodes.map((code) => code.trim().toUpperCase()).filter(Boolean)),
+  )
+  if (requestedManualCodes.length > 0) {
+    const nonApplicableManualCodes = (payload.cart.discountCodes ?? [])
+      .filter((entry) => !entry.applicable)
+      .map((entry) => entry.code?.trim().toUpperCase())
+      .filter((code): code is string => Boolean(code))
+      .filter((code) => requestedManualCodes.includes(code))
+
+    if (nonApplicableManualCodes.length > 0) {
+      throw new Error(
+        `Promo code not applicable: ${nonApplicableManualCodes.join(', ')}. Check Shopify discount combinability settings.`,
+      )
+    }
+  }
+
   return transformCart(payload.cart)
 }
 

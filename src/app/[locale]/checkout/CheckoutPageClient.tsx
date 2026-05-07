@@ -304,7 +304,11 @@ export function CheckoutPageClient() {
       setPromoCodeInput('')
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not apply promo code.'
-      setPromoError(message)
+      if (message.includes('not applicable')) {
+        setPromoError('This promo code cannot be combined with your current discounts.')
+      } else {
+        setPromoError(message)
+      }
     } finally {
       setPromoSubmitting(false)
     }
