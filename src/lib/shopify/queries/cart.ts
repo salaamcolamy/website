@@ -93,10 +93,16 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
     }
   })
   const totalQuantityFromLines = items.reduce((sum, item) => sum + item.quantity, 0)
-  const discountTotal = (shopifyCart.discountAllocations ?? []).reduce(
+  const discountFromAllocations = (shopifyCart.discountAllocations ?? []).reduce(
     (sum, d) => sum + parseFloat(d.discountedAmount.amount),
     0,
   )
+  // Some Shopify carts report line-level discounted totals without populating cart.discountAllocations.
+  // Derive discount from line totals so checkout reflects actual deducted prices.
+  const retailSubtotalFromLines = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const discountedSubtotalFromLines = items.reduce((sum, item) => sum + item.lineTotal, 0)
+  const derivedDiscountFromLines = Math.max(0, retailSubtotalFromLines - discountedSubtotalFromLines)
+  const discountTotal = Math.max(discountFromAllocations, derivedDiscountFromLines)
   return {
     id: shopifyCart.id,
     checkoutUrl: shopifyCart.checkoutUrl,
