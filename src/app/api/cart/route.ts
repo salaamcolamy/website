@@ -7,6 +7,7 @@ import {
   updateCartLine,
   removeFromCart,
   updateCartBuyerIdentity,
+  updateCartDiscountCodes,
 } from '@/lib/shopify/queries/cart'
 
 async function handler(req: NextRequest) {
@@ -53,6 +54,16 @@ async function handler(req: NextRequest) {
         return Response.json({ error: 'countryCode must be ISO 3166-1 alpha-2 (e.g. MY)' }, { status: 400 })
       }
       cart = await updateCartBuyerIdentity(cartId, countryCode.toUpperCase())
+    } else if (req.method === 'POST' && action === 'discount-codes') {
+      const body = await req.json()
+      const { cartId, discountCodes } = body
+      if (!cartId) {
+        return Response.json({ error: 'Missing cartId' }, { status: 400 })
+      }
+      if (!Array.isArray(discountCodes) || !discountCodes.every((code) => typeof code === 'string')) {
+        return Response.json({ error: 'discountCodes must be a string array' }, { status: 400 })
+      }
+      cart = await updateCartDiscountCodes(cartId, discountCodes)
     } else {
       return Response.json({ error: 'Invalid action', method: req.method, action }, { status: 400 })
     }

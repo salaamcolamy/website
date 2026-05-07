@@ -126,6 +126,11 @@
   },
   "checkout": {
     "orderSummary": "Ringkasan Pesanan",
+    "promoCode": "Kod promo",
+    "promoPlaceholder": "Masukkan kod",
+    "applyCode": "Guna",
+    "applyingCode": "Sedang guna...",
+    "removeCode": "Buang",
     "subtotal": "Jumlah kecil",
     "discount": "Diskaun",
     "merchandiseTotal": "Jumlah barangan",

@@ -136,6 +136,11 @@
   },
   "checkout": {
     "orderSummary": "Order Summary",
+    "promoCode": "Promo code",
+    "promoPlaceholder": "Enter code",
+    "applyCode": "Apply",
+    "applyingCode": "Applying...",
+    "removeCode": "Remove",
     "subtotal": "Subtotal",
     "discount": "Discount",
     "merchandiseTotal": "Merchandise total",

@@ -62,7 +62,7 @@ const fpxBanks = [
 
 export function CheckoutPageClient() {
   const t = useTranslations('checkout')
-  const { cart, refreshCart } = useCart()
+  const { cart, refreshCart, applyDiscountCode, clearDiscountCodes } = useCart()
   const [currentStep, setCurrentStep] = useState<Step>('information')
   const [paymentMethod] = useState<PaymentMethod>('fpx')
   const [selectedBank, setSelectedBank] = useState<string>('')
@@ -78,6 +78,10 @@ export function CheckoutPageClient() {
   } | null>(null)
   const shippingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof CustomerInfo | 'bank', string>>>({})
+  const [promoCodeInput, setPromoCodeInput] = useState('')
+  const [promoSubmitting, setPromoSubmitting] = useState(false)
+  const [promoError, setPromoError] = useState<string | null>(null)
+  const [promoNotice, setPromoNotice] = useState<string | null>(null)
 
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     email: '',
@@ -279,9 +283,47 @@ export function CheckoutPageClient() {
 
   const shippingCost = shippingLoading ? null : (shippingCostValue !== null && !shippingError ? shippingCostValue : null)
 
-  /** Shopify cart total (merchandise after promo/tax); shipping is added separately. */
-  const merchandiseTotal = cart?.total ?? 0
+  /** Merchandise total excludes shipping to avoid double counting. */
+  const merchandiseTotal = Math.max(0, (cart?.subtotal ?? 0) - (cart?.discountTotal ?? 0))
   const orderTotal = merchandiseTotal + (shippingCost ?? 0)
+  const appliedPromoCode = cart?.appliedDiscountCodes?.[0] ?? ''
+
+  const handleApplyPromoCode = async () => {
+    const code = promoCodeInput.trim()
+    if (!code) {
+      setPromoError('Enter a promo code first.')
+      setPromoNotice(null)
+      return
+    }
+    setPromoSubmitting(true)
+    setPromoError(null)
+    setPromoNotice(null)
+    try {
+      await applyDiscountCode(code)
+      setPromoNotice(`Promo code ${code.toUpperCase()} applied.`)
+      setPromoCodeInput('')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not apply promo code.'
+      setPromoError(message)
+    } finally {
+      setPromoSubmitting(false)
+    }
+  }
+
+  const handleRemovePromoCode = async () => {
+    setPromoSubmitting(true)
+    setPromoError(null)
+    setPromoNotice(null)
+    try {
+      await clearDiscountCodes()
+      setPromoNotice('Promo code removed.')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not remove promo code.'
+      setPromoError(message)
+    } finally {
+      setPromoSubmitting(false)
+    }
+  }
 
   const handlePlaceOrder = async () => {
     if (!selectedBank) {
@@ -1010,6 +1052,42 @@ export function CheckoutPageClient() {
                 </div>
 
                 <div className="border-t border-gray-100 pt-4 space-y-3">
+                  <div className="pb-3 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900 mb-2">{t('promoCode')}</p>
+                    {appliedPromoCode ? (
+                      <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+                        <span className="text-sm font-medium text-green-800">{appliedPromoCode}</span>
+                        <button
+                          type="button"
+                          onClick={handleRemovePromoCode}
+                          disabled={promoSubmitting}
+                          className="text-xs font-medium text-green-700 hover:text-green-800 underline disabled:opacity-50"
+                        >
+                          {t('removeCode')}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={promoCodeInput}
+                          onChange={(e) => setPromoCodeInput(e.target.value)}
+                          placeholder={t('promoPlaceholder')}
+                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyPromoCode}
+                          disabled={promoSubmitting}
+                          className="rounded-lg bg-salaam-red-500 px-3 py-2 text-xs font-semibold text-white hover:bg-salaam-red-600 disabled:opacity-50"
+                        >
+                          {promoSubmitting ? t('applyingCode') : t('applyCode')}
+                        </button>
+                      </div>
+                    )}
+                    {promoError && <p className="mt-2 text-xs text-red-500">{promoError}</p>}
+                    {promoNotice && <p className="mt-2 text-xs text-green-700">{promoNotice}</p>}
+                  </div>
                   <div className="flex justify-between text-gray-600">
                     <span>{t('subtotal')}</span>
                     <span>RM{cart.subtotal.toFixed(2)}</span>

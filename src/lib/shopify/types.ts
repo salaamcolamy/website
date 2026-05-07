@@ -93,6 +93,10 @@ export interface ShopifyCart {
   id: string
   checkoutUrl: string
   totalQuantity: number
+  discountCodes?: Array<{
+    code: string
+    applicable: boolean
+  }>
   cost: {
     subtotalAmount: ShopifyMoney
     totalAmount: ShopifyMoney
@@ -150,6 +154,7 @@ export interface Cart {
   id: string
   checkoutUrl: string
   totalQuantity: number
+  appliedDiscountCodes: string[]
   /** Merchandise subtotal before cart-level discounts (Shopify). */
   subtotal: number
   /** Cart total from Shopify (merchandise after discounts, including tax if applicable). */

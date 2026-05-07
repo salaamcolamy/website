@@ -80,6 +80,7 @@ function normalizeCartPayload(cart: Cart): Cart {
     ...cart,
     items: normalizedItems,
     totalQuantity: totalQty > 0 ? totalQty : (cart.totalQuantity ?? 0),
+    appliedDiscountCodes: cart.appliedDiscountCodes ?? [],
     discountTotal: cart.discountTotal ?? 0,
   }
 }
@@ -105,6 +106,8 @@ interface CartContextValue extends CartState {
   addItem: (variantId: string, quantity?: number, product?: Product) => Promise<void>
   updateItem: (lineId: string, quantity: number) => Promise<void>
   removeItem: (lineId: string) => Promise<void>
+  applyDiscountCode: (code: string) => Promise<void>
+  clearDiscountCodes: () => Promise<void>
   clearCart: () => void
   /** Sets buyer country MY and reloads cart so automatic discounts can apply; no-op if no cart. */
   refreshCart: () => Promise<void>
@@ -542,6 +545,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const updateDiscountCodes = useCallback(
+    async (discountCodes: string[]) => {
+      const cartId = state.cart?.id
+      if (!cartId) {
+        throw new Error('No active cart')
+      }
+      if (!cartId.startsWith('gid://shopify/Cart')) {
+        throw new Error('Invalid cart ID')
+      }
+
+      dispatch({ type: 'SET_LOADING', payload: true })
+      try {
+        const response = await fetch('/api/cart?action=discount-codes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cartId, discountCodes }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || `Failed to update discount code: HTTP ${response.status}`)
+        }
+
+        const updatedCart = await response.json()
+        dispatch({ type: 'SET_CART', payload: normalizeCartPayload(updatedCart as Cart) })
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false })
+      }
+    },
+    [state.cart?.id]
+  )
+
+  const applyDiscountCode = useCallback(
+    async (code: string) => {
+      const trimmed = code.trim()
+      if (!trimmed) {
+        throw new Error('Discount code is required')
+      }
+      const currentCodes = state.cart?.appliedDiscountCodes ?? []
+      await updateDiscountCodes(Array.from(new Set([...currentCodes, trimmed])))
+    },
+    [state.cart?.appliedDiscountCodes, updateDiscountCodes]
+  )
+
+  const clearDiscountCodes = useCallback(async () => {
+    await updateDiscountCodes([])
+  }, [updateDiscountCodes])
+
   const openCart = useCallback(() => {
     dispatch({ type: 'OPEN_CART' })
   }, [])
@@ -583,6 +634,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         addItem,
         updateItem,
         removeItem,
+        applyDiscountCode,
+        clearDiscountCodes,
         clearCart,
         refreshCart,
         openCart,

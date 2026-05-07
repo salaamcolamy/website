@@ -7,6 +7,10 @@ const CART_FRAGMENT = `
     id
     checkoutUrl
     totalQuantity
+    discountCodes {
+      code
+      applicable
+    }
     discountAllocations {
       discountedAmount {
         amount
@@ -97,6 +101,9 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
     id: shopifyCart.id,
     checkoutUrl: shopifyCart.checkoutUrl,
     totalQuantity: totalQuantityFromLines > 0 ? totalQuantityFromLines : (shopifyCart.totalQuantity ?? 0),
+    appliedDiscountCodes: (shopifyCart.discountCodes ?? [])
+      .filter((entry) => entry.applicable)
+      .map((entry) => entry.code),
     subtotal: parseFloat(shopifyCart.cost.subtotalAmount.amount),
     total: parseFloat(shopifyCart.cost.totalAmount.amount),
     discountTotal,
@@ -107,7 +114,11 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
 
 /** Re-applies configured promo discount codes so cart totals match Shopify checkout. */
 async function applyPromoDiscountCodesIfConfigured(shopifyCart: ShopifyCart): Promise<ShopifyCart> {
-  const codes = getShopifyPromoDiscountCodes()
+  const configuredCodes = getShopifyPromoDiscountCodes()
+  const existingCodes = (shopifyCart.discountCodes ?? [])
+    .map((entry) => entry.code?.trim())
+    .filter(Boolean) as string[]
+  const codes = Array.from(new Set([...existingCodes, ...configuredCodes]))
   if (codes.length === 0) {
     return shopifyCart
   }
@@ -148,6 +159,61 @@ async function applyPromoDiscountCodesIfConfigured(shopifyCart: ShopifyCart): Pr
 export async function finalizeShopifyCart(shopifyCart: ShopifyCart): Promise<Cart> {
   const withCodes = await applyPromoDiscountCodesIfConfigured(shopifyCart)
   return transformCart(withCodes)
+}
+
+export async function updateCartDiscountCodes(
+  cartId: string,
+  discountCodes: string[],
+): Promise<Cart> {
+  if (!isShopifyConfigured()) {
+    throw new Error('Shopify not configured')
+  }
+
+  const normalizedCodes = Array.from(
+    new Set(
+      [...getShopifyPromoDiscountCodes(), ...discountCodes]
+        .map((code) => code.trim())
+        .filter(Boolean),
+    ),
+  )
+
+  const query = `
+    mutation cartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]) {
+      cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
+        cart {
+          ...CartFragment
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+    ${CART_FRAGMENT}
+  `
+
+  const data = await shopifyFetch<{
+    cartDiscountCodesUpdate: {
+      cart: ShopifyCart | null
+      userErrors: Array<{ field?: string[]; message: string }>
+    }
+  }>({
+    query,
+    variables: { cartId, discountCodes: normalizedCodes },
+    cache: 'no-store',
+  })
+
+  const payload = data.cartDiscountCodesUpdate
+  if (payload.userErrors?.length) {
+    const msg = payload.userErrors.map((e) => e.message).join('; ')
+    throw new Error(`Shopify discount update failed: ${msg}`)
+  }
+
+  if (!payload.cart) {
+    throw new Error('Shopify discount update returned no cart')
+  }
+
+  return transformCart(payload.cart)
 }
 
 export async function createCart(): Promise<Cart> {

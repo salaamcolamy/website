@@ -126,6 +126,11 @@
   },
   "checkout": {
     "orderSummary": "ملخص الطلب",
+    "promoCode": "كود الخصم",
+    "promoPlaceholder": "أدخل الكود",
+    "applyCode": "تطبيق",
+    "applyingCode": "جارٍ التطبيق...",
+    "removeCode": "إزالة",
     "subtotal": "المجموع الفرعي",
     "discount": "الخصم",
     "merchandiseTotal": "إجمالي المنتجات",
