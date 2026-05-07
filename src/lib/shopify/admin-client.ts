@@ -116,6 +116,9 @@ export interface CreateOrderInput {
   acceptAutomaticDiscounts?: boolean
   /** Customer-facing discount codes (e.g. RAYA10); must exist in Shopify Admin. */
   discountCodes?: string[]
+  /** Optional app-level percentage discount for manual code overrides. */
+  appliedDiscountPercent?: number
+  appliedDiscountTitle?: string
   financialStatus?: 'PENDING' | 'AUTHORIZED' | 'PAID' | 'PARTIALLY_PAID' | 'REFUNDED' | 'VOIDED'
   note?: string
   tags?: string[]
@@ -191,6 +194,15 @@ export async function createDraftOrder(input: CreateOrderInput): Promise<Shopify
 
   if (input.discountCodes?.length) {
     draftInput.discountCodes = input.discountCodes
+  }
+
+  if (typeof input.appliedDiscountPercent === 'number' && input.appliedDiscountPercent > 0) {
+    draftInput.appliedDiscount = {
+      value: input.appliedDiscountPercent,
+      valueType: 'PERCENTAGE',
+      title: input.appliedDiscountTitle || 'Discount',
+      description: input.appliedDiscountTitle || 'Checkout promo code',
+    }
   }
 
   draftInput.acceptAutomaticDiscounts = input.acceptAutomaticDiscounts !== false

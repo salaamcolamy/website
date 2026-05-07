@@ -12,6 +12,8 @@ import {
 import { withSecurity } from '@/lib/security'
 import { getShopifyPromoDiscountCodes } from '@/lib/shopify/promoDiscountCodes'
 
+const SALAAM_SUHAIL_CODE = 'SALAAMSUHAIL'
+
 async function handler(request: NextRequest) {
   try {
     if (!isShopifyAdminConfigured()) {
@@ -55,6 +57,8 @@ async function handler(request: NextRequest) {
     const normalizedDiscountCodes = Array.isArray(discountCodes)
       ? discountCodes.filter((code) => typeof code === 'string').map((code) => code.trim()).filter(Boolean)
       : getShopifyPromoDiscountCodes()
+    const normalizedUpperDiscountCodes = normalizedDiscountCodes.map((code) => code.toUpperCase())
+    const hasSalaamSuhailCode = normalizedUpperDiscountCodes.includes(SALAAM_SUHAIL_CODE)
 
     const orderInput: CreateOrderInput = {
       email,
@@ -66,7 +70,9 @@ async function handler(request: NextRequest) {
       customAttributes,
       shippingLine,
       acceptAutomaticDiscounts: true,
-      discountCodes: normalizedDiscountCodes,
+      discountCodes: normalizedDiscountCodes.filter((code) => code.toUpperCase() !== SALAAM_SUHAIL_CODE),
+      appliedDiscountPercent: hasSalaamSuhailCode ? 10 : undefined,
+      appliedDiscountTitle: hasSalaamSuhailCode ? SALAAM_SUHAIL_CODE : undefined,
     }
 
     // Create draft order — completed after successful payment, tagged if payment fails

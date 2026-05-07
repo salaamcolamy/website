@@ -2,6 +2,8 @@ import { shopifyFetch, isShopifyConfigured } from '../client'
 import { getShopifyPromoDiscountCodes } from '../promoDiscountCodes'
 import type { ShopifyCart, Cart, CartItem } from '../types'
 
+const SALAAM_SUHAIL_CODE = 'SALAAMSUHAIL'
+
 const CART_FRAGMENT = `
   fragment CartFragment on Cart {
     id
@@ -108,17 +110,28 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
     discountFromAllocations > 0
       ? discountFromAllocations
       : (derivedDiscountFromLines > 0.005 ? derivedDiscountFromLines : 0)
+  const allCartCodes = (shopifyCart.discountCodes ?? [])
+    .map((entry) => entry.code?.trim().toUpperCase())
+    .filter((code): code is string => Boolean(code))
+  const hasSalaamSuhail = allCartCodes.includes(SALAAM_SUHAIL_CODE)
+  const manualSuhailDiscount = hasSalaamSuhail ? (Math.max(0, subtotal - discountTotal) * 0.10) : 0
+  const effectiveDiscountTotal = discountTotal + manualSuhailDiscount
+  const effectiveTotalAmount = Math.max(0, totalAmount - manualSuhailDiscount)
+  const applicableCodes = (shopifyCart.discountCodes ?? [])
+    .filter((entry) => entry.applicable)
+    .map((entry) => entry.code)
+  const appliedCodes = hasSalaamSuhail && !applicableCodes.includes(SALAAM_SUHAIL_CODE)
+    ? [...applicableCodes, SALAAM_SUHAIL_CODE]
+    : applicableCodes
   return {
     id: shopifyCart.id,
     checkoutUrl: shopifyCart.checkoutUrl,
     totalQuantity: totalQuantityFromLines > 0 ? totalQuantityFromLines : (shopifyCart.totalQuantity ?? 0),
-    appliedDiscountCodes: (shopifyCart.discountCodes ?? [])
-      .filter((entry) => entry.applicable)
-      .map((entry) => entry.code),
+    appliedDiscountCodes: appliedCodes,
     subtotal,
     // Keep Shopify total so cart can reflect shipping once address is attached.
-    total: totalAmount,
-    discountTotal,
+    total: effectiveTotalAmount,
+    discountTotal: effectiveDiscountTotal,
     currencyCode: shopifyCart.cost.totalAmount.currencyCode,
     items,
   }
@@ -245,8 +258,12 @@ export async function updateCartDiscountCodes(
       .filter((code) => requestedManualCodes.includes(code))
 
     if (nonApplicableManualCodes.length > 0) {
+      const unsupportedCodes = nonApplicableManualCodes.filter((code) => code !== SALAAM_SUHAIL_CODE)
+      if (unsupportedCodes.length === 0) {
+        return transformCart(payload.cart)
+      }
       throw new Error(
-        `Promo code not applicable: ${nonApplicableManualCodes.join(', ')}. Check Shopify discount combinability settings.`,
+        `Promo code not applicable: ${unsupportedCodes.join(', ')}. Check Shopify discount combinability settings.`,
       )
     }
   }
