@@ -93,16 +93,21 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
     }
   })
   const totalQuantityFromLines = items.reduce((sum, item) => sum + item.quantity, 0)
+  const subtotal = parseFloat(shopifyCart.cost.subtotalAmount.amount)
+  const totalAmount = parseFloat(shopifyCart.cost.totalAmount.amount)
   const discountFromAllocations = (shopifyCart.discountAllocations ?? []).reduce(
     (sum, d) => sum + parseFloat(d.discountedAmount.amount),
     0,
   )
-  // Some Shopify carts report line-level discounted totals without populating cart.discountAllocations.
-  // Derive discount from line totals so checkout reflects actual deducted prices.
-  const retailSubtotalFromLines = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  // Some Shopify carts report discounted line totals while discountAllocations can be empty.
+  // Derive fallback discount from Shopify subtotal vs line totals to avoid double counting when
+  // product prices are already discounted.
   const discountedSubtotalFromLines = items.reduce((sum, item) => sum + item.lineTotal, 0)
-  const derivedDiscountFromLines = Math.max(0, retailSubtotalFromLines - discountedSubtotalFromLines)
-  const discountTotal = Math.max(discountFromAllocations, derivedDiscountFromLines)
+  const derivedDiscountFromLines = Math.max(0, subtotal - discountedSubtotalFromLines)
+  const discountTotal =
+    discountFromAllocations > 0
+      ? discountFromAllocations
+      : (derivedDiscountFromLines > 0.005 ? derivedDiscountFromLines : 0)
   return {
     id: shopifyCart.id,
     checkoutUrl: shopifyCart.checkoutUrl,
@@ -110,8 +115,9 @@ function transformCart(shopifyCart: ShopifyCart): Cart {
     appliedDiscountCodes: (shopifyCart.discountCodes ?? [])
       .filter((entry) => entry.applicable)
       .map((entry) => entry.code),
-    subtotal: parseFloat(shopifyCart.cost.subtotalAmount.amount),
-    total: parseFloat(shopifyCart.cost.totalAmount.amount),
+    subtotal,
+    // Keep Shopify total so cart can reflect shipping once address is attached.
+    total: totalAmount,
     discountTotal,
     currencyCode: shopifyCart.cost.totalAmount.currencyCode,
     items,
@@ -124,7 +130,13 @@ async function applyPromoDiscountCodesIfConfigured(shopifyCart: ShopifyCart): Pr
   const existingCodes = (shopifyCart.discountCodes ?? [])
     .map((entry) => entry.code?.trim())
     .filter(Boolean) as string[]
-  const codes = Array.from(new Set([...existingCodes, ...configuredCodes]))
+  const codes = Array.from(
+    new Set(
+      [...existingCodes, ...configuredCodes]
+        .map((code) => code.trim().toUpperCase())
+        .filter(Boolean),
+    ),
+  )
   if (codes.length === 0) {
     return shopifyCart
   }
@@ -175,10 +187,11 @@ export async function updateCartDiscountCodes(
     throw new Error('Shopify not configured')
   }
 
+  // Allow stacking with configured promo codes, but prevent duplicate codes.
   const normalizedCodes = Array.from(
     new Set(
       [...getShopifyPromoDiscountCodes(), ...discountCodes]
-        .map((code) => code.trim())
+        .map((code) => code.trim().toUpperCase())
         .filter(Boolean),
     ),
   )

@@ -400,6 +400,7 @@ export function CheckoutPageClient() {
             { key: 'payment_gateway', value: 'Billplz' },
             { key: 'shipping_cost', value: String(shippingCost ?? 0) },
           ],
+          discountCodes: cart?.appliedDiscountCodes ?? [],
         }),
       })
 

@@ -19,7 +19,17 @@ async function handler(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email, lineItems, billingAddress, shippingAddress, note, tags, customAttributes, shippingLine } = body
+    const {
+      email,
+      lineItems,
+      billingAddress,
+      shippingAddress,
+      note,
+      tags,
+      customAttributes,
+      shippingLine,
+      discountCodes,
+    } = body
 
     if (!email || !lineItems || !billingAddress || !shippingAddress) {
       return createValidationError('Missing required fields: email, lineItems, billingAddress, or shippingAddress')
@@ -42,6 +52,10 @@ async function handler(request: NextRequest) {
       }
     }
 
+    const normalizedDiscountCodes = Array.isArray(discountCodes)
+      ? discountCodes.filter((code) => typeof code === 'string').map((code) => code.trim()).filter(Boolean)
+      : getShopifyPromoDiscountCodes()
+
     const orderInput: CreateOrderInput = {
       email,
       lineItems,
@@ -52,7 +66,7 @@ async function handler(request: NextRequest) {
       customAttributes,
       shippingLine,
       acceptAutomaticDiscounts: true,
-      discountCodes: getShopifyPromoDiscountCodes(),
+      discountCodes: normalizedDiscountCodes,
     }
 
     // Create draft order — completed after successful payment, tagged if payment fails

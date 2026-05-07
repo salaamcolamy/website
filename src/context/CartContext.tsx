@@ -583,8 +583,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!trimmed) {
         throw new Error('Discount code is required')
       }
-      const currentCodes = state.cart?.appliedDiscountCodes ?? []
-      await updateDiscountCodes(Array.from(new Set([...currentCodes, trimmed])))
+      const existing = state.cart?.appliedDiscountCodes ?? []
+      const normalizedExisting = existing.map((entry) => entry.trim().toUpperCase())
+      const normalizedIncoming = trimmed.toUpperCase()
+      if (normalizedExisting.includes(normalizedIncoming)) {
+        return
+      }
+      await updateDiscountCodes([...existing, trimmed])
     },
     [state.cart?.appliedDiscountCodes, updateDiscountCodes]
   )
