@@ -124,7 +124,7 @@ async function applyPromoDiscountCodesIfConfigured(shopifyCart: ShopifyCart): Pr
   }
 
   const query = `
-    mutation cartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]) {
+    mutation cartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]!) {
       cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
         cart {
           ...CartFragment
@@ -178,7 +178,7 @@ export async function updateCartDiscountCodes(
   )
 
   const query = `
-    mutation cartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]) {
+    mutation cartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]!) {
       cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
         cart {
           ...CartFragment
