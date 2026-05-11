@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 
-const BANNER_SRC = '/images/hero/RAYA10%20Hero%20Website-4.png'
+const BANNER_SRC = '/images/hero/RAYA10%20Hero%20Website.jpg'
 
 /** Raya-End Sales promo — used on shop listing and product detail pages */
 export function RayaPromoBanner() {
@@ -11,8 +11,8 @@ export function RayaPromoBanner() {
       <Image
         src={BANNER_SRC}
         alt="Raya-End Sales: 10% off with code RAYA10 from 18–30 April on the official website and TikTok Shop"
-        width={1366}
-        height={768}
+        width={2561}
+        height={1440}
         className="w-full h-auto"
         priority
         sizes="(max-width: 1280px) 100vw, 1152px"
