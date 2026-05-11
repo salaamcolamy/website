@@ -17,7 +17,6 @@ interface ProductDetailClientProps {
   product: Product
   relatedProducts: Product[]
 }
-const DISCOUNT_RATE = 0.1
 
 export function ProductDetailClient({
   product,
@@ -57,7 +56,6 @@ export function ProductDetailClient({
   }
   const displayTags = getDisplayTags(product.handle, product.title, product.tags)
   const category = displayTags[0] || 'PRODUCT'
-  const discountedPrice = product.price * (1 - DISCOUNT_RATE)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
@@ -95,9 +93,6 @@ export function ProductDetailClient({
                 className="object-contain p-8"
                 priority={selectedImageIndex === 0}
               />
-              <div className="absolute top-4 right-4 bg-salaam-red-500/95 text-white text-sm font-bold tracking-wide px-3 py-1.5 rounded-md shadow-sm">
-                10% OFF
-              </div>
             </div>
 
             {/* Thumbnail gallery - only show if there are multiple images */}
@@ -141,12 +136,8 @@ export function ProductDetailClient({
               {/* Price */}
               <div className="flex items-baseline gap-3">
                 <span className="text-2xl md:text-3xl font-bold text-salaam-red-500">
-                  {formatPrice(discountedPrice, product.currencyCode)}
-                </span>
-                <span className="text-lg text-gray-400 line-through">
                   {formatPrice(product.price, product.currencyCode)}
                 </span>
-                <span className="text-sm font-semibold text-green-600">10% OFF</span>
               </div>
 
               {/* Rating */}
@@ -446,7 +437,6 @@ export function ProductDetailClient({
               {relatedProducts.map((relatedProduct) => {
                 const relatedImageUrl = relatedProduct.featuredImage?.url || '/images/products/placeholder.webp'
                 const relatedTag = getDisplayTags(relatedProduct.handle, relatedProduct.title, relatedProduct.tags)[0]
-                const discountedRelatedPrice = relatedProduct.price * (1 - DISCOUNT_RATE)
 
                 return (
                   <Link key={relatedProduct.id} href={`/shop/${relatedProduct.handle}`}>
@@ -461,22 +451,15 @@ export function ProductDetailClient({
                           fill
                           className="object-contain p-8 transition-transform duration-500 group-hover:scale-105"
                         />
-                        <div className="absolute top-3 right-3 bg-salaam-red-500/95 text-white text-[11px] font-bold tracking-wide px-2.5 py-1 rounded-md shadow-sm">
-                          10% OFF
-                        </div>
                       </div>
                       <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-salaam-red-500 transition-colors">
                         {relatedProduct.title}
                       </h3>
                       <div className="mb-1">
                         <p className="text-salaam-red-500 font-semibold">
-                          {formatPrice(discountedRelatedPrice, relatedProduct.currencyCode)}
-                        </p>
-                        <p className="text-xs text-gray-400 line-through">
                           {formatPrice(relatedProduct.price, relatedProduct.currencyCode)}
                         </p>
                       </div>
-                      <p className="text-xs font-semibold text-green-600 mb-1">10% OFF</p>
                       {relatedTag && (
                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
                           {relatedTag}
