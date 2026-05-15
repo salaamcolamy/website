@@ -14,6 +14,33 @@ const GRID_IMAGE_SSSETEL_PARLIMEN = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026
 const GRID_IMAGE_WOP = '/images/WOP.png'
 const TOTAL_SLOTS = 23
 
+const LANGKAWI_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/2.jpg`,
+    alt: 'Tropical Charters — Koperasi Kakitangan Tropical Charters Berhad, 12-3, Langkawi Boulevard Langkawi City, Jalan Mahawangsa 1, Kuah, Langkawi. Contact: 04-952 3641',
+  },
+  {
+    src: `${IMAGE_BASE}/3.jpg`,
+    alt: 'Salaam Cola location in Langkawi',
+  },
+  {
+    src: `${IMAGE_BASE}/4.jpg`,
+    alt: 'Telaga Seafood — Telaga Seafood Restaurant, Jalan Pantai Chenang, Kampung Lubok Buaya, Langkawi. Contact: 013-350 8171',
+  },
+  {
+    src: `${IMAGE_BASE}/5.jpg`,
+    alt: 'Angrik Kopi — Angrik Kopi, Simpang Perana, Mukim, Perana, Langkawi. Contact: 018-9479288',
+  },
+  {
+    src: `${IMAGE_BASE}/6.jpg`,
+    alt: 'RedSky Cafe — Redsky Cafe @ Villa Molek, Jalan Teluk Baru, Pantai Tengah, Langkawi. Contact: 04-952 3641',
+  },
+  {
+    src: `${IMAGE_BASE}/Lokasi%20Terbaru%20Langkawi.png`,
+    alt: 'Tasik Dayang Bunting — Tasik Dayang Bunting, Kuah, Langkawi. Contact: 03-26164488',
+  },
+] as const
+
 // State order matches the map list: Kuala Lumpur → Selangor → Negeri Sembilan → Langkawi
 const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi'] as const
 
@@ -38,7 +65,6 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   17: 'Negeri Sembilan',
   18: 'Negeri Sembilan',
   19: 'Negeri Sembilan', // Kopi & Kita
-  20: 'Langkawi',
   21: 'Kuala Lumpur', // Kunafa Crisp, Bukit Bintang
   22: 'Kuala Lumpur', // Sssetel Mart, Parlimen Malaysia
   23: 'Kuala Lumpur', // WOP Pizzeria, Sri Hartamas
@@ -53,7 +79,7 @@ function getGridImageSrc(num: number) {
   if (num === 23) return GRID_IMAGE_WOP
   // Use 11.png explicitly for slot 13 so 12.png is not duplicated in the Selangor row.
   if (num === 13) return `${IMAGE_BASE}/11.png`
-  return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 20 → 18.png
+  return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 19 → 17.png
 }
 function getGridImageAlt(num: number) {
   if (num === 1) return 'High Street Art Cafe — 8, Lebuh Pudu, Kuala Lumpur. Contact: 010-2390255'
@@ -78,7 +104,9 @@ export function LocateUsPageClient() {
     }
     return grouped
   }, [])
-  const [enlarged, setEnlarged] = useState<number | null>(null)
+  const [enlarged, setEnlarged] = useState<
+    { type: 'slot'; num: number } | { type: 'langkawi'; index: number } | null
+  >(null)
 
   useEffect(() => {
     if (enlarged !== null) {
@@ -128,7 +156,8 @@ export function LocateUsPageClient() {
       <section className="container-padding pb-20 space-y-16">
         {STATE_ORDER.map((stateName) => {
           const slots = slotsByState[stateName] ?? []
-          if (slots.length === 0) return null
+          const isLangkawi = stateName === 'Langkawi'
+          if (!isLangkawi && slots.length === 0) return null
           return (
             <motion.div
               key={stateName}
@@ -141,14 +170,38 @@ export function LocateUsPageClient() {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 border-b-2 border-salaam-red-500 pb-2 w-fit">
                 {stateName}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {slots.map((num) => (
-                  <motion.article
-                    key={num}
-                    variants={fadeInUp}
-                    className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
-                    onClick={() => setEnlarged(num)}
-                    onKeyDown={(e) => e.key === 'Enter' && setEnlarged(num)}
+              <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {isLangkawi
+                  ? LANGKAWI_IMAGES.map((image, index) => (
+                      <motion.article
+                        key={image.src}
+                        variants={fadeInUp}
+                        className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
+                        onClick={() => setEnlarged({ type: 'langkawi', index })}
+                        onKeyDown={(e) =>
+                          e.key === 'Enter' && setEnlarged({ type: 'langkawi', index })
+                        }
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`View Langkawi location ${index + 1} enlarged`}
+                      >
+                        <img
+                          src={image.src}
+                          alt={image.alt}
+                          className="w-full h-auto block"
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                        />
+                      </motion.article>
+                    ))
+                  : slots.map((num) => (
+                      <motion.article
+                        key={num}
+                        variants={fadeInUp}
+                        className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
+                        onClick={() => setEnlarged({ type: 'slot', num })}
+                        onKeyDown={(e) =>
+                          e.key === 'Enter' && setEnlarged({ type: 'slot', num })
+                        }
                     tabIndex={0}
                     role="button"
                     aria-label={num === 1 ? 'View High Street Art Cafe enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : num === 21 ? 'View Kunafa Crisp enlarged' : num === 22 ? 'View Sssetel Mart Parlimen enlarged' : num === 23 ? 'View WOP Pizzeria enlarged' : `View location ${num} enlarged`}
@@ -159,9 +212,9 @@ export function LocateUsPageClient() {
                       className="w-full h-auto block"
                       loading={num === 1 ? 'eager' : 'lazy'}
                     />
-                  </motion.article>
-                ))}
-              </div>
+                      </motion.article>
+                    ))}
+              </motion.div>
             </motion.div>
           )
         })}
@@ -201,8 +254,16 @@ export function LocateUsPageClient() {
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={getGridImageSrc(enlarged)}
-                alt={getGridImageAlt(enlarged)}
+                src={
+                  enlarged.type === 'langkawi'
+                    ? LANGKAWI_IMAGES[enlarged.index].src
+                    : getGridImageSrc(enlarged.num)
+                }
+                alt={
+                  enlarged.type === 'langkawi'
+                    ? LANGKAWI_IMAGES[enlarged.index].alt
+                    : getGridImageAlt(enlarged.num)
+                }
                 className="max-w-full max-h-[90vh] w-auto h-auto object-contain"
               />
             </motion.div>
