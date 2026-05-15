@@ -44,7 +44,7 @@ const LANGKAWI_IMAGES = [
 // State order matches the map list: Kuala Lumpur → Selangor → Negeri Sembilan → Langkawi
 const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi'] as const
 
-// Each slot mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22), WOP Pizzeria (23). Sahra Savor (KL), Kopi & Kita (NS), Putrajaya Distributor (Selangor).
+// Each slot mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22), WOP Pizzeria (23). Sahra Savor (KL), Kopi & Kita (NS).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   1: 'Kuala Lumpur',    // High Street Art Cafe, Lebuh Pudu
   2: 'Kuala Lumpur',
@@ -58,9 +58,7 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   10: 'Kuala Lumpur',
   11: 'Kuala Lumpur',  // Sahra Savor
   12: 'Selangor',
-  13: 'Selangor',
   14: 'Selangor',
-  15: 'Selangor',      // Putrajaya Distributor
   16: 'Negeri Sembilan',
   17: 'Negeri Sembilan',
   18: 'Negeri Sembilan',
@@ -77,9 +75,7 @@ function getGridImageSrc(num: number) {
   if (num === 21) return GRID_IMAGE_KUNAFA_CRISP
   if (num === 22) return GRID_IMAGE_SSSETEL_PARLIMEN
   if (num === 23) return GRID_IMAGE_WOP
-  // Use 11.png explicitly for slot 13 so 12.png is not duplicated in the Selangor row.
-  if (num === 13) return `${IMAGE_BASE}/11.png`
-  return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 19 → 17.png
+  return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 12 → 10.png, slot 14 → 12.png
 }
 function getGridImageAlt(num: number) {
   if (num === 1) return 'High Street Art Cafe — 8, Lebuh Pudu, Kuala Lumpur. Contact: 010-2390255'
