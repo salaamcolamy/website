@@ -214,20 +214,47 @@ const storeLocations = [
   // Langkawi (island northwest of mainland – pin on the island, west of Perlis/Kedah)
   {
     id: 19,
+    name: 'Redsky Cafe @ Villa Molek',
+    address: 'Jalan Teluk Baru, Pantai Tengah, Langkawi',
+    contact: '04-952 3641',
+    state: 'MY02',
+    x: 54,
+    y: 52,
+  },
+  {
+    id: 20,
     name: 'Koperasi Kakitangan Tropical Charters Berhad',
-    address: 'Langkawi Boulevard Langkawi City, Langkawi',
-    contact: '+604-952-3641',
-    state: 'MY02', // Langkawi (administered under Kedah but geographically on the island)
+    address: '12-3, Langkawi Boulevard Langkawi City, Jalan Mahawangsa 1, Kuah, Langkawi',
+    contact: '04-952 3641',
+    state: 'MY02',
     x: 56,
     y: 54,
   },
   {
-    id: 20,
-    name: 'RedSky Cafe @ Villa Molek',
-    address: 'Langkawi',
-    contact: '+604-952-3641',
+    id: 21,
+    name: 'Tasik Dayang Bunting',
+    address: 'Kuah, Langkawi',
+    contact: '03-26164488',
     state: 'MY02',
     x: 58,
+    y: 55,
+  },
+  {
+    id: 22,
+    name: 'Telaga Seafood Restaurant',
+    address: 'Jalan Pantai Chenang, Kampung Lubok Buaya, Langkawi',
+    contact: '013-350 8171',
+    state: 'MY02',
+    x: 55,
+    y: 58,
+  },
+  {
+    id: 23,
+    name: 'Angrik Kopi',
+    address: 'Simpang Perana, Mukim, Perana, Langkawi',
+    contact: '018-9479288',
+    state: 'MY02',
+    x: 60,
     y: 56,
   },
 ]
@@ -591,7 +618,7 @@ export function Supporters() {
                 </li>
                 <li>
                   <span className="font-medium text-white">Langkawi:</span>{' '}
-                  <span>04-952 3641</span>
+                  <span>04-952 3641 / 03-26164488 / 013-350 8171 / 018-9479288</span>
                 </li>
               </ul>
             </motion.div>
