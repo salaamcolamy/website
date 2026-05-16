@@ -144,6 +144,15 @@ const storeLocations = [
     x: 124,
     y: 191,
   },
+  {
+    id: 28,
+    name: 'YAFA Restaurant',
+    address: '7, Lorong Datuk Sulaiman 7, Taman Tun Dr Ismail, Kuala Lumpur',
+    contact: '012-607 5852',
+    state: 'MY14',
+    x: 119,
+    y: 189,
+  },
   // Selangor
   {
     id: 6,
