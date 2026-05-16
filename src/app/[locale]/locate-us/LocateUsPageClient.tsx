@@ -12,7 +12,8 @@ const GRID_IMAGE_RIVERSIDE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
 const GRID_IMAGE_KUNAFA_CRISP = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-3.png`
 const GRID_IMAGE_SSSETEL_PARLIMEN = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026%20%281%29.png`
 const GRID_IMAGE_WOP = '/images/WOP.png'
-const TOTAL_SLOTS = 23
+const GRID_IMAGE_HADRAMAWT_PUTRAJAYA = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-6.png`
+const TOTAL_SLOTS = 24
 
 const LANGKAWI_IMAGES = [
   {
@@ -66,6 +67,7 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   21: 'Kuala Lumpur', // Kunafa Crisp, Bukit Bintang
   22: 'Kuala Lumpur', // Sssetel Mart, Parlimen Malaysia
   23: 'Kuala Lumpur', // WOP Pizzeria, Sri Hartamas
+  24: 'Selangor', // Hadramawt Putrajaya
 }
 
 function getGridImageSrc(num: number) {
@@ -75,6 +77,7 @@ function getGridImageSrc(num: number) {
   if (num === 21) return GRID_IMAGE_KUNAFA_CRISP
   if (num === 22) return GRID_IMAGE_SSSETEL_PARLIMEN
   if (num === 23) return GRID_IMAGE_WOP
+  if (num === 24) return GRID_IMAGE_HADRAMAWT_PUTRAJAYA
   return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 12 → 10.png, slot 14 → 12.png
 }
 function getGridImageAlt(num: number) {
@@ -87,6 +90,8 @@ function getGridImageAlt(num: number) {
     return 'Sssetel Mart, Parlimen Malaysia — Blok Utama Parlimen Malaysia, Jln Parlimen, Kuala Lumpur. Contact: 017-855 9205'
   if (num === 23)
     return 'WOP Pizzeria — H-0-8, Plaza Damas, 60, Jalan Sri Hartamas 1, Sri Hartamas, Kuala Lumpur. Contact: 03-64197530'
+  if (num === 24)
+    return 'Hadramawt Putrajaya — M-G-01, Conezion Commercial, Persiaran IRC 3, Putrajaya. Contact: 017-500 4011'
   return `Location ${num}`
 }
 
@@ -200,7 +205,7 @@ export function LocateUsPageClient() {
                         }
                     tabIndex={0}
                     role="button"
-                    aria-label={num === 1 ? 'View High Street Art Cafe enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : num === 21 ? 'View Kunafa Crisp enlarged' : num === 22 ? 'View Sssetel Mart Parlimen enlarged' : num === 23 ? 'View WOP Pizzeria enlarged' : `View location ${num} enlarged`}
+                    aria-label={num === 1 ? 'View High Street Art Cafe enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : num === 21 ? 'View Kunafa Crisp enlarged' : num === 22 ? 'View Sssetel Mart Parlimen enlarged' : num === 23 ? 'View WOP Pizzeria enlarged' : num === 24 ? 'View Hadramawt Putrajaya enlarged' : `View location ${num} enlarged`}
                   >
                     <img
                       src={getGridImageSrc(num)}
