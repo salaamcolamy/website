@@ -181,6 +181,15 @@ const storeLocations = [
     x: 135,
     y: 220,
   },
+  {
+    id: 29,
+    name: 'Hadramawt Putrajaya',
+    address: 'M-G-01, Conezion Commercial, Persiaran IRC 3, Putrajaya',
+    contact: '017-500 4011',
+    state: 'MY10',
+    x: 141,
+    y: 221,
+  },
   // Negeri Sembilan
   {
     id: 7,
