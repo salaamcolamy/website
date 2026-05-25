@@ -5,8 +5,8 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { ArrowRight } from 'lucide-react'
 
-const HERO_BANNER_DESKTOP = '/images/hero/RAYA10%20Hero%20Website.jpg'
-const HERO_BANNER_MOBILE = '/images/hero/Story%20of%20Pay%20Day%20Sale%20294.png'
+const HERO_BANNER_DESKTOP = '/images/hero/Banner%20of%20Aidiladha%20Deals-2.png'
+const HERO_BANNER_MOBILE = '/images/hero/Website%20Hero%20Aidiladha%20Deals.png'
 
 export function HeroSection() {
   return (
@@ -15,7 +15,7 @@ export function HeroSection() {
       <div className="absolute inset-0">
         <Image
           src={HERO_BANNER_MOBILE}
-          alt="Raya-End Sales — 10% off with code RAYA10, 18–30 April (mobile)"
+          alt="Aidiladha Deals — Aidiladha Bundle RM128, RM10 off (mobile)"
           fill
           className="object-cover object-center md:hidden"
           priority
@@ -23,7 +23,7 @@ export function HeroSection() {
         />
         <Image
           src={HERO_BANNER_DESKTOP}
-          alt="Raya-End Sales — 10% off with code RAYA10, 18–30 April"
+          alt="Aidiladha Deals — Aidiladha Bundle RM128, RM10 off"
           fill
           className="hidden md:block object-cover object-center"
           priority
