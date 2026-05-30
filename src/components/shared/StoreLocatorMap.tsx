@@ -4,300 +4,15 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { MapPin, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
-
-// Store locations with coordinates based on the SVG viewBox (50 40 200 280)
-// Kept in sync with Supporters.tsx (homepage) and contact page map
-const storeLocations = [
-  // Kuala Lumpur
-  {
-    id: 25,
-    name: 'Sssetel Mart, Parlimen Malaysia',
-    address: 'Blok Utama Parlimen Malaysia, Jln Parlimen, Kuala Lumpur',
-    contact: '017-855 9205',
-    state: 'MY14',
-    x: 125,
-    y: 191,
-  },
-  {
-    id: 21,
-    name: 'Riverside Cafe',
-    address: 'World Trade Centre Kuala Lumpur, 41, Jalan Tun Ismail, Chow Kit',
-    contact: '+603-26146701',
-    state: 'MY14', // KL
-    x: 127,
-    y: 192,
-  },
-  {
-    id: 10,
-    name: 'Fennel & Co',
-    address: 'Bukit Tunku, Kuala Lumpur',
-    contact: '+603-2142-5679',
-    state: 'MY14', // KL
-    x: 128,
-    y: 194,
-  },
-  {
-    id: 2,
-    name: 'The Great Chase',
-    address: 'Solaris Dutamas, Kuala Lumpur',
-    contact: '+603-6201-7890',
-    state: 'MY14', // KL
-    x: 125,
-    y: 195,
-  },
-  {
-    id: 1,
-    name: 'Betawi Indonesian Cuisine',
-    address: 'TTDI, Kuala Lumpur',
-    contact: '+603-7728-3456',
-    state: 'MY14', // KL
-    x: 118,
-    y: 188,
-  },
-  {
-    id: 4,
-    name: 'Tepuk Tepung',
-    address: 'Hartamas Shopping Centre, Kuala Lumpur',
-    contact: '+603-2110-2345',
-    state: 'MY14', // KL
-    x: 122,
-    y: 190,
-  },
-  {
-    id: 14,
-    name: 'Duwa Cafe',
-    address: 'Taman Melawati, Kuala Lumpur',
-    contact: '+603-4100-0001',
-    state: 'MY14',
-    x: 120,
-    y: 186,
-  },
-  {
-    id: 18,
-    name: 'One Coffee @ VIOBA',
-    address: 'Bukit Bintang, Kuala Lumpur',
-    contact: '+603-2144-9867',
-    state: 'MY14', // KL
-    x: 128,
-    y: 194,
-  },
-  {
-    id: 15,
-    name: 'Hadramawt Restaurant',
-    address: 'Tun Razak City, Kuala Lumpur',
-    contact: '+603-4100-0002',
-    state: 'MY14',
-    x: 126,
-    y: 198,
-  },
-  {
-    id: 17,
-    name: 'Sahra Savor',
-    address: 'Maxim Citylights Sentul, Kuala Lumpur',
-    contact: '+603-4100-0004',
-    state: 'MY14',
-    x: 124,
-    y: 192,
-  },
-  {
-    id: 22,
-    name: 'Nasi Kerabu Keramat',
-    address: 'Sri Rampai, Kuala Lumpur',
-    contact: '',
-    state: 'MY14',
-    x: 121,
-    y: 185,
-  },
-  {
-    id: 23,
-    name: 'Nasi Kerabu Keramat',
-    address: 'Wangsa Maju, Kuala Lumpur',
-    contact: '',
-    state: 'MY14',
-    x: 123,
-    y: 187,
-  },
-  {
-    id: 24,
-    name: 'Kunafa Crisp',
-    address: '51, Jln Sultan Ismail, Bukit Bintang, Kuala Lumpur',
-    contact: '011-5155 9488',
-    state: 'MY14',
-    x: 129,
-    y: 193,
-  },
-  {
-    id: 26,
-    name: 'High Street Art Cafe',
-    address: '8, Lebuh Pudu, Kuala Lumpur',
-    contact: '010-2390255',
-    state: 'MY14',
-    x: 127,
-    y: 195,
-  },
-  {
-    id: 27,
-    name: 'WOP Pizzeria',
-    address: 'H-0-8, Plaza Damas, 60, Jalan Sri Hartamas 1, Sri Hartamas, Kuala Lumpur',
-    contact: '03 - 64197530',
-    state: 'MY14',
-    x: 124,
-    y: 191,
-  },
-  {
-    id: 28,
-    name: 'YAFA Restaurant',
-    address: '7, Lorong Datuk Sulaiman 7, Taman Tun Dr Ismail, Kuala Lumpur',
-    contact: '012-607 5852',
-    state: 'MY14',
-    x: 119,
-    y: 189,
-  },
-  // Selangor
-  {
-    id: 6,
-    name: 'Karya Kopi Roastery',
-    address: 'Shah Alam, Selangor',
-    contact: '+603-9000-6789',
-    state: 'MY10', // Selangor
-    x: 140,
-    y: 205,
-  },
-  {
-    id: 16,
-    name: 'Hadramawt Restaurant',
-    address: 'Neo Damansara, Petaling Jaya, Selangor',
-    contact: '+603-4100-0003',
-    state: 'MY10',
-    x: 132,
-    y: 200,
-  },
-  {
-    id: 5,
-    name: 'Food Station Level 1',
-    address: 'KLIA Terminal 1, Sepang',
-    contact: '+603-8787-1234',
-    state: 'MY10', // Selangor
-    x: 135,
-    y: 220,
-  },
-  {
-    id: 29,
-    name: 'Hadramawt Putrajaya',
-    address: 'M-G-01, Conezion Commercial, Persiaran IRC 3, Putrajaya',
-    contact: '017-500 4011',
-    state: 'MY10',
-    x: 141,
-    y: 221,
-  },
-  // Negeri Sembilan
-  {
-    id: 7,
-    name: 'Lot 15 Cafe',
-    address: 'Nilai, Negeri Sembilan',
-    contact: '+606-601-0123',
-    state: 'MY05', // Negeri Sembilan
-    x: 158,
-    y: 224,
-  },
-  {
-    id: 12,
-    name: 'Mujua Cafe & Company',
-    address: 'Nilai, Negeri Sembilan',
-    contact: '+606-601-0125',
-    state: 'MY05', // Negeri Sembilan
-    x: 156,
-    y: 222,
-  },
-  {
-    id: 13,
-    name: 'Kopi dan Kita Kafe',
-    address: 'Nilai, Negeri Sembilan',
-    contact: '+606-601-0126',
-    state: 'MY05', // Negeri Sembilan
-    x: 160,
-    y: 226,
-  },
-  {
-    id: 8,
-    name: 'Tiga Tujuh Cafe',
-    address: 'Seremban, Negeri Sembilan',
-    contact: '+606-601-0124',
-    state: 'MY05', // Negeri Sembilan
-    x: 162,
-    y: 228,
-    comingSoon: true,
-  },
-  // Langkawi (island northwest of mainland – pin on the island, west of Perlis/Kedah)
-  {
-    id: 19,
-    name: 'Redsky Cafe @ Villa Molek',
-    address: 'Jalan Teluk Baru, Pantai Tengah, Langkawi',
-    contact: '04-952 3641',
-    state: 'MY02',
-    x: 54,
-    y: 52,
-  },
-  {
-    id: 20,
-    name: 'Koperasi Kakitangan Tropical Charters Berhad',
-    address: '12-3, Langkawi Boulevard Langkawi City, Jalan Mahawangsa 1, Kuah, Langkawi',
-    contact: '04-952 3641',
-    state: 'MY02',
-    x: 56,
-    y: 54,
-  },
-  {
-    id: 21,
-    name: 'Tasik Dayang Bunting',
-    address: 'Kuah, Langkawi',
-    contact: '03-26164488',
-    state: 'MY02',
-    x: 58,
-    y: 55,
-  },
-  {
-    id: 22,
-    name: 'Telaga Seafood Restaurant',
-    address: 'Jalan Pantai Chenang, Kampung Lubok Buaya, Langkawi',
-    contact: '013-350 8171',
-    state: 'MY02',
-    x: 55,
-    y: 58,
-  },
-  {
-    id: 23,
-    name: 'Angrik Kopi',
-    address: 'Simpang Perana, Mukim, Perana, Langkawi',
-    contact: '018-9479288',
-    state: 'MY02',
-    x: 60,
-    y: 56,
-  },
-]
-
-// States to highlight (where we have stores)
-const highlightedStates = ['MY10', 'MY14', 'MY05', 'MY02']
-
-// States to hide (East Malaysia)
-const hiddenStates = ['MY12', 'MY13']
-
-// State labels (Peninsular Malaysia only; exclude Sabah, Sarawak, Labuan)
-const stateLabels = [
-  { id: 'MY09', name: 'Perlis', x: 73.4, y: 55.2 },
-  { id: 'MY02', name: 'Kedah', x: 93.7, y: 80.9 },
-  { id: 'MY07', name: 'Pulau Pinang', x: 83.1, y: 106.1 },
-  { id: 'MY08', name: 'Perak', x: 108.6, y: 128.6 },
-  { id: 'MY03', name: 'Kelantan', x: 156.5, y: 118.5 },
-  { id: 'MY11', name: 'Terengganu', x: 196.7, y: 122 },
-  { id: 'MY06', name: 'Pahang', x: 174.6, y: 183.5 },
-  { id: 'MY10', name: 'Selangor', x: 131.5, y: 198.2 },
-  { id: 'MY14', name: 'Kuala Lumpur', x: 140.3, y: 210.9 },
-  { id: 'MY16', name: 'Putrajaya', x: 140.6, y: 220.8 },
-  { id: 'MY05', name: 'Negeri Sembilan', x: 164.6, y: 226.1 },
-  { id: 'MY04', name: 'Melaka', x: 170.3, y: 249.2 },
-  { id: 'MY01', name: 'Johor', x: 219.2, y: 262.2 },
-]
+import {
+  storeLocations,
+  highlightedStates,
+  hiddenStates,
+  stateLabels,
+  LIST_REGION_ORDER,
+  groupLocationsByRegion,
+  type StoreLocation,
+} from '@/lib/storeLocations'
 
 interface StoreLocatorMapProps {
   maxWidth?: string
@@ -307,7 +22,7 @@ interface StoreLocatorMapProps {
 }
 
 export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, variant = 'default' }: StoreLocatorMapProps) {
-  const [hoveredLocation, setHoveredLocation] = useState<typeof storeLocations[0] | null>(null)
+  const [hoveredLocation, setHoveredLocation] = useState<StoreLocation | null>(null)
   const [svgContent, setSvgContent] = useState<string>('')
   const [zoomScale, setZoomScale] = useState(1)
   const isHomepage = variant === 'homepage'
@@ -348,7 +63,7 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
       })
   }, [isHomepage])
 
-  const handleMouseEnter = (location: typeof storeLocations[0]) => {
+  const handleMouseEnter = (location: StoreLocation) => {
     setHoveredLocation(location)
   }
 
@@ -530,23 +245,12 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
             {/* Group locations by state; each location = individual glass card */}
             <div className="space-y-6">
               {(() => {
-                const grouped = storeLocations.reduce((acc, loc) => {
-                  const stateName = loc.state === 'MY14' ? 'Kuala Lumpur' 
-                    : loc.state === 'MY10' ? 'Selangor'
-                    : loc.state === 'MY05' ? 'Negeri Sembilan'
-                    : loc.state === 'MY02' ? 'Langkawi'
-                    : 'Other'
-                  if (!acc[stateName]) acc[stateName] = []
-                  acc[stateName].push(loc)
-                  return acc
-                }, {} as Record<string, typeof storeLocations>)
+                const grouped = groupLocationsByRegion(storeLocations)
 
-                const stateOrder = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi']
-                
-                return stateOrder.map((stateName) => {
+                return LIST_REGION_ORDER.map((stateName) => {
                   const locations = grouped[stateName] || []
                   if (locations.length === 0) return null
-                  
+
                   return (
                     <div key={stateName} className="space-y-3">
                       <h4 className={`font-bold text-sm ${isHomepage ? 'text-white' : 'text-gray-900'}`}>{stateName}</h4>
