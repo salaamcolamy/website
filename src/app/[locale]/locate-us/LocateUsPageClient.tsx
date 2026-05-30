@@ -12,8 +12,41 @@ const GRID_IMAGE_RIVERSIDE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
 const GRID_IMAGE_KUNAFA_CRISP = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-3.png`
 const GRID_IMAGE_SSSETEL_PARLIMEN = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026%20%281%29.png`
 const GRID_IMAGE_WOP = '/images/WOP.png'
-const GRID_IMAGE_HADRAMAWT_PUTRAJAYA = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-6.png`
+const GRID_IMAGE_HADRAMAWT_PUTRAJAYA = `${IMAGE_BASE}/Conezion%20Putrajaya.png`
 const TOTAL_SLOTS = 24
+
+const SELANGOR_EXTRA_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/Kemuning.png`,
+    alt: 'Shawarma Gaza (Giant Kemuning Utama) — 22, Jalan Kemuning Prima F33/F, Kemuning Utama, Shah Alam, Selangor',
+  },
+  {
+    src: `${IMAGE_BASE}/Hilal%20Resources%20Shah%20Alam.png`,
+    alt: 'Hilal Resources — No 28 Tingkat Bawah Blok 4, Bangunan Worldwide, Seksyen 13, Shah Alam, Selangor. Contact: 012-220 2712',
+  },
+] as const
+
+const PULAU_PINANG_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/Kapitan%20Ara..png`,
+    alt: 'Kapitan Tandoori House @ Sungai Ara — R-01-05 Setia Triangle, Persiaran Kelicap, Sungai Ara, Bayan Lepas, Pulau Pinang. Contact: 010-268 7011',
+  },
+  {
+    src: `${IMAGE_BASE}/Kapitan%20Bukit%20Mertajam.png`,
+    alt: 'Kapitan Tandoori House @ Bandar Perda — G36, Jalan Perda Selatan, De\'Rendezuous, Bukit Mertajam, Pulau Pinang. Contact: 010-256 7011',
+  },
+  {
+    src: `${IMAGE_BASE}/Khalifah%20Bukit%20Mertajam.png`,
+    alt: 'Khalifah Eksklusif — 2, Tingkat Ciku 1, Taman Ciku, Bukit Mertajam, Pulau Pinang. Contact: 019-288 2786',
+  },
+] as const
+
+const KEDAH_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/Kapitan%20Penang.png`,
+    alt: 'Kapitan Tandoori House @ Lunas Kulim — 28, Jalan Saujana 2, Taman Industri Saujana, Lunas, Kedah. Contact: 010-396 7011',
+  },
+] as const
 
 const LANGKAWI_IMAGES = [
   {
@@ -42,8 +75,8 @@ const LANGKAWI_IMAGES = [
   },
 ] as const
 
-// State order matches the map list: Kuala Lumpur → Selangor → Negeri Sembilan → Langkawi
-const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Langkawi'] as const
+// State order: Kuala Lumpur → Selangor → Negeri Sembilan → Pulau Pinang → Kedah → Langkawi
+const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Pulau Pinang', 'Kedah', 'Langkawi'] as const
 
 // Each slot mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22), WOP Pizzeria (23). Sahra Savor (KL), Kopi & Kita (NS).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
@@ -95,6 +128,32 @@ function getGridImageAlt(num: number) {
   return `Location ${num}`
 }
 
+type GalleryImage = { src: string; alt: string }
+
+function LocationImageCard({
+  image,
+  label,
+  onEnlarge,
+}: {
+  image: GalleryImage
+  label: string
+  onEnlarge: () => void
+}) {
+  return (
+    <motion.article
+      variants={fadeInUp}
+      className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
+      onClick={onEnlarge}
+      onKeyDown={(e) => e.key === 'Enter' && onEnlarge()}
+      tabIndex={0}
+      role="button"
+      aria-label={label}
+    >
+      <img src={image.src} alt={image.alt} className="w-full h-auto block" loading="lazy" />
+    </motion.article>
+  )
+}
+
 export function LocateUsPageClient() {
   const slotsByState = useMemo(() => {
     const grouped: Record<string, number[]> = {}
@@ -106,7 +165,9 @@ export function LocateUsPageClient() {
     return grouped
   }, [])
   const [enlarged, setEnlarged] = useState<
-    { type: 'slot'; num: number } | { type: 'langkawi'; index: number } | null
+    | { type: 'slot'; num: number }
+    | { type: 'gallery'; src: string; alt: string }
+    | null
   >(null)
 
   useEffect(() => {
@@ -157,8 +218,19 @@ export function LocateUsPageClient() {
       <section className="container-padding pb-20 space-y-16">
         {STATE_ORDER.map((stateName) => {
           const slots = slotsByState[stateName] ?? []
-          const isLangkawi = stateName === 'Langkawi'
-          if (!isLangkawi && slots.length === 0) return null
+          const galleryImages: readonly GalleryImage[] =
+            stateName === 'Langkawi'
+              ? LANGKAWI_IMAGES
+              : stateName === 'Pulau Pinang'
+                ? PULAU_PINANG_IMAGES
+                : stateName === 'Kedah'
+                  ? KEDAH_IMAGES
+                  : stateName === 'Selangor'
+                    ? SELANGOR_EXTRA_IMAGES
+                    : []
+
+          if (slots.length === 0 && galleryImages.length === 0) return null
+
           return (
             <motion.div
               key={stateName}
@@ -172,40 +244,32 @@ export function LocateUsPageClient() {
                 {stateName}
               </h2>
               <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLangkawi
-                  ? LANGKAWI_IMAGES.map((image, index) => (
-                      <motion.article
-                        key={image.src}
-                        variants={fadeInUp}
-                        className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
-                        onClick={() => setEnlarged({ type: 'langkawi', index })}
-                        onKeyDown={(e) =>
-                          e.key === 'Enter' && setEnlarged({ type: 'langkawi', index })
-                        }
-                        tabIndex={0}
-                        role="button"
-                        aria-label={`View Langkawi location ${index + 1} enlarged`}
-                      >
-                        <img
-                          src={image.src}
-                          alt={image.alt}
-                          className="w-full h-auto block"
-                          loading={index === 0 ? 'eager' : 'lazy'}
-                        />
-                      </motion.article>
-                    ))
-                  : slots.map((num) => (
-                      <motion.article
-                        key={num}
-                        variants={fadeInUp}
-                        className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
-                        onClick={() => setEnlarged({ type: 'slot', num })}
-                        onKeyDown={(e) =>
-                          e.key === 'Enter' && setEnlarged({ type: 'slot', num })
-                        }
+                {slots.map((num) => (
+                  <motion.article
+                    key={`slot-${num}`}
+                    variants={fadeInUp}
+                    className="rounded-2xl overflow-hidden shadow-lg cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-salaam-red-500 focus-visible:ring-offset-2"
+                    onClick={() => setEnlarged({ type: 'slot', num })}
+                    onKeyDown={(e) => e.key === 'Enter' && setEnlarged({ type: 'slot', num })}
                     tabIndex={0}
                     role="button"
-                    aria-label={num === 1 ? 'View High Street Art Cafe enlarged' : num === 2 ? 'View Nasi Kerabu Keramat locations enlarged' : num === 3 ? 'View Riverside Cafe WTCKL enlarged' : num === 21 ? 'View Kunafa Crisp enlarged' : num === 22 ? 'View Sssetel Mart Parlimen enlarged' : num === 23 ? 'View WOP Pizzeria enlarged' : num === 24 ? 'View Hadramawt Putrajaya enlarged' : `View location ${num} enlarged`}
+                    aria-label={
+                      num === 1
+                        ? 'View High Street Art Cafe enlarged'
+                        : num === 2
+                          ? 'View Nasi Kerabu Keramat locations enlarged'
+                          : num === 3
+                            ? 'View Riverside Cafe WTCKL enlarged'
+                            : num === 21
+                              ? 'View Kunafa Crisp enlarged'
+                              : num === 22
+                                ? 'View Sssetel Mart Parlimen enlarged'
+                                : num === 23
+                                  ? 'View WOP Pizzeria enlarged'
+                                  : num === 24
+                                    ? 'View Hadramawt Putrajaya enlarged'
+                                    : `View location ${num} enlarged`
+                    }
                   >
                     <img
                       src={getGridImageSrc(num)}
@@ -213,8 +277,16 @@ export function LocateUsPageClient() {
                       className="w-full h-auto block"
                       loading={num === 1 ? 'eager' : 'lazy'}
                     />
-                      </motion.article>
-                    ))}
+                  </motion.article>
+                ))}
+                {galleryImages.map((image) => (
+                  <LocationImageCard
+                    key={image.src}
+                    image={image}
+                    label={`View ${image.alt.split(' — ')[0]} enlarged`}
+                    onEnlarge={() => setEnlarged({ type: 'gallery', src: image.src, alt: image.alt })}
+                  />
+                ))}
               </motion.div>
             </motion.div>
           )
@@ -256,13 +328,13 @@ export function LocateUsPageClient() {
             >
               <img
                 src={
-                  enlarged.type === 'langkawi'
-                    ? LANGKAWI_IMAGES[enlarged.index].src
+                  enlarged.type === 'gallery'
+                    ? enlarged.src
                     : getGridImageSrc(enlarged.num)
                 }
                 alt={
-                  enlarged.type === 'langkawi'
-                    ? LANGKAWI_IMAGES[enlarged.index].alt
+                  enlarged.type === 'gallery'
+                    ? enlarged.alt
                     : getGridImageAlt(enlarged.num)
                 }
                 className="max-w-full max-h-[90vh] w-auto h-auto object-contain"
