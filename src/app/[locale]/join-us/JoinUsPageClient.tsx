@@ -113,10 +113,6 @@ export function JoinUsPageClient() {
     }))
   }
 
-  const scrollToContact = () => {
-    document.getElementById('career')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
@@ -150,76 +146,6 @@ export function JoinUsPageClient() {
               Whether you want to distribute Salaam Cola or build your career with us, we're excited to hear from
               you.
             </motion.p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Distribute Section */}
-      <section className="py-20 relative">
-        <div className="container mx-auto px-4">
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="space-y-12"
-          >
-            <motion.div variants={fadeInUp} className="text-center space-y-4">
-              <span className="inline-block px-4 py-1.5 text-sm font-medium text-salaam-red-500 bg-salaam-red-50 rounded-full">
-                Distribution
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Distribute Salaam Cola</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Bring purposeful refreshment to your customers. Partner with us to stock Malaysia's favorite ethical
-                cola brand.
-              </p>
-            </motion.div>
-
-            {/* Partner Types */}
-            <motion.div variants={staggerContainer} className="grid md:grid-cols-3 gap-6">
-              {distributorTypes.map((type) => (
-                <motion.div key={type.title} variants={fadeInUp}>
-                  <GlassCard className="h-full bg-white hover:shadow-lg transition-shadow">
-                    <div className="w-16 h-16 bg-salaam-red-500/10 rounded-2xl flex items-center justify-center mb-6">
-                      <type.icon className="w-8 h-8 text-salaam-red-500" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{type.title}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{type.description}</p>
-                    <ul className="space-y-2">
-                      {type.benefits.map((benefit, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
-                          <CheckCircle className="w-4 h-4 text-salaam-red-500 flex-shrink-0" />
-                          <span>{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Why Partner */}
-            <motion.div variants={fadeInUp} className="bg-gray-50 rounded-3xl p-8 md:p-12">
-              <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">Why Partner With Salaam Cola?</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                {whyPartner.map((item) => (
-                  <div key={item.title} className="text-center">
-                    <div className="w-14 h-14 mx-auto bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                      <item.icon className="w-7 h-7 text-salaam-red-500" />
-                    </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">{item.title}</h4>
-                    <p className="text-sm text-gray-600">{item.description}</p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* CTA */}
-            <motion.div variants={fadeInUp} className="text-center">
-              <GlassButton variant="primary" size="lg" onClick={scrollToContact} rightIcon={<ArrowRight className="w-5 h-5" />}>
-                Talk to Us
-              </GlassButton>
-            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -355,14 +281,6 @@ export function JoinUsPageClient() {
                       />
                     </div>
 
-                    {/* CV Upload - Hidden for now
-                    <FileUpload
-                      onFileSelect={setCvFile}
-                      label="Upload your CV/Resume"
-                      maxSizeMB={5}
-                    />
-                    */}
-
                     {status === 'error' && errorMessage && (
                       <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                         {errorMessage}
@@ -382,6 +300,78 @@ export function JoinUsPageClient() {
                   </form>
                 )}
               </GlassCard>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Distribute Section */}
+      <section className="py-20 relative">
+        <div className="container mx-auto px-4">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="space-y-12"
+          >
+            <motion.div variants={fadeInUp} className="text-center space-y-4">
+              <span className="inline-block px-4 py-1.5 text-sm font-medium text-salaam-red-500 bg-salaam-red-50 rounded-full">
+                Distribution
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Distribute Salaam Cola</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Bring purposeful refreshment to your customers. Partner with us to stock Malaysia's favorite ethical
+                cola brand.
+              </p>
+            </motion.div>
+
+            {/* Partner Types */}
+            <motion.div variants={staggerContainer} className="grid md:grid-cols-3 gap-6">
+              {distributorTypes.map((type) => (
+                <motion.div key={type.title} variants={fadeInUp}>
+                  <GlassCard className="h-full bg-white hover:shadow-lg transition-shadow">
+                    <div className="w-16 h-16 bg-salaam-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+                      <type.icon className="w-8 h-8 text-salaam-red-500" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">{type.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{type.description}</p>
+                    <ul className="space-y-2">
+                      {type.benefits.map((benefit, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
+                          <CheckCircle className="w-4 h-4 text-salaam-red-500 flex-shrink-0" />
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Why Partner */}
+            <motion.div variants={fadeInUp} className="bg-gray-50 rounded-3xl p-8 md:p-12">
+              <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">Why Partner With Salaam Cola?</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                {whyPartner.map((item) => (
+                  <div key={item.title} className="text-center">
+                    <div className="w-14 h-14 mx-auto bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+                      <item.icon className="w-7 h-7 text-salaam-red-500" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">{item.title}</h4>
+                    <p className="text-sm text-gray-600">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* CTA */}
+            <motion.div variants={fadeInUp} className="text-center">
+              <a href="mailto:hello@salaamcolamy.com">
+                <GlassButton variant="primary" size="lg" rightIcon={<ArrowRight className="w-5 h-5" />}>
+                  Talk to Us
+                </GlassButton>
+              </a>
             </motion.div>
           </motion.div>
         </div>
