@@ -63,18 +63,35 @@ export function ContactPageClient() {
     message: '',
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus('loading')
+    setErrorMessage('')
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
 
-    setStatus('success')
-    setFormData({ name: '', email: '', subject: '', message: '' })
+      const data = await response.json()
 
-    setTimeout(() => setStatus('idle'), 3000)
+      if (!response.ok || !data.success) {
+        setErrorMessage(data.error || 'Failed to send message. Please try again.')
+        setStatus('error')
+        return
+      }
+
+      setStatus('success')
+      setFormData({ name: '', email: '', subject: '', message: '' })
+      setTimeout(() => setStatus('idle'), 5000)
+    } catch {
+      setErrorMessage('Network error. Please check your connection and try again.')
+      setStatus('error')
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -192,6 +209,12 @@ export function ContactPageClient() {
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-salaam-red-500/50 focus:border-salaam-red-500/50 transition-all duration-300 resize-none"
                       />
                     </div>
+
+                    {status === 'error' && errorMessage && (
+                      <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                        {errorMessage}
+                      </p>
+                    )}
 
                     <GlassButton
                       type="submit"

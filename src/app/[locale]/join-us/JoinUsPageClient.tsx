@@ -73,19 +73,35 @@ export function JoinUsPageClient() {
   })
   // const [cvFile, setCvFile] = useState<File | null>(null) // Hidden for now
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus('loading')
+    setErrorMessage('')
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch('/api/career', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
 
-    setStatus('success')
-    setFormData({ name: '', email: '', phone: '', position: '', message: '' })
-    // setCvFile(null) // Hidden for now
+      const data = await response.json()
 
-    setTimeout(() => setStatus('idle'), 3000)
+      if (!response.ok || !data.success) {
+        setErrorMessage(data.error || 'Failed to send application. Please try again.')
+        setStatus('error')
+        return
+      }
+
+      setStatus('success')
+      setFormData({ name: '', email: '', phone: '', position: '', message: '' })
+      setTimeout(() => setStatus('idle'), 5000)
+    } catch {
+      setErrorMessage('Network error. Please check your connection and try again.')
+      setStatus('error')
+    }
   }
 
   const handleChange = (
@@ -346,6 +362,12 @@ export function JoinUsPageClient() {
                       maxSizeMB={5}
                     />
                     */}
+
+                    {status === 'error' && errorMessage && (
+                      <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                        {errorMessage}
+                      </p>
+                    )}
 
                     <GlassButton
                       type="submit"
