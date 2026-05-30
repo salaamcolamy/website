@@ -5,6 +5,8 @@ import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 
 const CAROUSEL_IMAGES = [
+  '/images/Carousel Events/A7405600.jpg',
+  '/images/Carousel Events/A7405597.jpg',
   '/images/Carousel Events/DSC01075.jpg',
   '/images/Carousel Events/DSC01214.jpg',
   '/images/Carousel Events/DSC06518.JPG',
