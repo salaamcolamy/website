@@ -1,26 +1,26 @@
 'use client'
 
-import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 
 const CAROUSEL_IMAGES = [
-  '/images/Carousel Events/A7405600.jpg',
-  '/images/Carousel Events/A7405597.jpg',
-  '/images/Carousel Events/DSC01075.jpg',
-  '/images/Carousel Events/DSC01214.jpg',
-  '/images/Carousel Events/DSC06518.JPG',
-  '/images/Carousel Events/DSC09951.jpg',
-  '/images/Carousel Events/FF_07300.JPG',
-  '/images/Carousel Events/FF_07314.JPG',
-  '/images/Carousel Events/FF_07362.JPG',
-  '/images/Carousel Events/FF_07483.JPG',
-  '/images/Carousel Events/FF_07501.JPG',
+  '/images/Carousel%20Events/A7405600.jpg',
+  '/images/Carousel%20Events/A7405597.jpg',
+  '/images/Carousel%20Events/DSC01075.jpg',
+  '/images/Carousel%20Events/DSC01214.jpg',
+  '/images/Carousel%20Events/DSC06518.JPG',
+  '/images/Carousel%20Events/DSC09951.jpg',
+  '/images/Carousel%20Events/FF_07300.JPG',
+  '/images/Carousel%20Events/FF_07314.JPG',
+  '/images/Carousel%20Events/FF_07362.JPG',
+  '/images/Carousel%20Events/FF_07483.JPG',
+  '/images/Carousel%20Events/FF_07501.JPG',
 ]
 
 const IMAGE_ALT = 'Salaam Cola community and events'
 const SLIDE_DURATION_MS = 4500
-const FADE_DURATION_S = 0.7
+const FADE_DURATION_MS = 700
 
 export function SalaamMovement() {
   const ref = useRef(null)
@@ -29,16 +29,19 @@ export function SalaamMovement() {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
+    CAROUSEL_IMAGES.forEach((src) => {
+      const img = new window.Image()
+      img.src = src
+    })
+  }, [])
+
+  useEffect(() => {
     if (prefersReducedMotion) return
     const id = setInterval(() => {
       setCurrentIndex((i) => (i + 1) % CAROUSEL_IMAGES.length)
     }, SLIDE_DURATION_MS)
     return () => clearInterval(id)
   }, [prefersReducedMotion])
-
-  const src = CAROUSEL_IMAGES[currentIndex]
-  const nextIndex = (currentIndex + 1) % CAROUSEL_IMAGES.length
-  const nextSrc = CAROUSEL_IMAGES[nextIndex]
 
   return (
     <section ref={ref} className="py-16 md:py-20 bg-slate-50 overflow-hidden">
@@ -68,42 +71,38 @@ export function SalaamMovement() {
         className="relative w-full max-w-4xl mx-auto px-4"
         aria-label="Photo carousel"
       >
-        <div className="relative w-full aspect-[4/3] max-h-[420px] rounded-2xl overflow-hidden shadow-xl bg-slate-200">
-          {/* Preload next image so it's ready when slide advances */}
-          <div className="absolute inset-0 opacity-0 pointer-events-none overflow-hidden" aria-hidden>
-            <Image
-              src={nextSrc}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 896px) 100vw, 896px"
-              priority={nextIndex <= 1}
-            />
-          </div>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: FADE_DURATION_S, ease: 'easeInOut' }}
-              className="absolute inset-0"
-            >
-              <Image
-                src={src}
-                alt={`${IMAGE_ALT} ${currentIndex + 1}`}
-                fill
-                className="object-cover"
-                sizes="(max-width: 896px) 100vw, 896px"
-                priority={currentIndex <= 1}
-              />
-            </motion.div>
-          </AnimatePresence>
+        <div className="relative w-full aspect-[4/3] max-h-[420px] min-h-[240px] rounded-2xl overflow-hidden shadow-xl bg-slate-200">
+          {CAROUSEL_IMAGES.map((imageSrc, i) => {
+            const distance = Math.min(
+              Math.abs(i - currentIndex),
+              CAROUSEL_IMAGES.length - Math.abs(i - currentIndex)
+            )
+            if (distance > 1) return null
+
+            return (
+              <div
+                key={imageSrc}
+                className={`absolute inset-0 transition-opacity ease-in-out ${
+                  i === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
+                style={{ transitionDuration: `${FADE_DURATION_MS}ms` }}
+                aria-hidden={i !== currentIndex}
+              >
+                <Image
+                  src={imageSrc}
+                  alt={i === currentIndex ? `${IMAGE_ALT} ${i + 1}` : ''}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 896px) 100vw, 896px"
+                  priority={i <= 2}
+                />
+              </div>
+            )
+          })}
         </div>
 
-        {/* Dots indicator */}
         {!prefersReducedMotion && (
-          <div className="flex justify-center gap-2 mt-4" aria-hidden>
+          <div className="flex justify-center gap-2 mt-4 flex-wrap">
             {CAROUSEL_IMAGES.map((_, i) => (
               <button
                 key={i}
@@ -115,6 +114,7 @@ export function SalaamMovement() {
                     : 'w-2 bg-salaam-red-500/30 hover:bg-salaam-red-500/50'
                 }`}
                 aria-label={`Go to slide ${i + 1}`}
+                aria-current={i === currentIndex ? 'true' : undefined}
               />
             ))}
           </div>
