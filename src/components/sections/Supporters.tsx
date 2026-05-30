@@ -333,8 +333,8 @@ export function Supporters() {
               <h4 className="font-bold text-sm mb-3 text-white">PENGEDAR RASMI:</h4>
               <ul className="space-y-1.5 text-xs text-white/90">
                 <li>
-                  <span className="font-medium text-white">Putrajaya:</span>{' '}
-                  <span>019 - 214 0880 / 011 - 6428 7723</span>
+                  <span className="font-medium text-white">Hilal Resources:</span>{' '}
+                  <span>012-220 2712</span>
                 </li>
                 <li>
                   <span className="font-medium text-white">Negeri Sembilan:</span>{' '}

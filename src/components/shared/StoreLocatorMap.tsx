@@ -292,8 +292,8 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
               <h4 className={`font-bold text-sm mb-3 ${isHomepage ? 'text-white' : 'text-gray-900'}`}>PENGEDAR RASMI:</h4>
               <ul className={`space-y-1.5 text-xs ${isHomepage ? 'text-white/90' : 'text-gray-700'}`}>
                 <li>
-                  <span className={`font-medium ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Putrajaya:</span>{' '}
-                  <span>019 - 214 0880 / 011 - 6428 7723</span>
+                  <span className={`font-medium ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Hilal Resources:</span>{' '}
+                  <span>012-220 2712</span>
                 </li>
                 <li>
                   <span className={`font-medium ${isHomepage ? 'text-white' : 'text-gray-900'}`}>Negeri Sembilan:</span>{' '}
