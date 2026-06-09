@@ -13,7 +13,8 @@ const GRID_IMAGE_KUNAFA_CRISP = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-3.p
 const GRID_IMAGE_SSSETEL_PARLIMEN = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026%20%281%29.png`
 const GRID_IMAGE_WOP = '/images/WOP.png'
 const GRID_IMAGE_HADRAMAWT_PUTRAJAYA = `${IMAGE_BASE}/Conezion%20Putrajaya.png`
-const TOTAL_SLOTS = 24
+const GRID_IMAGE_EDAR_MART = `${IMAGE_BASE}/edar%20mart.png`
+const TOTAL_SLOTS = 25
 
 const SELANGOR_EXTRA_IMAGES = [
   {
@@ -23,6 +24,18 @@ const SELANGOR_EXTRA_IMAGES = [
   {
     src: `${IMAGE_BASE}/Hilal%20Resources%20Shah%20Alam.png`,
     alt: 'Hilal Resources — No 28 Tingkat Bawah Blok 4, Bangunan Worldwide, Seksyen 13, Shah Alam, Selangor. Contact: 012-220 2712',
+  },
+  {
+    src: `${IMAGE_BASE}/eraman%20gate%20a.png`,
+    alt: 'Eraman Express, Gate A, KLIA 1 — KLIA Terminal 1, Contact Pier (International Level) near Gate A, Sepang, Selangor. Contact: 03-8776 8600',
+  },
+  {
+    src: `${IMAGE_BASE}/eraman%20arrival.png`,
+    alt: 'Eraman Express, KLIA 1 — KLIA Terminal 1, Level 3 (Arrival Hall), Sepang, Selangor. Contact: 03-8776 8600',
+  },
+  {
+    src: `${IMAGE_BASE}/eraman%20klia%202.png`,
+    alt: 'Eraman Express, KLIA 2 — KLIA Terminal 2, Level 3 (Departure Hall), Sepang, Selangor. Contact: 03-8776 8600',
   },
 ] as const
 
@@ -101,6 +114,7 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   22: 'Kuala Lumpur', // Sssetel Mart, Parlimen Malaysia
   23: 'Kuala Lumpur', // WOP Pizzeria, Sri Hartamas
   24: 'Selangor', // Hadramawt Putrajaya
+  25: 'Kuala Lumpur', // Edar Mart, Desa Pandan
 }
 
 function getGridImageSrc(num: number) {
@@ -111,6 +125,7 @@ function getGridImageSrc(num: number) {
   if (num === 22) return GRID_IMAGE_SSSETEL_PARLIMEN
   if (num === 23) return GRID_IMAGE_WOP
   if (num === 24) return GRID_IMAGE_HADRAMAWT_PUTRAJAYA
+  if (num === 25) return GRID_IMAGE_EDAR_MART
   return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 12 → 10.png, slot 14 → 12.png
 }
 function getGridImageAlt(num: number) {
@@ -125,6 +140,8 @@ function getGridImageAlt(num: number) {
     return 'WOP Pizzeria — H-0-8, Plaza Damas, 60, Jalan Sri Hartamas 1, Sri Hartamas, Kuala Lumpur. Contact: 03-64197530'
   if (num === 24)
     return 'Hadramawt Putrajaya — M-G-01, Conezion Commercial, Persiaran IRC 3, Putrajaya. Contact: 017-500 4011'
+  if (num === 25)
+    return 'Edar Mart — Jalan 2/76c, Desa Pandan, Kuala Lumpur. Instagram: @edarmart.my'
   return `Location ${num}`
 }
 
@@ -268,7 +285,9 @@ export function LocateUsPageClient() {
                                   ? 'View WOP Pizzeria enlarged'
                                   : num === 24
                                     ? 'View Hadramawt Putrajaya enlarged'
-                                    : `View location ${num} enlarged`
+                                    : num === 25
+                                      ? 'View Edar Mart enlarged'
+                                      : `View location ${num} enlarged`
                     }
                   >
                     <img
