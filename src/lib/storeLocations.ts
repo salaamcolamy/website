@@ -162,6 +162,15 @@ export const storeLocations: StoreLocation[] = [
     x: 119,
     y: 189,
   },
+  {
+    id: 107,
+    name: 'Edar Mart',
+    address: 'Jalan 2/76c, Desa Pandan, 55100 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur',
+    contact: '',
+    state: 'MY14',
+    x: 131,
+    y: 199,
+  },
   // Selangor
   {
     id: 6,
