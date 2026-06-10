@@ -253,6 +253,15 @@ export const storeLocations: StoreLocation[] = [
     x: 133,
     y: 202,
   },
+  {
+    id: 111,
+    name: "Mozer's Restaurant",
+    address: "03-0G-01, D'Vida Business Centre, Jalan Bazar U8/101, Bukit Jelutong, Shah Alam, Selangor",
+    contact: '03-7734 1783',
+    state: 'MY10',
+    x: 136,
+    y: 203,
+  },
   // Pulau Pinang
   {
     id: 32,

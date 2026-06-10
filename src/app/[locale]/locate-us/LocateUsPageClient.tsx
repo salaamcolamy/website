@@ -30,6 +30,10 @@ const SELANGOR_EXTRA_IMAGES = [
     alt: 'Nasi Kandar Budak Mamaks — Lot 3A, Jln Utara, Pjs 52, 46200 Petaling Jaya, Selangor. Contact: 012-377 2276',
   },
   {
+    src: `${IMAGE_BASE}/Mozers.png`,
+    alt: "Mozer's Restaurant — 03-0G-01, D'Vida Business Centre, Jalan Bazar U8/101, Bukit Jelutong, Shah Alam, Selangor. Contact: 03-7734 1783",
+  },
+  {
     src: `${IMAGE_BASE}/eraman%20gate%20a.png`,
     alt: 'Eraman Express, Gate A, KLIA 1 — KLIA Terminal 1, Contact Pier (International Level) near Gate A, Sepang, Selangor. Contact: 03-8776 8600',
   },
