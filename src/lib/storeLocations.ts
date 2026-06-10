@@ -244,6 +244,15 @@ export const storeLocations: StoreLocation[] = [
     x: 135,
     y: 201,
   },
+  {
+    id: 110,
+    name: 'Nasi Kandar Budak Mamaks',
+    address: 'Lot 3A, Jln Utara, Pjs 52, 46200 Petaling Jaya, Selangor',
+    contact: '012-377 2276',
+    state: 'MY10',
+    x: 133,
+    y: 202,
+  },
   // Pulau Pinang
   {
     id: 32,
