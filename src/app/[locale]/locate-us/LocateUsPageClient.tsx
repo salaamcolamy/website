@@ -26,6 +26,10 @@ const SELANGOR_EXTRA_IMAGES = [
     alt: 'Hilal Resources — No 28 Tingkat Bawah Blok 4, Bangunan Worldwide, Seksyen 13, Shah Alam, Selangor. Contact: 012-220 2712',
   },
   {
+    src: `${IMAGE_BASE}/Nasi%20Kandar%20Budak%20Mamaks.png`,
+    alt: 'Nasi Kandar Budak Mamaks — Lot 3A, Jln Utara, Pjs 52, 46200 Petaling Jaya, Selangor. Contact: 012-377 2276',
+  },
+  {
     src: `${IMAGE_BASE}/eraman%20gate%20a.png`,
     alt: 'Eraman Express, Gate A, KLIA 1 — KLIA Terminal 1, Contact Pier (International Level) near Gate A, Sepang, Selangor. Contact: 03-8776 8600',
   },
