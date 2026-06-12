@@ -16,6 +16,13 @@ const GRID_IMAGE_HADRAMAWT_PUTRAJAYA = `${IMAGE_BASE}/Conezion%20Putrajaya.png`
 const GRID_IMAGE_EDAR_MART = `${IMAGE_BASE}/edar%20mart.png`
 const TOTAL_SLOTS = 25
 
+const KL_EXTRA_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/Kapitan%20TTDI.png`,
+    alt: 'Kapitan Tandoori House, TTDI — 50, Jalan Tun Mohd Fuad 1, Taman Tun Dr Ismail, Kuala Lumpur. Contact: 017-899 7011',
+  },
+] as const
+
 const SELANGOR_EXTRA_IMAGES = [
   {
     src: `${IMAGE_BASE}/Kemuning.png`,
@@ -244,15 +251,17 @@ export function LocateUsPageClient() {
         {STATE_ORDER.map((stateName) => {
           const slots = slotsByState[stateName] ?? []
           const galleryImages: readonly GalleryImage[] =
-            stateName === 'Langkawi'
-              ? LANGKAWI_IMAGES
-              : stateName === 'Pulau Pinang'
-                ? PULAU_PINANG_IMAGES
-                : stateName === 'Kedah'
-                  ? KEDAH_IMAGES
-                  : stateName === 'Selangor'
-                    ? SELANGOR_EXTRA_IMAGES
-                    : []
+            stateName === 'Kuala Lumpur'
+              ? KL_EXTRA_IMAGES
+              : stateName === 'Langkawi'
+                ? LANGKAWI_IMAGES
+                : stateName === 'Pulau Pinang'
+                  ? PULAU_PINANG_IMAGES
+                  : stateName === 'Kedah'
+                    ? KEDAH_IMAGES
+                    : stateName === 'Selangor'
+                      ? SELANGOR_EXTRA_IMAGES
+                      : []
 
           if (slots.length === 0 && galleryImages.length === 0) return null
 
