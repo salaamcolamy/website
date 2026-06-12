@@ -171,6 +171,15 @@ export const storeLocations: StoreLocation[] = [
     x: 131,
     y: 199,
   },
+  {
+    id: 112,
+    name: 'Kapitan Tandoori House @ Taman Tun Dr Ismail',
+    address: '50, Jalan Tun Mohd Fuad 1, Taman Tun Dr Ismail, Kuala Lumpur',
+    contact: '017-899 7011',
+    state: 'MY14',
+    x: 117,
+    y: 188,
+  },
   // Selangor
   {
     id: 6,
