@@ -271,6 +271,15 @@ export const storeLocations: StoreLocation[] = [
     x: 136,
     y: 203,
   },
+  {
+    id: 113,
+    name: 'Amir Damascus Restaurant',
+    address: 'D3-G-01, Block D3, Jln Atelier 2A, Edusphere, Cyberjaya, Selangor',
+    contact: '011-5556 0008',
+    state: 'MY10',
+    x: 143,
+    y: 218,
+  },
   // Pulau Pinang
   {
     id: 32,
@@ -348,6 +357,45 @@ export const storeLocations: StoreLocation[] = [
     y: 228,
     comingSoon: true,
   },
+  // Melaka
+  {
+    id: 114,
+    name: 'Ben Salleh',
+    address: '26, Jln TMS 8, Taman Tanjung Minyak Setia, Melaka',
+    contact: '017-374 6398',
+    state: 'MY04',
+    x: 168,
+    y: 248,
+  },
+  // Johor
+  {
+    id: 115,
+    name: 'Kedai Kurma',
+    address: "34, Jalan Gambir 2, Bandar Baru Bukit Gambir, Bukit Gambir, Tangkak, Johor Darul Ta'zim",
+    contact: '019-726 0855',
+    state: 'MY01',
+    x: 188,
+    y: 248,
+  },
+  // Kelantan
+  {
+    id: 116,
+    name: 'Jaffar Rawas Tunjung',
+    address: 'Pt 510–515 Tingkat 1, Jalan Kuala Krai, Bandar Baharu Tunjung, Kota Bharu, Kelantan',
+    contact: '017-542 4011',
+    state: 'MY03',
+    x: 155,
+    y: 115,
+  },
+  {
+    id: 117,
+    name: 'Jaffar Rawas Kota Bharu',
+    address: '18T-B, Jalan Dato Pati, Kota Bharu, Kelantan',
+    contact: '011-1535 2347',
+    state: 'MY03',
+    x: 162,
+    y: 112,
+  },
   // Langkawi
   {
     id: 19,
@@ -401,7 +449,7 @@ export const storeLocations: StoreLocation[] = [
   },
 ]
 
-export const highlightedStates = ['MY10', 'MY14', 'MY05', 'MY02', 'MY07']
+export const highlightedStates = ['MY10', 'MY14', 'MY05', 'MY02', 'MY07', 'MY03', 'MY04', 'MY01']
 
 export const hiddenStates = ['MY12', 'MY13']
 
@@ -424,9 +472,12 @@ export const stateLabels = [
 export const LIST_REGION_ORDER = [
   'Kuala Lumpur',
   'Selangor',
+  'Negeri Sembilan',
+  'Melaka',
+  'Johor',
   'Pulau Pinang',
   'Kedah',
-  'Negeri Sembilan',
+  'Kelantan',
   'Langkawi',
 ] as const
 
@@ -441,6 +492,12 @@ export function getListRegion(loc: StoreLocation): string {
       return 'Pulau Pinang'
     case 'MY05':
       return 'Negeri Sembilan'
+    case 'MY04':
+      return 'Melaka'
+    case 'MY01':
+      return 'Johor'
+    case 'MY03':
+      return 'Kelantan'
     case 'MY02':
       return 'Langkawi'
     default:
