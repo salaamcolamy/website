@@ -52,6 +52,24 @@ const SELANGOR_EXTRA_IMAGES = [
     src: `${IMAGE_BASE}/eraman%20klia%202.png`,
     alt: 'Eraman Express, KLIA 2 — KLIA Terminal 2, Level 3 (Departure Hall), Sepang, Selangor. Contact: 03-8776 8600',
   },
+  {
+    src: `${IMAGE_BASE}/Amir.png`,
+    alt: 'Amir Damascus Restaurant — D3-G-01, Block D3, Jln Atelier 2A, Edusphere, Cyberjaya, Selangor. Contact: 011-5556 0008',
+  },
+] as const
+
+const MELAKA_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/Ben%20Salleh.png`,
+    alt: 'Ben Salleh (Kedai Kurma & Makanan Sunnah) — 26, Jln TMS 8, Taman Tanjung Minyak Setia, Melaka. Contact: 017-374 6398',
+  },
+] as const
+
+const JOHOR_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/Kedai%20Kurma.png`,
+    alt: "Kedai Kurma — 34, Jalan Gambir 2, Bandar Baru Bukit Gambir, Bukit Gambir, Tangkak, Johor Darul Ta'zim. Contact: 019-726 0855",
+  },
 ] as const
 
 const PULAU_PINANG_IMAGES = [
@@ -73,6 +91,17 @@ const KEDAH_IMAGES = [
   {
     src: `${IMAGE_BASE}/Kapitan%20Penang.png`,
     alt: 'Kapitan Tandoori House @ Lunas Kulim — 28, Jalan Saujana 2, Taman Industri Saujana, Lunas, Kedah. Contact: 010-396 7011',
+  },
+] as const
+
+const KELANTAN_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/Jaffar%20Tunjung.png`,
+    alt: 'Jaffar Rawas Tunjung — Pt 510–515 Tingkat 1, Jalan Kuala Krai, Bandar Baharu Tunjung, Kota Bharu, Kelantan. Contact: 017-542 4011',
+  },
+  {
+    src: `${IMAGE_BASE}/Jaffar%20KB.png`,
+    alt: 'Jaffar Rawas Kota Bharu — 18T-B, Jalan Dato Pati, Kota Bharu, Kelantan. Contact: 011-1535 2347',
   },
 ] as const
 
@@ -103,8 +132,18 @@ const LANGKAWI_IMAGES = [
   },
 ] as const
 
-// State order: Kuala Lumpur → Selangor → Negeri Sembilan → Pulau Pinang → Kedah → Langkawi
-const STATE_ORDER = ['Kuala Lumpur', 'Selangor', 'Negeri Sembilan', 'Pulau Pinang', 'Kedah', 'Langkawi'] as const
+// State order: Kuala Lumpur → Selangor → Negeri Sembilan → Melaka → Johor → Pulau Pinang → Kedah → Kelantan → Langkawi
+const STATE_ORDER = [
+  'Kuala Lumpur',
+  'Selangor',
+  'Negeri Sembilan',
+  'Melaka',
+  'Johor',
+  'Pulau Pinang',
+  'Kedah',
+  'Kelantan',
+  'Langkawi',
+] as const
 
 // Each slot mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22), WOP Pizzeria (23). Sahra Savor (KL), Kopi & Kita (NS).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
@@ -259,9 +298,15 @@ export function LocateUsPageClient() {
                   ? PULAU_PINANG_IMAGES
                   : stateName === 'Kedah'
                     ? KEDAH_IMAGES
-                    : stateName === 'Selangor'
-                      ? SELANGOR_EXTRA_IMAGES
-                      : []
+                    : stateName === 'Kelantan'
+                      ? KELANTAN_IMAGES
+                      : stateName === 'Johor'
+                        ? JOHOR_IMAGES
+                        : stateName === 'Melaka'
+                          ? MELAKA_IMAGES
+                          : stateName === 'Selangor'
+                            ? SELANGOR_EXTRA_IMAGES
+                            : []
 
           if (slots.length === 0 && galleryImages.length === 0) return null
 
