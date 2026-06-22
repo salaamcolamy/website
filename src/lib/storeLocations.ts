@@ -280,6 +280,24 @@ export const storeLocations: StoreLocation[] = [
     x: 143,
     y: 218,
   },
+  {
+    id: 118,
+    name: 'Salam Point Mart',
+    address: 'I-G-6, Kelana Jaya Parklane Commercial Hub, Jalan SS 7/26, SS7, Petaling Jaya, Selangor',
+    contact: '03-3142 2666',
+    state: 'MY10',
+    x: 133,
+    y: 197,
+  },
+  {
+    id: 119,
+    name: 'Kurma Madinah 2',
+    address: '11-1, Jalan USJ Heights 1/1B, USJ Heights, Subang Jaya, Selangor',
+    contact: '011-6936 9984',
+    state: 'MY10',
+    x: 127,
+    y: 207,
+  },
   // Pulau Pinang
   {
     id: 32,

@@ -56,6 +56,14 @@ const SELANGOR_EXTRA_IMAGES = [
     src: `${IMAGE_BASE}/Amir.png`,
     alt: 'Amir Damascus Restaurant — D3-G-01, Block D3, Jln Atelier 2A, Edusphere, Cyberjaya, Selangor. Contact: 011-5556 0008',
   },
+  {
+    src: `${IMAGE_BASE}/salaampoint.png`,
+    alt: 'Salam Point Mart — I-G-6, Kelana Jaya Parklane Commercial Hub, Jalan SS 7/26, SS7, Petaling Jaya, Selangor. Contact: 03-3142 2666',
+  },
+  {
+    src: `${IMAGE_BASE}/kurma%20madinah%202.png`,
+    alt: 'Kurma Madinah 2 — 11-1, Jalan USJ Heights 1/1B, USJ Heights, Subang Jaya, Selangor. Contact: 011-6936 9984',
+  },
 ] as const
 
 const MELAKA_IMAGES = [
