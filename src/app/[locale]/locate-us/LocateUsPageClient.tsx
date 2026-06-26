@@ -334,7 +334,7 @@ export function LocateUsPageClient() {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 border-b-2 border-salaam-red-500 pb-2 w-fit">
                 {stateName}
               </h2>
-              <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <motion.div className="grid grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-6">
                 {slots.map((num) => (
                   <motion.article
                     key={`slot-${num}`}
