@@ -180,6 +180,15 @@ export const storeLocations: StoreLocation[] = [
     x: 117,
     y: 188,
   },
+  {
+    id: 120,
+    name: 'Lutfi Jaya, Plaza City One',
+    address: 'No. G20, Ground Floor, Plaza City One, Jalan Munshi Abdullah, Kuala Lumpur',
+    contact: '03-2202 8800',
+    state: 'MY14',
+    x: 127,
+    y: 193,
+  },
   // Selangor
   {
     id: 6,

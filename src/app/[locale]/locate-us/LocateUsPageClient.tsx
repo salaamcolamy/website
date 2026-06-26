@@ -21,6 +21,10 @@ const KL_EXTRA_IMAGES = [
     src: `${IMAGE_BASE}/Kapitan%20TTDI.png`,
     alt: 'Kapitan Tandoori House, TTDI — 50, Jalan Tun Mohd Fuad 1, Taman Tun Dr Ismail, Kuala Lumpur. Contact: 017-899 7011',
   },
+  {
+    src: `${IMAGE_BASE}/Lutfi%20Jaya.png`,
+    alt: 'Lutfi Jaya, Plaza City One — No. G20, Ground Floor, Plaza City One, Jalan Munshi Abdullah, Kuala Lumpur. Contact: 03-2202 8800',
+  },
 ] as const
 
 const SELANGOR_EXTRA_IMAGES = [
