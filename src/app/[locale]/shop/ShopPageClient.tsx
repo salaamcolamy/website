@@ -13,6 +13,7 @@ import {
   AIDILADHA_BANNER_SRC,
   RayaPromoBanner,
 } from '@/components/shop/RayaPromoBanner'
+import { ProductDiscountBadge } from '@/components/shop/ProductDiscountBadge'
 import type { Product } from '@/lib/shopify/types'
 
 interface ShopPageClientProps {
@@ -125,6 +126,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
                       <div className="group text-center">
                         {/* Product Image */}
                         <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4 max-w-[280px] md:max-w-[350px] lg:max-w-[400px] mx-auto">
+                          <ProductDiscountBadge />
                           <Image
                             src={imageUrl}
                             alt={product.featuredImage?.altText || product.title}
