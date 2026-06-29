@@ -9,8 +9,8 @@ import { fadeInUp, staggerContainer, scaleIn } from '@/lib/animations'
 import { Grid, List, Star } from 'lucide-react'
 import Image from 'next/image'
 import {
-  AIDILADHA_BANNER_ALT,
-  AIDILADHA_BANNER_SRC,
+  PAYDAY_SALES_BANNER_ALT,
+  PAYDAY_SALES_BANNER_SRC,
   RayaPromoBanner,
 } from '@/components/shop/RayaPromoBanner'
 import { ProductDiscountBadge } from '@/components/shop/ProductDiscountBadge'
@@ -34,7 +34,7 @@ export function ShopPageClient({ products }: ShopPageClientProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-24">
       <div className="container mx-auto px-4 py-12">
-        <RayaPromoBanner src={AIDILADHA_BANNER_SRC} alt={AIDILADHA_BANNER_ALT} />
+        <RayaPromoBanner src={PAYDAY_SALES_BANNER_SRC} alt={PAYDAY_SALES_BANNER_ALT} />
         <motion.div
           variants={staggerContainer}
           initial="hidden"

@@ -10,6 +10,10 @@ export const AIDILADHA_BANNER_SRC = '/images/hero/Banner%20of%20Aidiladha%20Deal
 export const AIDILADHA_BANNER_ALT =
   'Aidiladha Deals — Aidiladha Bundle RM128, RM10 off'
 
+export const PAYDAY_SALES_BANNER_SRC = '/images/Web%20Website%20Banner.png'
+export const PAYDAY_SALES_BANNER_ALT =
+  'Payday Sales — 10% off, 29 Jun – 9 Julai 2026'
+
 type RayaPromoBannerProps = {
   src?: string
   alt?: string
