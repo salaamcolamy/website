@@ -68,6 +68,10 @@ const SELANGOR_EXTRA_IMAGES = [
     src: `${IMAGE_BASE}/kurma%20madinah%202.png`,
     alt: 'Kurma Madinah 2 — 11-1, Jalan USJ Heights 1/1B, USJ Heights, Subang Jaya, Selangor. Contact: 011-6936 9984',
   },
+  {
+    src: `${IMAGE_BASE}/Beard%20Brothers%20PJ.png`,
+    alt: "Beard Brothers' BBQ, PJ — P-G-01, Tropicana Avenue, Persiaran Tropicana, Golf & Country Resort, Petaling Jaya, Selangor. Contact: 012-319 0962",
+  },
 ] as const
 
 const MELAKA_IMAGES = [
@@ -81,6 +85,10 @@ const JOHOR_IMAGES = [
   {
     src: `${IMAGE_BASE}/Kedai%20Kurma.png`,
     alt: "Kedai Kurma — 34, Jalan Gambir 2, Bandar Baru Bukit Gambir, Bukit Gambir, Tangkak, Johor Darul Ta'zim. Contact: 019-726 0855",
+  },
+  {
+    src: `${IMAGE_BASE}/Beard%20Brothers%20JB.png`,
+    alt: "Beard Brothers' BBQ, JB — Lot B-0-3, Tebing @, Bandar Dato Onn, Johor Bahru. Contact: 012-314 9637",
   },
 ] as const
 

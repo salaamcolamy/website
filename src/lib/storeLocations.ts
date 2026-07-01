@@ -307,6 +307,15 @@ export const storeLocations: StoreLocation[] = [
     x: 127,
     y: 207,
   },
+  {
+    id: 121,
+    name: "Beard Brothers' BBQ, PJ",
+    address: 'P-G-01, Tropicana Avenue, Persiaran Tropicana, Golf & Country Resort, Petaling Jaya, Selangor',
+    contact: '012-319 0962',
+    state: 'MY10',
+    x: 131,
+    y: 196,
+  },
   // Pulau Pinang
   {
     id: 32,
@@ -403,6 +412,15 @@ export const storeLocations: StoreLocation[] = [
     state: 'MY01',
     x: 188,
     y: 248,
+  },
+  {
+    id: 122,
+    name: "Beard Brothers' BBQ, JB",
+    address: 'Lot B-0-3, Tebing @, Bandar Dato Onn, Johor Bahru',
+    contact: '012-314 9637',
+    state: 'MY01',
+    x: 212,
+    y: 258,
   },
   // Kelantan
   {

@@ -8,13 +8,9 @@ const CAROUSEL_IMAGES = [
   '/images/Carousel%20Events/A7405600.jpg',
   '/images/Carousel%20Events/A7405597.jpg',
   '/images/Carousel%20Events/DSC01075.jpg',
-  '/images/Carousel%20Events/DSC01214.jpg',
-  '/images/Carousel%20Events/DSC06518.JPG',
-  '/images/Carousel%20Events/DSC09951.jpg',
   '/images/Carousel%20Events/FF_07300.JPG',
   '/images/Carousel%20Events/FF_07314.JPG',
   '/images/Carousel%20Events/FF_07362.JPG',
-  '/images/Carousel%20Events/FF_07483.JPG',
   '/images/Carousel%20Events/FF_07501.JPG',
 ]
 
