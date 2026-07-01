@@ -72,6 +72,10 @@ const SELANGOR_EXTRA_IMAGES = [
     src: `${IMAGE_BASE}/Beard%20Brothers%20PJ.png`,
     alt: "Beard Brothers' BBQ, PJ — P-G-01, Tropicana Avenue, Persiaran Tropicana, Golf & Country Resort, Petaling Jaya, Selangor. Contact: 012-319 0962",
   },
+  {
+    src: '/images/Mister%20Pizza.png',
+    alt: 'Mister Pizza Malaysia — Surau Al-Mauizhah, Bandar Hill Park, Persiaran Hill Park, Puncak Alam, Selangor. Contact: 011-6061 4255',
+  },
 ] as const
 
 const MELAKA_IMAGES = [

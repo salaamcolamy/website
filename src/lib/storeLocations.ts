@@ -316,6 +316,15 @@ export const storeLocations: StoreLocation[] = [
     x: 131,
     y: 196,
   },
+  {
+    id: 123,
+    name: 'Mister Pizza Malaysia',
+    address: 'Surau Al-Mauizhah, Bandar Hill Park, Persiaran Hill Park, Puncak Alam, Selangor',
+    contact: '011-6061 4255',
+    state: 'MY10',
+    x: 128,
+    y: 186,
+  },
   // Pulau Pinang
   {
     id: 32,
