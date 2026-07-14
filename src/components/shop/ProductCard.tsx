@@ -7,7 +7,6 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { GlassButton } from '@/components/ui/GlassButton'
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/context/CartContext'
-import { ProductDiscountBadge } from '@/components/shop/ProductDiscountBadge'
 import { ShoppingBag } from 'lucide-react'
 import Image from 'next/image'
 import type { Product } from '@/lib/shopify/types'
@@ -43,7 +42,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
         >
           {/* Product image */}
           <div className="relative w-40 h-40 flex-shrink-0 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-            <ProductDiscountBadge className="top-2 left-2 text-[10px] px-2 py-0.5" />
             {product.featuredImage ? (
               <Image
                 src={product.featuredImage.url}
@@ -100,7 +98,6 @@ export function ProductCard({ product, viewMode = 'grid' }: ProductCardProps) {
       >
         {/* Product image */}
         <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-          <ProductDiscountBadge />
           {product.featuredImage ? (
             <Image
               src={product.featuredImage.url}

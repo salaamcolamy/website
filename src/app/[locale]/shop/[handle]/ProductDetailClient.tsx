@@ -14,7 +14,6 @@ import {
   PAYDAY_SALES_BANNER_SRC,
   RayaPromoBanner,
 } from '@/components/shop/RayaPromoBanner'
-import { ProductDiscountBadge } from '@/components/shop/ProductDiscountBadge'
 import { useCart } from '@/context/CartContext'
 import type { Product } from '@/lib/shopify/types'
 
@@ -91,7 +90,6 @@ export function ProductDetailClient({
           <motion.div variants={fadeInLeft} className="space-y-4">
             {/* Main image */}
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-gray-50">
-              <ProductDiscountBadge className="top-4 left-4" />
               <Image
                 src={imageUrl}
                 alt={selectedImage?.altText || product.title}
@@ -451,7 +449,6 @@ export function ProductDetailClient({
                       className="group text-center"
                     >
                       <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden mb-4">
-                        <ProductDiscountBadge />
                         <Image
                           src={relatedImageUrl}
                           alt={relatedProduct.featuredImage?.altText || relatedProduct.title}
