@@ -198,6 +198,24 @@ export const storeLocations: StoreLocation[] = [
     x: 122,
     y: 186,
   },
+  {
+    id: 125,
+    name: 'Bonda KL',
+    address: 'Lot 2736, Seksyen 41, Jalan Mahmud, Kampung Baru, 50300 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur',
+    contact: '',
+    state: 'MY14',
+    x: 126,
+    y: 192,
+  },
+  {
+    id: 126,
+    name: 'Positano Risto',
+    address: 'Block C1, Lot 2, Level G3, Publika Shopping Gallery, 1, Jln Dutamas 1, Solaris Dutamas, Kuala Lumpur',
+    contact: '03-6411 3799',
+    state: 'MY14',
+    x: 124,
+    y: 194,
+  },
   // Selangor
   {
     id: 6,
