@@ -202,7 +202,7 @@ export const storeLocations: StoreLocation[] = [
     id: 125,
     name: 'Bonda KL',
     address: 'Lot 2736, Seksyen 41, Jalan Mahmud, Kampung Baru, 50300 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur',
-    contact: '',
+    contact: '03-8999 4267',
     state: 'MY14',
     x: 126,
     y: 192,

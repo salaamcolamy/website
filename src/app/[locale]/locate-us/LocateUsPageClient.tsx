@@ -29,6 +29,14 @@ const KL_EXTRA_IMAGES = [
     src: `${IMAGE_BASE}/Baitul%20Bijico%20Cafe.png`,
     alt: 'Baitul Bijico Cafe — 14, Jalan Aman, Kampung Datuk Keramat, Kuala Lumpur. Contact: 013-274 8586',
   },
+  {
+    src: '/images/bonda.png',
+    alt: 'Bonda KL — Lot 2736, Seksyen 41, Jalan Mahmud, Kampung Baru, Kuala Lumpur. Contact: 03-8999 4267',
+  },
+  {
+    src: '/images/positano.png',
+    alt: 'Positano Risto — Block C1, Lot 2, Level G3, Publika Shopping Gallery, 1, Jln Dutamas 1, Solaris Dutamas, Kuala Lumpur. Contact: 03-6411 3799',
+  },
 ] as const
 
 const SELANGOR_EXTRA_IMAGES = [
