@@ -25,6 +25,10 @@ const KL_EXTRA_IMAGES = [
     src: `${IMAGE_BASE}/Lutfi%20Jaya.png`,
     alt: 'Lutfi Jaya, Plaza City One — No. G20, Ground Floor, Plaza City One, Jalan Munshi Abdullah, Kuala Lumpur. Contact: 03-2202 8800',
   },
+  {
+    src: `${IMAGE_BASE}/Baitul%20Bijico%20Cafe.png`,
+    alt: 'Baitul Bijico Cafe — 14, Jalan Aman, Kampung Datuk Keramat, Kuala Lumpur. Contact: 013-274 8586',
+  },
 ] as const
 
 const SELANGOR_EXTRA_IMAGES = [

@@ -189,6 +189,15 @@ export const storeLocations: StoreLocation[] = [
     x: 127,
     y: 193,
   },
+  {
+    id: 124,
+    name: 'Baitul Bijico Cafe',
+    address: '14, Jalan Aman, Kampung Datuk Keramat, 55000 Kuala Lumpur, Federal Territory of Kuala Lumpur',
+    contact: '013-274 8586',
+    state: 'MY14',
+    x: 122,
+    y: 186,
+  },
   // Selangor
   {
     id: 6,
