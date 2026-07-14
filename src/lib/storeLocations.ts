@@ -216,6 +216,15 @@ export const storeLocations: StoreLocation[] = [
     x: 124,
     y: 194,
   },
+  {
+    id: 127,
+    name: 'Hartamas Corner',
+    address: 'No 1, Warong Makan, Jalan Sri Hartamas 2, Sri Hartamas, Kuala Lumpur',
+    contact: '012-927 6852',
+    state: 'MY14',
+    x: 123,
+    y: 190,
+  },
   // Selangor
   {
     id: 6,
