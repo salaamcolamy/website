@@ -37,6 +37,10 @@ const KL_EXTRA_IMAGES = [
     src: '/images/positano.png',
     alt: 'Positano Risto — Block C1, Lot 2, Level G3, Publika Shopping Gallery, 1, Jln Dutamas 1, Solaris Dutamas, Kuala Lumpur. Contact: 03-6411 3799',
   },
+  {
+    src: '/images/hartamas%20corner.png',
+    alt: 'Hartamas Corner — No 1, Warong Makan, Jalan Sri Hartamas 2, Sri Hartamas, Kuala Lumpur. Contact: 012-927 6852',
+  },
 ] as const
 
 const SELANGOR_EXTRA_IMAGES = [
