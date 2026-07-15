@@ -227,7 +227,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 128,
-    name: 'PERNAMA Bellamy',
+    name: 'Kedai PERNAMA Bellamy',
     address: 'Kedai PERNAMA PN10900, Jalan Bellamy, 50460 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -236,7 +236,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 129,
-    name: 'PERNAMA Sungai Besi',
+    name: 'Lamaniaga PERNAMA Sungai Besi',
     address: 'Lamaniaga PERNAMA, Jalan Merdeka, Kem Sungai Besi, 57000 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -245,7 +245,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 130,
-    name: 'PERNAMA Batu Kentomen',
+    name: 'Kedai PERNAMA Batu Kentomen',
     address: 'Kedai PERNAMA PN11200, Kem Batu Kentomen, Jalan Batu Kentomen, 51200 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -254,8 +254,8 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 131,
-    name: 'PERNAMA DTHO KL',
-    address: 'Kedai PERNAMA, Desa Tun Hussein Onn, Jalan Jelatek, 54200 Kuala Lumpur',
+    name: 'Kedai PERNAMA DTHO KL',
+    address: 'Kedai PERNAMA PN13700, RKAT Desa Tun Hussein Onn, 54200 Kuala Lumpur',
     contact: '',
     state: 'MY14',
     x: 128,
@@ -263,7 +263,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 132,
-    name: 'PERNAMA Ampang Tin',
+    name: 'Kedai PERNAMA Ampat Tin',
     address: 'RKAT Ampat Tin, Kem Batu Kentomen, Batu 4½, Jalan Ipoh, 51200 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -272,7 +272,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 133,
-    name: 'PERNAMA Wardieburn',
+    name: 'Kompleks Lamaniaga PERNAMA Wardieburn',
     address: 'Kompleks Lamaniaga PERNAMA, Kem Wardieburn, Setapak, 53200 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -281,7 +281,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 134,
-    name: 'PERNAMA Keramat Hujung',
+    name: 'Kedai PERNAMA Keramat Hujung',
     address: 'Kedai PERNAMA, Jalan Keramat Hujung, Kampung Datuk Keramat, 54000 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -290,7 +290,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 135,
-    name: 'PERNAMA U-Thant',
+    name: 'Kedai PERNAMA U-Thant',
     address: 'Kedai PERNAMA, Jalan U-Thant, Ampang, 55000 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -299,7 +299,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 136,
-    name: 'PERNAMA Kem Transit KL',
+    name: 'Kedai PERNAMA Kem Transit KL',
     address: 'Kedai PERNAMA, Kem Transit KL, Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -308,8 +308,8 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 137,
-    name: 'PERNAMA Desa Tun Abdul Razak',
-    address: 'Kedai PERNAMA, Desa Tun Hussein Onn, Jalan Jelatek, 54200 Kuala Lumpur',
+    name: 'Kedai PERNAMA Desa Tun Abdul Razak',
+    address: 'RKAT, Jalan Labuan, Desa Tun Abdul Razak, 57000 Kuala Lumpur',
     contact: '',
     state: 'MY14',
     x: 134,
@@ -317,7 +317,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 138,
-    name: 'PERNAMA 1 RAMD Kem Perdana',
+    name: 'Kedai PERNAMA 1 RAMD Kem Perdana',
     address: 'Kedai PERNAMA, Kem Perdana Sungai Besi, 57000 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -326,7 +326,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 139,
-    name: 'PERNAMA RKAT Desa Setia Wira',
+    name: 'Kedai PERNAMA RKAT Desa Setia Wira',
     address: 'Kedai PERNAMA, Lot 2 & 3, Lorong Sumpitan, off Jalan Padang Tembak, 54000 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -336,7 +336,7 @@ export const storeLocations: StoreLocation[] = [
   // Selangor — PERNAMA
   {
     id: 140,
-    name: 'PERNAMA Kajang',
+    name: 'Kedai PERNAMA Kajang',
     address: 'Kedai PERNAMA PN19300, Kem Rejimen Artileri Ke-31, 43000 Kajang, Selangor',
     contact: '',
     state: 'MY10',
@@ -345,7 +345,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 141,
-    name: 'PERNAMA Paya Jaras',
+    name: 'Kedai PERNAMA Paya Jaras',
     address: 'Kedai PERNAMA PN15000, JKR 37, Kem Paya Jaras, 47000 Sungai Buloh, Selangor',
     contact: '',
     state: 'MY10',
@@ -354,7 +354,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 142,
-    name: 'PERNAMA TUDM Subang',
+    name: 'Kompleks Lamaniaga PERNAMA TUDM Subang',
     address: 'Kompleks Lamaniaga Pernama, Lot 1 & 2, Jalan Bendahara, Pengkalan TUDM Subang, 40000 Shah Alam, Selangor',
     contact: '',
     state: 'MY10',
@@ -363,7 +363,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 143,
-    name: 'PERNAMA TUDM Jugra',
+    name: 'Kedai PERNAMA TUDM Jugra',
     address: 'Kedai PERNAMA, Rejimen TUDM Jugra, Jalan Sultan Abdul Samad, 42700 Banting, Selangor',
     contact: '',
     state: 'MY10',
@@ -372,7 +372,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 144,
-    name: 'PERNAMA RKAT Tentera Darat Bukit Jalil',
+    name: 'Kedai PERNAMA RKAT Tentera Darat Bukit Jalil',
     address: 'Kedai PERNAMA, RKAT Tentera Darat, Jalan Bukit Jalil 4, Taman LTAT, 43300 Kuala Lumpur',
     contact: '',
     state: 'MY14',
@@ -381,7 +381,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 145,
-    name: 'PERNAMA Sungai Buloh',
+    name: 'Kedai PERNAMA Sungai Buloh',
     address: 'Kedai PERNAMA, Kem Sungai Buloh, 47000 Sungai Buloh, Selangor',
     contact: '',
     state: 'MY10',
@@ -390,7 +390,7 @@ export const storeLocations: StoreLocation[] = [
   },
   {
     id: 146,
-    name: 'PERNAMA Kem Pasifik',
+    name: 'Kedai PERNAMA Kem Pasifik',
     address: 'Kedai PERNAMA, RKAT Desa Pasifik, Ampang Hilir, 55000 Kuala Lumpur',
     contact: '',
     state: 'MY14',
