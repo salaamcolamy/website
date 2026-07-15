@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import { X } from 'lucide-react'
 import { LocationStatsCounters } from '@/components/shared/LocationStatsCounters'
+import { getStoreLocationStats } from '@/lib/storeLocations'
 
 const IMAGE_BASE = '/images/locate%20us'
 const GRID_IMAGE_KL_FIRST = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-4.png` // High Street Art Cafe — first KL slot
@@ -195,11 +196,6 @@ const STATE_ORDER = [
   'Langkawi',
 ] as const
 
-/** Map gallery regions that are not separate Malaysian states for the counter. */
-const STATE_COUNT_GROUP: Partial<Record<(typeof STATE_ORDER)[number], (typeof STATE_ORDER)[number]>> = {
-  Langkawi: 'Kedah',
-}
-
 // Each slot mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22), WOP Pizzeria (23). Sahra Savor (KL), Kopi & Kita (NS).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   1: 'Kuala Lumpur',    // High Street Art Cafe, Lebuh Pudu
@@ -238,25 +234,6 @@ const STATE_GALLERY_IMAGES: Record<(typeof STATE_ORDER)[number], readonly Galler
   Kedah: KEDAH_IMAGES,
   Kelantan: KELANTAN_IMAGES,
   Langkawi: LANGKAWI_IMAGES,
-}
-
-function getLocateUsStats() {
-  const slotCount = Object.keys(SLOT_STATE).length
-  const galleryCount = STATE_ORDER.reduce(
-    (sum, state) => sum + STATE_GALLERY_IMAGES[state].length,
-    0
-  )
-  const countedStates = new Set(
-    STATE_ORDER.filter((state) => {
-      const hasSlots = Object.values(SLOT_STATE).includes(state)
-      return hasSlots || STATE_GALLERY_IMAGES[state].length > 0
-    }).map((state) => STATE_COUNT_GROUP[state] ?? state)
-  )
-
-  return {
-    locationCount: slotCount + galleryCount,
-    stateCount: countedStates.size,
-  }
 }
 
 function getGridImageSrc(num: number) {
@@ -312,7 +289,8 @@ function LocationImageCard({
 }
 
 export function LocateUsPageClient() {
-  const { locationCount, stateCount } = useMemo(() => getLocateUsStats(), [])
+  // Same totals as map counters: 74 locations (excl. coming-soon), 8 states (Langkawi→Kedah)
+  const { locationCount, stateCount } = useMemo(() => getStoreLocationStats(), [])
   const slotsByState = useMemo(() => {
     const grouped: Record<string, number[]> = {}
     for (const state of STATE_ORDER) grouped[state] = []

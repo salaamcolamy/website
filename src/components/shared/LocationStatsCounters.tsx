@@ -94,11 +94,13 @@ function AnimatedStatCard({
   target,
   active,
   prefersReducedMotion,
+  theme,
 }: {
   label: string
   target: number
   active: boolean
   prefersReducedMotion: boolean | null
+  theme: 'light' | 'dark'
 }) {
   const { value, opacity, phase } = useAnimatedCounter(target, active, prefersReducedMotion)
   const isFlickering = phase === 'flicker'
@@ -128,7 +130,9 @@ function AnimatedStatCard({
       >
         {value}
       </motion.p>
-      <p className="mt-1 text-sm font-medium text-gray-600">{label}</p>
+      <p className={`mt-1 text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}>
+        {label}
+      </p>
     </div>
   )
 }
@@ -153,6 +157,8 @@ export interface LocationStatsCountersProps {
   inViewAmount?: number
   /** When true, wait until the element is actually painted (splash opacity gate). */
   waitForVisibility?: boolean
+  /** `dark` = white labels (map sections); `light` = gray labels (Locate Us). */
+  theme?: 'light' | 'dark'
 }
 
 /**
@@ -165,6 +171,7 @@ export function LocationStatsCounters({
   className,
   inViewAmount = 0.35,
   waitForVisibility = true,
+  theme = 'light',
 }: LocationStatsCountersProps) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, amount: inViewAmount })
@@ -210,12 +217,14 @@ export function LocationStatsCounters({
         target={locationCount}
         active={countersActive}
         prefersReducedMotion={prefersReducedMotion}
+        theme={theme}
       />
       <AnimatedStatCard
         label="States"
         target={stateCount}
         active={countersActive}
         prefersReducedMotion={prefersReducedMotion}
+        theme={theme}
       />
     </div>
   )

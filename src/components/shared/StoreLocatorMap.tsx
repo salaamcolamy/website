@@ -77,6 +77,7 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
         locationCount={locationCount}
         stateCount={stateCount}
         className="mb-10 flex flex-wrap justify-center gap-4"
+        theme="dark"
       />
       <div className="grid lg:grid-cols-2 gap-8">
         <div className="relative">

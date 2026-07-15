@@ -783,11 +783,12 @@ const STATE_COUNT_GROUP: Record<string, string> = {
 }
 
 /**
- * Map-section stats from store locator data.
- * Locations include coming-soon pins (they appear on the map/list).
- * States = unique list regions with Langkawi folded into Kedah.
+ * Sitewide Locations / States counter totals (Supporters, contact map, Locate Us).
+ * Locations = open pins only (coming-soon stays on the map/list but is not counted).
+ * With 19 PERNAMA outlets: 74 locations. States fold Langkawi into Kedah → 8.
  */
 export function getStoreLocationStats(locations: StoreLocation[] = storeLocations) {
+  const countableLocations = locations.filter((loc) => !loc.comingSoon)
   const countedStates = new Set(
     locations.map((loc) => {
       const region = getListRegion(loc)
@@ -796,7 +797,7 @@ export function getStoreLocationStats(locations: StoreLocation[] = storeLocation
   )
 
   return {
-    locationCount: locations.length,
+    locationCount: countableLocations.length,
     stateCount: countedStates.size,
   }
 }

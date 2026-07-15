@@ -101,6 +101,7 @@ export function Supporters() {
           locationCount={locationCount}
           stateCount={stateCount}
           className="mb-10 flex flex-wrap justify-center gap-4"
+          theme="dark"
         />
 
         {/* Map and Store List Side by Side */}
