@@ -19,6 +19,10 @@ const TOTAL_SLOTS = 25
 
 const KL_EXTRA_IMAGES = [
   {
+    src: `${IMAGE_BASE}/pernama%20kl.png`,
+    alt: 'Kedai PERNAMA — Kuala Lumpur locations: Kedai PERNAMA Bellamy (Jalan Bellamy), Lamaniaga PERNAMA Sungai Besi, Kedai PERNAMA Batu Kentomen, Kedai PERNAMA DTHO KL, Kedai PERNAMA Ampat Tin, Kompleks Lamaniaga PERNAMA Wardieburn, Kedai PERNAMA Keramat Hujung, Kedai PERNAMA U-Thant, Kedai PERNAMA Kem Transit KL, Kedai PERNAMA Desa Tun Abdul Razak, Kedai PERNAMA 1 RAMD Kem Perdana, Kedai PERNAMA RKAT Desa Setia Wira, Kedai PERNAMA RKAT Tentera Darat Bukit Jalil, Kedai PERNAMA Kem Pasifik',
+  },
+  {
     src: `${IMAGE_BASE}/Kapitan%20TTDI.png`,
     alt: 'Kapitan Tandoori House, TTDI — 50, Jalan Tun Mohd Fuad 1, Taman Tun Dr Ismail, Kuala Lumpur. Contact: 017-899 7011',
   },
@@ -45,6 +49,10 @@ const KL_EXTRA_IMAGES = [
 ] as const
 
 const SELANGOR_EXTRA_IMAGES = [
+  {
+    src: `${IMAGE_BASE}/pernama%20selangor.png`,
+    alt: 'Kedai PERNAMA — Selangor locations: Kedai PERNAMA Kajang, Kedai PERNAMA Paya Jaras, Kompleks Lamaniaga PERNAMA TUDM Subang, Kedai PERNAMA TUDM Jugra, Kedai PERNAMA Sungai Buloh',
+  },
   {
     src: `${IMAGE_BASE}/Kemuning.png`,
     alt: 'Shawarma Gaza (Giant Kemuning Utama) — 22, Jalan Kemuning Prima F33/F, Kemuning Utama, Shah Alam, Selangor',
@@ -379,6 +387,12 @@ export function LocateUsPageClient() {
 
           if (slots.length === 0 && galleryImages.length === 0) return null
 
+          // When a state has grid slots, render the first gallery image ahead of
+          // the slots so it appears first overall in that section; the remaining
+          // gallery images follow the slots. States without slots keep their order.
+          const leadGalleryImage = slots.length > 0 ? galleryImages[0] : undefined
+          const trailingGalleryImages = slots.length > 0 ? galleryImages.slice(1) : galleryImages
+
           return (
             <motion.div
               key={stateName}
@@ -392,6 +406,16 @@ export function LocateUsPageClient() {
                 {stateName}
               </h2>
               <motion.div className="grid grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-6">
+                {leadGalleryImage && (
+                  <LocationImageCard
+                    key={leadGalleryImage.src}
+                    image={leadGalleryImage}
+                    label={`View ${leadGalleryImage.alt.split(' — ')[0]} enlarged`}
+                    onEnlarge={() =>
+                      setEnlarged({ type: 'gallery', src: leadGalleryImage.src, alt: leadGalleryImage.alt })
+                    }
+                  />
+                )}
                 {slots.map((num) => (
                   <motion.article
                     key={`slot-${num}`}
@@ -429,7 +453,7 @@ export function LocateUsPageClient() {
                     />
                   </motion.article>
                 ))}
-                {galleryImages.map((image) => (
+                {trailingGalleryImages.map((image) => (
                   <LocationImageCard
                     key={image.src}
                     image={image}
