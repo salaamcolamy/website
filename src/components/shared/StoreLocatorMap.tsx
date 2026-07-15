@@ -11,8 +11,10 @@ import {
   stateLabels,
   LIST_REGION_ORDER,
   groupLocationsByRegion,
+  getStoreLocationStats,
   type StoreLocation,
 } from '@/lib/storeLocations'
+import { LocationStatsCounters } from '@/components/shared/LocationStatsCounters'
 
 interface StoreLocatorMapProps {
   maxWidth?: string
@@ -67,8 +69,15 @@ export function StoreLocatorMap({ maxWidth = 'max-w-6xl', showStoreList = true, 
     setHoveredLocation(location)
   }
 
+  const { locationCount, stateCount } = getStoreLocationStats()
+
   return (
     <div className={`${maxWidth} mx-auto`}>
+      <LocationStatsCounters
+        locationCount={locationCount}
+        stateCount={stateCount}
+        className="mb-10 flex flex-wrap justify-center gap-4"
+      />
       <div className="grid lg:grid-cols-2 gap-8">
         <div className="relative">
           <div className={isHomepage ? 'relative overflow-hidden' : 'relative bg-salaam-red-100 rounded-2xl shadow-lg p-4 md:p-6 overflow-hidden'}>

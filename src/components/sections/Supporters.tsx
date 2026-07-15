@@ -12,8 +12,10 @@ import {
   stateLabels,
   LIST_REGION_ORDER,
   groupLocationsByRegion,
+  getStoreLocationStats,
   type StoreLocation,
 } from '@/lib/storeLocations'
+import { LocationStatsCounters } from '@/components/shared/LocationStatsCounters'
 
 export function Supporters() {
   const ref = useRef(null)
@@ -21,6 +23,7 @@ export function Supporters() {
   const [hoveredLocation, setHoveredLocation] = useState<StoreLocation | null>(null)
   const [svgContent, setSvgContent] = useState<string>('')
   const [zoomScale, setZoomScale] = useState(1)
+  const { locationCount, stateCount } = getStoreLocationStats()
 
   // States to hide (East Malaysia - Sabah & Sarawak)
 
@@ -93,6 +96,12 @@ export function Supporters() {
           </h2>
           <p className="text-white/90">Find us across Malaysia</p>
         </motion.div>
+
+        <LocationStatsCounters
+          locationCount={locationCount}
+          stateCount={stateCount}
+          className="mb-10 flex flex-wrap justify-center gap-4"
+        />
 
         {/* Map and Store List Side by Side */}
         <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">

@@ -776,3 +776,27 @@ export function groupLocationsByRegion(
     return acc
   }, {} as Record<string, StoreLocation[]>)
 }
+
+/** Langkawi is listed separately but counts as Kedah for the States stat (8 total). */
+const STATE_COUNT_GROUP: Record<string, string> = {
+  Langkawi: 'Kedah',
+}
+
+/**
+ * Map-section stats from store locator data.
+ * Locations include coming-soon pins (they appear on the map/list).
+ * States = unique list regions with Langkawi folded into Kedah.
+ */
+export function getStoreLocationStats(locations: StoreLocation[] = storeLocations) {
+  const countedStates = new Set(
+    locations.map((loc) => {
+      const region = getListRegion(loc)
+      return STATE_COUNT_GROUP[region] ?? region
+    })
+  )
+
+  return {
+    locationCount: locations.length,
+    stateCount: countedStates.size,
+  }
+}
