@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion'
 import { staggerContainer, fadeInUp } from '@/lib/animations'
 import { X } from 'lucide-react'
 
@@ -211,6 +211,166 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   25: 'Kuala Lumpur', // Edar Mart, Desa Pandan
 }
 
+type GalleryImage = { src: string; alt: string }
+
+const STATE_GALLERY_IMAGES: Record<(typeof STATE_ORDER)[number], readonly GalleryImage[]> = {
+  'Kuala Lumpur': KL_EXTRA_IMAGES,
+  Selangor: SELANGOR_EXTRA_IMAGES,
+  'Negeri Sembilan': [],
+  Melaka: MELAKA_IMAGES,
+  Johor: JOHOR_IMAGES,
+  'Pulau Pinang': PULAU_PINANG_IMAGES,
+  Kedah: KEDAH_IMAGES,
+  Kelantan: KELANTAN_IMAGES,
+  Langkawi: LANGKAWI_IMAGES,
+}
+
+function getLocateUsStats() {
+  const slotCount = Object.keys(SLOT_STATE).length
+  const galleryCount = STATE_ORDER.reduce(
+    (sum, state) => sum + STATE_GALLERY_IMAGES[state].length,
+    0
+  )
+  const stateCount = STATE_ORDER.filter((state) => {
+    const hasSlots = Object.values(SLOT_STATE).includes(state)
+    return hasSlots || STATE_GALLERY_IMAGES[state].length > 0
+  }).length
+
+  return {
+    locationCount: slotCount + galleryCount,
+    stateCount,
+  }
+}
+
+type CounterPhase = 'idle' | 'flicker' | 'settle' | 'done'
+
+function randomSlotValue(target: number, flickerProgress: number) {
+  const digits = String(Math.max(target, 1)).length
+  const maxVal = 10 ** digits - 1
+  const minVal = digits > 1 ? 10 ** (digits - 1) : 0
+
+  if (flickerProgress > 0.72) {
+    const spread = Math.max(1, Math.ceil((1 - flickerProgress) * target * 0.55))
+    return Math.min(maxVal, Math.max(minVal, target + Math.floor(Math.random() * spread * 2) - spread))
+  }
+
+  return Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal
+}
+
+function useAnimatedCounter(target: number, active: boolean, prefersReducedMotion: boolean | null) {
+  const [state, setState] = useState<{ value: number; opacity: number; phase: CounterPhase }>({
+    value: 0,
+    opacity: 1,
+    phase: 'idle',
+  })
+
+  useEffect(() => {
+    if (!active) return
+
+    if (prefersReducedMotion) {
+      setState({ value: target, opacity: 1, phase: 'done' })
+      return
+    }
+
+    const flickerMs = 820
+    const settleMs = 320
+    const flickerIntervalMs = 36
+    const start = performance.now()
+    let frameId = 0
+    let lastDigit = 0
+    let lastDigitAt = 0
+    let settleFrom = 0
+
+    const tick = (now: number) => {
+      const elapsed = now - start
+
+      if (elapsed < flickerMs) {
+        const flickerProgress = elapsed / flickerMs
+        const pulse = 0.5 + 0.5 * Math.sin(elapsed * 0.028)
+        const opacity = 0.68 + pulse * 0.32
+
+        if (elapsed - lastDigitAt >= flickerIntervalMs) {
+          lastDigitAt = elapsed
+          lastDigit = randomSlotValue(target, flickerProgress)
+        }
+
+        setState({ value: lastDigit, opacity, phase: 'flicker' })
+        frameId = requestAnimationFrame(tick)
+        return
+      }
+
+      if (elapsed < flickerMs + settleMs) {
+        if (settleFrom === 0 && lastDigit !== target) {
+          settleFrom = lastDigit
+        }
+
+        const settleProgress = (elapsed - flickerMs) / settleMs
+        const eased = 1 - (1 - settleProgress) ** 4
+        const value = Math.round(settleFrom + (target - settleFrom) * eased)
+
+        setState({ value, opacity: 1, phase: 'settle' })
+        frameId = requestAnimationFrame(tick)
+        return
+      }
+
+      setState({ value: target, opacity: 1, phase: 'done' })
+    }
+
+    lastDigit = randomSlotValue(target, 0)
+    lastDigitAt = 0
+    settleFrom = 0
+    setState({ value: lastDigit, opacity: 0.72, phase: 'flicker' })
+    frameId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frameId)
+  }, [active, prefersReducedMotion, target])
+
+  return state
+}
+
+function AnimatedStatCard({
+  label,
+  target,
+  active,
+  prefersReducedMotion,
+}: {
+  label: string
+  target: number
+  active: boolean
+  prefersReducedMotion: boolean | null
+}) {
+  const { value, opacity, phase } = useAnimatedCounter(target, active, prefersReducedMotion)
+  const isFlickering = phase === 'flicker'
+
+  return (
+    <div className="glass-card glow-red min-w-[9.5rem] flex-1 max-w-[12rem] rounded-2xl px-6 py-5 text-center border border-white/40 shadow-glass">
+      <motion.p
+        key={isFlickering ? value : 'locked'}
+        initial={
+          prefersReducedMotion
+            ? false
+            : isFlickering
+              ? { opacity: 0.7, y: -2, scale: 0.98 }
+              : { opacity: 0.85, y: 2, scale: 1.03 }
+        }
+        animate={{
+          opacity,
+          y: 0,
+          scale: 1,
+        }}
+        transition={{
+          duration: isFlickering ? 0.04 : phase === 'settle' ? 0.28 : 0.12,
+          ease: isFlickering ? 'linear' : [0.22, 1, 0.36, 1],
+        }}
+        className="text-3xl md:text-4xl font-bold text-salaam-red-500 tabular-nums"
+        aria-live="polite"
+      >
+        {value}
+      </motion.p>
+      <p className="mt-1 text-sm font-medium text-gray-600">{label}</p>
+    </div>
+  )
+}
+
 function getGridImageSrc(num: number) {
   if (num === 1) return GRID_IMAGE_KL_FIRST
   if (num === 2) return GRID_IMAGE_2026_2
@@ -239,8 +399,6 @@ function getGridImageAlt(num: number) {
   return `Location ${num}`
 }
 
-type GalleryImage = { src: string; alt: string }
-
 function LocationImageCard({
   image,
   label,
@@ -266,6 +424,10 @@ function LocationImageCard({
 }
 
 export function LocateUsPageClient() {
+  const heroRef = useRef<HTMLDivElement>(null)
+  const heroInView = useInView(heroRef, { once: true, amount: 0.6 })
+  const prefersReducedMotion = useReducedMotion()
+  const { locationCount, stateCount } = useMemo(() => getLocateUsStats(), [])
   const slotsByState = useMemo(() => {
     const grouped: Record<string, number[]> = {}
     for (const state of STATE_ORDER) grouped[state] = []
@@ -305,6 +467,7 @@ export function LocateUsPageClient() {
       {/* Hero */}
       <section className="section-padding container-padding pt-28 pb-12">
         <motion.div
+          ref={heroRef}
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
@@ -322,6 +485,24 @@ export function LocateUsPageClient() {
           >
             Find Salaam Cola at retailers and locations near you.
           </motion.p>
+          <motion.div
+            variants={fadeInUp}
+            className="mt-8 flex flex-wrap justify-center gap-4"
+            aria-label="Salaam Cola coverage summary"
+          >
+            <AnimatedStatCard
+              label="Locations"
+              target={locationCount}
+              active={heroInView}
+              prefersReducedMotion={prefersReducedMotion}
+            />
+            <AnimatedStatCard
+              label="States"
+              target={stateCount}
+              active={heroInView}
+              prefersReducedMotion={prefersReducedMotion}
+            />
+          </motion.div>
         </motion.div>
       </section>
 
@@ -329,24 +510,7 @@ export function LocateUsPageClient() {
       <section className="container-padding pb-20 space-y-16">
         {STATE_ORDER.map((stateName) => {
           const slots = slotsByState[stateName] ?? []
-          const galleryImages: readonly GalleryImage[] =
-            stateName === 'Kuala Lumpur'
-              ? KL_EXTRA_IMAGES
-              : stateName === 'Langkawi'
-                ? LANGKAWI_IMAGES
-                : stateName === 'Pulau Pinang'
-                  ? PULAU_PINANG_IMAGES
-                  : stateName === 'Kedah'
-                    ? KEDAH_IMAGES
-                    : stateName === 'Kelantan'
-                      ? KELANTAN_IMAGES
-                      : stateName === 'Johor'
-                        ? JOHOR_IMAGES
-                        : stateName === 'Melaka'
-                          ? MELAKA_IMAGES
-                          : stateName === 'Selangor'
-                            ? SELANGOR_EXTRA_IMAGES
-                            : []
+          const galleryImages = STATE_GALLERY_IMAGES[stateName]
 
           if (slots.length === 0 && galleryImages.length === 0) return null
 
