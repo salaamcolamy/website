@@ -172,7 +172,8 @@ const LANGKAWI_IMAGES = [
   },
 ] as const
 
-// State order: Kuala Lumpur → Selangor → Negeri Sembilan → Melaka → Johor → Pulau Pinang → Kedah → Kelantan → Langkawi
+// Gallery/section order: Kuala Lumpur → Selangor → Negeri Sembilan → Melaka → Johor → Pulau Pinang → Kedah → Kelantan → Langkawi
+// Langkawi stays as its own gallery section but counts as Kedah for the "States" stat (8 total).
 const STATE_ORDER = [
   'Kuala Lumpur',
   'Selangor',
@@ -184,6 +185,11 @@ const STATE_ORDER = [
   'Kelantan',
   'Langkawi',
 ] as const
+
+/** Map gallery regions that are not separate Malaysian states for the counter. */
+const STATE_COUNT_GROUP: Partial<Record<(typeof STATE_ORDER)[number], (typeof STATE_ORDER)[number]>> = {
+  Langkawi: 'Kedah',
+}
 
 // Each slot mapped to state. KL: High Street (1), Kunafa (21), Sssetel Parlimen (22), WOP Pizzeria (23). Sahra Savor (KL), Kopi & Kita (NS).
 const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
@@ -231,14 +237,16 @@ function getLocateUsStats() {
     (sum, state) => sum + STATE_GALLERY_IMAGES[state].length,
     0
   )
-  const stateCount = STATE_ORDER.filter((state) => {
-    const hasSlots = Object.values(SLOT_STATE).includes(state)
-    return hasSlots || STATE_GALLERY_IMAGES[state].length > 0
-  }).length
+  const countedStates = new Set(
+    STATE_ORDER.filter((state) => {
+      const hasSlots = Object.values(SLOT_STATE).includes(state)
+      return hasSlots || STATE_GALLERY_IMAGES[state].length > 0
+    }).map((state) => STATE_COUNT_GROUP[state] ?? state)
+  )
 
   return {
     locationCount: slotCount + galleryCount,
-    stateCount,
+    stateCount: countedStates.size,
   }
 }
 
@@ -272,9 +280,10 @@ function useAnimatedCounter(target: number, active: boolean, prefersReducedMotio
       return
     }
 
-    const flickerMs = 820
-    const settleMs = 320
-    const flickerIntervalMs = 36
+    // Longer, faster race so flicker is obvious on first paint
+    const flickerMs = 1000
+    const settleMs = 280
+    const flickerIntervalMs = 28
     const start = performance.now()
     let frameId = 0
     let lastDigit = 0
@@ -286,8 +295,8 @@ function useAnimatedCounter(target: number, active: boolean, prefersReducedMotio
 
       if (elapsed < flickerMs) {
         const flickerProgress = elapsed / flickerMs
-        const pulse = 0.5 + 0.5 * Math.sin(elapsed * 0.028)
-        const opacity = 0.68 + pulse * 0.32
+        const pulse = 0.5 + 0.5 * Math.sin(elapsed * 0.045)
+        const opacity = 0.42 + pulse * 0.58
 
         if (elapsed - lastDigitAt >= flickerIntervalMs) {
           lastDigitAt = elapsed
@@ -319,7 +328,7 @@ function useAnimatedCounter(target: number, active: boolean, prefersReducedMotio
     lastDigit = randomSlotValue(target, 0)
     lastDigitAt = 0
     settleFrom = 0
-    setState({ value: lastDigit, opacity: 0.72, phase: 'flicker' })
+    setState({ value: lastDigit, opacity: 0.55, phase: 'flicker' })
     frameId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frameId)
   }, [active, prefersReducedMotion, target])
@@ -342,15 +351,15 @@ function AnimatedStatCard({
   const isFlickering = phase === 'flicker'
 
   return (
-    <div className="glass-card glow-red min-w-[9.5rem] flex-1 max-w-[12rem] rounded-2xl px-6 py-5 text-center border border-white/40 shadow-glass">
+    <div className="glass-card glow-red min-w-[10.5rem] flex-1 max-w-[13rem] rounded-2xl px-6 py-5 text-center border border-white/40 shadow-glass">
       <motion.p
         key={isFlickering ? value : 'locked'}
         initial={
           prefersReducedMotion
             ? false
             : isFlickering
-              ? { opacity: 0.7, y: -2, scale: 0.98 }
-              : { opacity: 0.85, y: 2, scale: 1.03 }
+              ? { opacity: 0.45, y: -6, scale: 0.92 }
+              : { opacity: 0.85, y: 2, scale: 1.05 }
         }
         animate={{
           opacity,
@@ -358,10 +367,10 @@ function AnimatedStatCard({
           scale: 1,
         }}
         transition={{
-          duration: isFlickering ? 0.04 : phase === 'settle' ? 0.28 : 0.12,
+          duration: isFlickering ? 0.03 : phase === 'settle' ? 0.28 : 0.12,
           ease: isFlickering ? 'linear' : [0.22, 1, 0.36, 1],
         }}
-        className="text-3xl md:text-4xl font-bold text-salaam-red-500 tabular-nums"
+        className="text-[2.8125rem] md:text-[3.375rem] leading-none font-bold text-salaam-red-500 tabular-nums"
         aria-live="polite"
       >
         {value}
@@ -423,9 +432,23 @@ function LocationImageCard({
   )
 }
 
+function isElementVisiblyRendered(el: HTMLElement) {
+  let node: HTMLElement | null = el
+  while (node) {
+    const { opacity, visibility, display } = getComputedStyle(node)
+    if (display === 'none' || visibility === 'hidden' || Number(opacity) < 0.05) {
+      return false
+    }
+    node = node.parentElement
+  }
+  return true
+}
+
 export function LocateUsPageClient() {
   const heroRef = useRef<HTMLDivElement>(null)
-  const heroInView = useInView(heroRef, { once: true, amount: 0.6 })
+  // Soft threshold — hero is above the fold; splash/parent opacity is the real gate below
+  const heroInView = useInView(heroRef, { once: true, amount: 0.2 })
+  const [countersActive, setCountersActive] = useState(false)
   const prefersReducedMotion = useReducedMotion()
   const { locationCount, stateCount } = useMemo(() => getLocateUsStats(), [])
   const slotsByState = useMemo(() => {
@@ -442,6 +465,31 @@ export function LocateUsPageClient() {
     | { type: 'gallery'; src: string; alt: string }
     | null
   >(null)
+
+  // Start flicker only once the hero is in view AND actually visible (splash keeps
+  // children at opacity 0 for ~1.4s — without this gate the race finishes unseen).
+  useEffect(() => {
+    if (!heroInView || countersActive) return
+
+    let cancelled = false
+    let timeoutId = 0
+
+    const tryStart = () => {
+      if (cancelled) return
+      const el = heroRef.current
+      if (el && isElementVisiblyRendered(el)) {
+        setCountersActive(true)
+        return
+      }
+      timeoutId = window.setTimeout(tryStart, 80)
+    }
+
+    tryStart()
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeoutId)
+    }
+  }, [heroInView, countersActive])
 
   useEffect(() => {
     if (enlarged !== null) {
@@ -493,13 +541,13 @@ export function LocateUsPageClient() {
             <AnimatedStatCard
               label="Locations"
               target={locationCount}
-              active={heroInView}
+              active={countersActive}
               prefersReducedMotion={prefersReducedMotion}
             />
             <AnimatedStatCard
               label="States"
               target={stateCount}
-              active={heroInView}
+              active={countersActive}
               prefersReducedMotion={prefersReducedMotion}
             />
           </motion.div>
