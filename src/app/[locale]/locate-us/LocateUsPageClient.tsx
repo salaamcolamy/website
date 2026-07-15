@@ -161,8 +161,8 @@ const LANGKAWI_IMAGES = [
     alt: 'Tropical Charters — Koperasi Kakitangan Tropical Charters Berhad, 12-3, Langkawi Boulevard Langkawi City, Jalan Mahawangsa 1, Kuah, Langkawi. Contact: 04-952 3641',
   },
   {
-    src: `${IMAGE_BASE}/3.jpg`,
-    alt: 'Salaam Cola location in Langkawi',
+    src: `${IMAGE_BASE}/Lokasi%20Terbaru%20Langkawi.png`,
+    alt: 'Tasik Dayang Bunting — Tasik Dayang Bunting, Kuah, Langkawi. Contact: 03-26164488',
   },
   {
     src: `${IMAGE_BASE}/4.jpg`,
@@ -175,10 +175,6 @@ const LANGKAWI_IMAGES = [
   {
     src: `${IMAGE_BASE}/6.jpg`,
     alt: 'RedSky Cafe — Redsky Cafe @ Villa Molek, Jalan Teluk Baru, Pantai Tengah, Langkawi. Contact: 04-952 3641',
-  },
-  {
-    src: `${IMAGE_BASE}/Lokasi%20Terbaru%20Langkawi.png`,
-    alt: 'Tasik Dayang Bunting — Tasik Dayang Bunting, Kuah, Langkawi. Contact: 03-26164488',
   },
 ] as const
 
@@ -289,7 +285,7 @@ function LocationImageCard({
 }
 
 export function LocateUsPageClient() {
-  // Same totals as map counters: 74 locations (excl. coming-soon), 8 states (Langkawi→Kedah)
+  // Same totals as map counters: 71 locations (excl. coming-soon), 8 states (Langkawi→Kedah)
   const { locationCount, stateCount } = useMemo(() => getStoreLocationStats(), [])
   const slotsByState = useMemo(() => {
     const grouped: Record<string, number[]> = {}

@@ -784,11 +784,13 @@ const STATE_COUNT_GROUP: Record<string, string> = {
 
 /**
  * Sitewide Locations / States counter totals (Supporters, contact map, Locate Us).
- * Locations = open pins only (coming-soon stays on the map/list but is not counted).
- * With 19 PERNAMA outlets: 74 locations. States fold Langkawi into Kedah → 8.
+ * Locations display total is client-specified 71 (raw non-comingSoon pin list is 74;
+ * same-name branches / overlapping pins inflate the count). Coming-soon stays on the
+ * map/list but is not counted. States fold Langkawi into Kedah → 8.
  */
+const DISPLAY_LOCATION_COUNT = 71
+
 export function getStoreLocationStats(locations: StoreLocation[] = storeLocations) {
-  const countableLocations = locations.filter((loc) => !loc.comingSoon)
   const countedStates = new Set(
     locations.map((loc) => {
       const region = getListRegion(loc)
@@ -797,7 +799,7 @@ export function getStoreLocationStats(locations: StoreLocation[] = storeLocation
   )
 
   return {
-    locationCount: countableLocations.length,
+    locationCount: DISPLAY_LOCATION_COUNT,
     stateCount: countedStates.size,
   }
 }
