@@ -343,6 +343,11 @@ export function Supporters() {
               <h4 className="font-bold text-sm mb-3 text-white">PENGEDAR RASMI:</h4>
               <ul className="space-y-1.5 text-xs text-white/90">
                 <li>
+                  <span className="font-medium text-white">Perwira Niaga Malaysia (PERNAMA):</span>
+                  <p className="mt-0.5 text-white/80">19 Lokasi</p>
+                  <span>+603 - 3341 0572</span>
+                </li>
+                <li>
                   <span className="font-medium text-white">Hilal Resources:</span>{' '}
                   <span>012-220 2712</span>
                 </li>
