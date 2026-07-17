@@ -630,6 +630,15 @@ export const storeLocations: StoreLocation[] = [
     y: 248,
   },
   {
+    id: 147,
+    name: 'Kedai Kurma, Batu Pahat',
+    address: 'No. 3, Jalan Ibrahim, Kampung Sateh, Batu Pahat, Johor',
+    contact: '012-607 5852',
+    state: 'MY01',
+    x: 192,
+    y: 254,
+  },
+  {
     id: 122,
     name: "Beard Brothers' BBQ, JB",
     address: 'Lot B-0-3, Tebing @, Bandar Dato Onn, Johor Bahru',

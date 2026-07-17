@@ -14,7 +14,6 @@ const GRID_IMAGE_RIVERSIDE = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola-2.png`
 const GRID_IMAGE_KUNAFA_CRISP = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026-3.png`
 const GRID_IMAGE_SSSETEL_PARLIMEN = `${IMAGE_BASE}/Lokasi%20Salaam%20Cola%202026%20%281%29.png`
 const GRID_IMAGE_WOP = '/images/WOP.png'
-const GRID_IMAGE_HADRAMAWT_PUTRAJAYA = `${IMAGE_BASE}/Conezion%20Putrajaya.png`
 const GRID_IMAGE_EDAR_MART = `${IMAGE_BASE}/edar%20mart.png`
 const TOTAL_SLOTS = 25
 
@@ -46,6 +45,10 @@ const KL_EXTRA_IMAGES = [
   {
     src: '/images/hartamas%20corner.png',
     alt: 'Hartamas Corner — No 1, Warong Makan, Jalan Sri Hartamas 2, Sri Hartamas, Kuala Lumpur. Contact: 012-927 6852',
+  },
+  {
+    src: `${IMAGE_BASE}/Hadramawt%20Razak%20City.png`,
+    alt: 'Hadramawt Restaurant, Razak City — Tun Razak City, Kuala Lumpur. Contact: +603-4100-0002',
   },
 ] as const
 
@@ -102,6 +105,10 @@ const SELANGOR_EXTRA_IMAGES = [
     src: '/images/Mister%20Pizza.png',
     alt: 'Mister Pizza Malaysia — Surau Al-Mauizhah, Bandar Hill Park, Persiaran Hill Park, Puncak Alam, Selangor. Contact: 011-6061 4255',
   },
+  {
+    src: `${IMAGE_BASE}/Hadramawt%20Neo%20Damansara.png`,
+    alt: 'Hadramawt Restaurant, Neo Damansara — Neo Damansara, Petaling Jaya, Selangor. Contact: +603-4100-0003',
+  },
 ] as const
 
 const MELAKA_IMAGES = [
@@ -119,6 +126,10 @@ const JOHOR_IMAGES = [
   {
     src: `${IMAGE_BASE}/Beard%20Brothers%20JB.png`,
     alt: "Beard Brothers' BBQ, JB — Lot B-0-3, Tebing @, Bandar Dato Onn, Johor Bahru. Contact: 012-314 9637",
+  },
+  {
+    src: `${IMAGE_BASE}/Kedai%20Kurma%20Batu%20Pahat.png`,
+    alt: 'Kedai Kurma, Batu Pahat — Batu Pahat, Johor',
   },
 ] as const
 
@@ -214,7 +225,6 @@ const SLOT_STATE: Record<number, (typeof STATE_ORDER)[number]> = {
   21: 'Kuala Lumpur', // Kunafa Crisp, Bukit Bintang
   22: 'Kuala Lumpur', // Sssetel Mart, Parlimen Malaysia
   23: 'Kuala Lumpur', // WOP Pizzeria, Sri Hartamas
-  24: 'Selangor', // Hadramawt Putrajaya
   25: 'Kuala Lumpur', // Edar Mart, Desa Pandan
 }
 
@@ -239,7 +249,6 @@ function getGridImageSrc(num: number) {
   if (num === 21) return GRID_IMAGE_KUNAFA_CRISP
   if (num === 22) return GRID_IMAGE_SSSETEL_PARLIMEN
   if (num === 23) return GRID_IMAGE_WOP
-  if (num === 24) return GRID_IMAGE_HADRAMAWT_PUTRAJAYA
   if (num === 25) return GRID_IMAGE_EDAR_MART
   return `${IMAGE_BASE}/${num - 2}.png` // slot 4 → 2.png, slot 12 → 10.png, slot 14 → 12.png
 }
@@ -253,8 +262,6 @@ function getGridImageAlt(num: number) {
     return 'Sssetel Mart, Parlimen Malaysia — Blok Utama Parlimen Malaysia, Jln Parlimen, Kuala Lumpur. Contact: 017-855 9205'
   if (num === 23)
     return 'WOP Pizzeria — H-0-8, Plaza Damas, 60, Jalan Sri Hartamas 1, Sri Hartamas, Kuala Lumpur. Contact: 03-64197530'
-  if (num === 24)
-    return 'Hadramawt Putrajaya — M-G-01, Conezion Commercial, Persiaran IRC 3, Putrajaya. Contact: 017-500 4011'
   if (num === 25)
     return 'Edar Mart — Jalan 2/76c, Desa Pandan, Kuala Lumpur. Instagram: @edarmart.my'
   return `Location ${num}`
@@ -412,11 +419,9 @@ export function LocateUsPageClient() {
                                 ? 'View Sssetel Mart Parlimen enlarged'
                                 : num === 23
                                   ? 'View WOP Pizzeria enlarged'
-                                  : num === 24
-                                    ? 'View Hadramawt Putrajaya enlarged'
-                                    : num === 25
-                                      ? 'View Edar Mart enlarged'
-                                      : `View location ${num} enlarged`
+                                  : num === 25
+                                    ? 'View Edar Mart enlarged'
+                                    : `View location ${num} enlarged`
                     }
                   >
                     <img
