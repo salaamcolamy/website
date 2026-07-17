@@ -793,11 +793,11 @@ const STATE_COUNT_GROUP: Record<string, string> = {
 
 /**
  * Sitewide Locations / States counter totals (Supporters, contact map, Locate Us).
- * Locations display total is client-specified 71 (raw non-comingSoon pin list is 74;
- * same-name branches / overlapping pins inflate the count). Coming-soon stays on the
- * map/list but is not counted. States fold Langkawi into Kedah → 8.
+ * Locations display total is client-specified 74 (raw pin list is higher; same-name
+ * branches / overlapping pins inflate the count). Coming-soon stays on the map/list
+ * but is not counted. States fold Langkawi into Kedah → 8.
  */
-const DISPLAY_LOCATION_COUNT = 71
+const DISPLAY_LOCATION_COUNT = 74
 
 export function getStoreLocationStats(locations: StoreLocation[] = storeLocations) {
   const countedStates = new Set(

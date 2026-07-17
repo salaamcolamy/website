@@ -292,7 +292,7 @@ function LocationImageCard({
 }
 
 export function LocateUsPageClient() {
-  // Same totals as map counters: 71 locations (excl. coming-soon), 8 states (Langkawi→Kedah)
+  // Same totals as map counters: 74 locations (excl. coming-soon), 8 states (Langkawi→Kedah)
   const { locationCount, stateCount } = useMemo(() => getStoreLocationStats(), [])
   const slotsByState = useMemo(() => {
     const grouped: Record<string, number[]> = {}
