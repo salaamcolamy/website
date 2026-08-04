@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import { Analytics } from '@vercel/analytics/next'
 import { routing } from '@/i18n/routing'
 import { localeDirection, Locale } from '@/i18n/config'
 import { CartProvider } from '@/context/CartContext'
@@ -73,6 +74,7 @@ export default async function LocaleLayout({
             </SplashScreen>
           </CartProvider>
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   )
