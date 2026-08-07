@@ -11,6 +11,7 @@ import { CartDrawer } from '@/components/shop/CartDrawer'
 import { SmoothScroll } from '@/components/layout/SmoothScroll'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { SplashScreen } from '@/components/layout/SplashScreen'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://salaamcolamy.com'),
@@ -73,6 +74,7 @@ export default async function LocaleLayout({
             </SplashScreen>
           </CartProvider>
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   )
